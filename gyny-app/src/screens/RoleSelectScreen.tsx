@@ -17,7 +17,7 @@ export default function RoleSelectScreen({ onStartShopping }: Props) {
       </Pressable>
 
       <Pressable style={styles.button}>
-        <Text style={styles.buttonText}>Logistics</Text>
+        <Text style={styles.buttonText}>Transporters</Text>
       </Pressable>
     </View>
   );

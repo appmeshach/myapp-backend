@@ -6,6 +6,7 @@ import {
   ScrollView,
   Pressable,
   Alert,
+  Image,
 } from "react-native";
 import { api } from "../api/client";
 import { useNavigation } from "@react-navigation/native";
@@ -163,9 +164,21 @@ navigation.navigate("Checkout", {
       <View style={styles.bagHeader}>
   <Text style={styles.bagHeaderTitle}>SHOPPING BAG</Text>
 
-  <Pressable style={styles.bagHeaderIconButton}>
-    <Ionicons name="search-outline" size={28} color="#111111" />
-  </Pressable>
+  <View style={styles.bagHeaderIcons}>
+    <Pressable style={styles.bagHeaderIconButton}>
+      <Ionicons name="search-outline" size={28} color="#111111" />
+    </Pressable>
+
+    <Pressable style={styles.bagHeaderIconButton}>
+      <Image
+        source={require("../../assets/icons/bell.png")}
+        style={styles.bagHeaderBellIcon}
+        resizeMode="contain"
+      />
+
+      <Text style={styles.bagNotificationBadge}>2</Text>
+    </Pressable>
+  </View>
 </View>
 
 <View style={styles.headerDivider} />
@@ -184,7 +197,13 @@ navigation.navigate("Checkout", {
         <Text>Loading bag...</Text>
       ) : stores.length === 0 ? (
   <View style={styles.emptyContainer}>
-    <View style={styles.emptyIconBox} />
+    <View style={styles.emptyIconBox}>
+  <Image
+    source={require("../../assets/icons/bag.png")}
+    style={styles.emptyBagIcon}
+    resizeMode="contain"
+  />
+</View>
 
     <Text style={styles.emptyTitle}>
       Your Shopping Bag Is Empty
@@ -421,12 +440,32 @@ bagHeaderTitle: {
   fontWeight: "700",
   color: "#111111",
 },
+bagHeaderIcons: {
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 8,
+},
+
 bagHeaderIconButton: {
-  width: 28,
-  height: 28,
+  width: 30,
+  height: 30,
   alignItems: "center",
   justifyContent: "center",
-  marginRight: -4,
+  position: "relative",
+},
+
+bagHeaderBellIcon: {
+  width: 24,
+  height: 24,
+},
+
+bagNotificationBadge: {
+  position: "absolute",
+  top: -7,
+  right: -4,
+  fontSize: 11,
+  fontWeight: "700",
+  color: "#111111",
 },
 
 headerDivider: {
@@ -507,7 +546,7 @@ qtyOptionText: {
 itemActionColumn: {
   position: "absolute",
   top: 0,
-  right: 16,
+  right: 0,
   bottom: 18,
   justifyContent: "space-between",
   alignItems: "center",
@@ -638,6 +677,14 @@ emptyIconBox: {
   backgroundColor: "#EAEAEA",
   borderRadius: 45,
   marginBottom: 20,
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+emptyBagIcon: {
+  width: 57,
+  height: 57,
+  marginLeft: 3,
 },
 
 emptyTitle: {

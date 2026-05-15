@@ -14,11 +14,24 @@ import { Ionicons } from "@expo/vector-icons";
 import { categoryTree } from "../data/categoryTree";
 import type { CategoryNode } from "../data/categoryTree";
 
+import CategoryGridIcon from "../../assets/icons/categories/category-grid.svg";
+import FilterBrandIcon from "../../assets/icons/categories/filter-brand.svg";
+import FilterColorIcon from "../../assets/icons/categories/filter-color.svg";
+import FilterSortIcon from "../../assets/icons/categories/filter-sort.svg";
+import FilterFilterIcon from "../../assets/icons/categories/filter-filter.svg";
+import FilterChevronDownIcon from "../../assets/icons/categories/filter-chevron-down.svg";
+
 
 const TOP_SAFE_SPACE =
   Platform.OS === "android" ? StatusBar.currentHeight || 24 : 0;
 
 const mainCategories = Object.keys(categoryTree);
+function getFilterIcon(label: string) {
+  if (label === "Brand") return FilterBrandIcon;
+  if (label === "Color") return FilterColorIcon;
+  if (label === "Sort by") return FilterSortIcon;
+  return FilterFilterIcon;
+}
 
 function isLeafNode(node: CategoryNode | string[]): node is string[] {
   return Array.isArray(node);
@@ -75,38 +88,36 @@ const currentPath = categoryPaths[selectedMainCategory] || [];
             </View>
 
             <View style={styles.content}>
-              <ScrollView
-                style={styles.leftMenu}
-                contentContainerStyle={styles.leftMenuContent}
-                showsVerticalScrollIndicator={false}
-              >
-                {mainCategories.map((category) => {
-                  const isActive = category === selectedMainCategory;
+              <View style={styles.leftMenu}>
+  {mainCategories.map((category) => {
+    const isActive = category === selectedMainCategory;
 
-                  return (
-                    <Pressable
-                      key={category}
-                      style={[
-                        styles.leftMenuItem,
-                        isActive && styles.leftMenuItemActive,
-                      ]}
-                      onPress={() => {
-  setSelectedMainCategory(category);
-  setActiveLeafFilter(null);
-}}
-                    >
-                      <Text
-                        style={[
-                          styles.leftMenuText,
-                          isActive && styles.leftMenuTextActive,
-                        ]}
-                      >
-                        {category}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
+    return (
+      <Pressable
+        key={category}
+        style={[
+          styles.leftMenuItem,
+          isActive && styles.leftMenuItemActive,
+        ]}
+        onPress={() => {
+          setSelectedMainCategory(category);
+          setActiveLeafFilter(null);
+        }}
+      >
+        <Text
+          style={[
+            styles.leftMenuText,
+            isActive && styles.leftMenuTextActive,
+          ]}
+        >
+          {category}
+        </Text>
+      </Pressable>
+    );
+  })}
+</View>
+
+              <View style={styles.categoryGap} />
 
               <ScrollView
                 style={styles.rightPane}
@@ -130,16 +141,19 @@ const currentPath = categoryPaths[selectedMainCategory] || [];
 
                 {!isLastLevel && (
                   <View style={styles.subcategoryGrid}>
-                  {Object.keys(currentNode).map((item) => (
+                  {Object.keys(currentNode).map((item, index) => (
   <Pressable
     key={item}
-    style={styles.subcategoryItem}
+    style={[
+      styles.subcategoryItem,
+      (index + 1) % 3 !== 0 && styles.subcategoryItemSpacing,
+    ]}
     onPress={() =>
-  setCategoryPaths((prev) => ({
-    ...prev,
-    [selectedMainCategory]: [...currentPath, item],
-  }))
-}
+      setCategoryPaths((prev) => ({
+        ...prev,
+        [selectedMainCategory]: [...currentPath, item],
+      }))
+    }
   >
     <View style={styles.gridCirclePlaceholder} />
     <Text style={styles.subcategoryText}>{item}</Text>
@@ -193,20 +207,23 @@ const currentPath = categoryPaths[selectedMainCategory] || [];
               </Pressable>
 
               <Pressable style={styles.leafTopIconButton}>
-                <Ionicons name="grid-outline" size={20} color="#111111" />
-              </Pressable>
+  <CategoryGridIcon width={20} height={20} />
+</Pressable>
             </View>
 
             <View style={styles.leafTopDivider} />
 
 <View style={styles.leafSubcategoryBand}>
   <ScrollView
-  horizontal
-  showsHorizontalScrollIndicator={false}
-  contentContainerStyle={styles.lastLevelRow}
-  decelerationRate="fast"
-  snapToAlignment="start"
->
+    horizontal
+    scrollEnabled={true}
+    nestedScrollEnabled={true}
+    directionalLockEnabled={true}
+    showsHorizontalScrollIndicator={false}
+    contentContainerStyle={styles.lastLevelRow}
+    decelerationRate="fast"
+    snapToAlignment="start"
+  >
     {currentNode.map((item) => (
       <Pressable key={item} style={styles.lastLevelItem}>
         <View style={styles.leafCirclePlaceholder} />
@@ -221,6 +238,7 @@ const currentPath = categoryPaths[selectedMainCategory] || [];
 <View style={styles.filterRow}>
   {["Brand", "Color", "Sort by", "Filter"].map((label) => {
     const isActive = activeLeafFilter === label;
+    const FilterIcon = getFilterIcon(label);
 
     return (
       <Pressable
@@ -230,16 +248,20 @@ const currentPath = categoryPaths[selectedMainCategory] || [];
           setActiveLeafFilter((prev) => (prev === label ? null : label))
         }
       >
-        <Text
-          style={[styles.filterChipText, isActive && styles.filterChipTextActive]}
-        >
-          {label}
-        </Text>
-        <Ionicons
-          name="chevron-down"
-          size={14}
-          color={isActive ? "#111111" : "#555555"}
-        />
+        <View style={styles.filterChipLeft}>
+          <FilterIcon width={14} height={14} />
+
+          <Text
+            style={[
+              styles.filterChipText,
+              isActive && styles.filterChipTextActive,
+            ]}
+          >
+            {label}
+          </Text>
+        </View>
+
+        <FilterChevronDownIcon width={12} height={12} />
       </Pressable>
     );
   })}
@@ -315,45 +337,60 @@ const styles = StyleSheet.create({
   },
 
   leftMenu: {
-  width: 98,
+  width: 112,
+  minWidth: 112,
+  maxWidth: 112,
+  flexGrow: 0,
+  flexShrink: 0,
   backgroundColor: "#F5F5F5",
-  borderRightWidth: 1,
-  borderRightColor: "#BDBDBD",
+  borderRightWidth: 0,
+  overflow: "visible",
 },
-  leftMenuContent: {
-    paddingBottom: 20,
-  },
   leftMenuItem: {
-  height: 62,
+  width: 112,
+  flex: 1,
   paddingHorizontal: 6,
   justifyContent: "center",
   alignItems: "center",
-  borderBottomWidth: 1,
-  borderBottomColor: "#BDBDBD",
+  alignSelf: "flex-start",
+  backgroundColor: "#F5F5F5",
+  borderWidth: 1,
+  borderColor: "#D0D0D0",
 },
   leftMenuItemActive: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 2,
-    borderColor: "#111111",
-  },
+  backgroundColor: "#FFFFFF",
+  borderWidth: 1,
+  borderColor: "#111111",
+  zIndex: 2,
+},
   leftMenuText: {
-    fontSize: 10,
-    lineHeight: 12,
-    color: "#666666",
-    textAlign: "center",
-  },
+  fontSize: 10,
+  lineHeight: 12,
+  color: "#666666",
+  textAlign: "center",
+  width: 96,
+},
   leftMenuTextActive: {
     color: "#111111",
     fontWeight: "700",
   },
 
-  rightPane: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
+  categoryGap: {
+  width: 10,
+  backgroundColor: "#E6E6E6",
+  borderRightWidth: 1,
+  borderRightColor: "#D9D9D9",
+},
+
+rightPane: {
+  flex: 1,
+  minWidth: 0,
+  backgroundColor: "#F5F5F5",
+},
   rightPaneContent: {
-  paddingHorizontal: 8,
-  paddingTop: 13,
+  paddingLeft: 6,
+  paddingRight: 0,
+  paddingTop: 12,
   paddingBottom: 90,
 },
 
@@ -368,23 +405,27 @@ const styles = StyleSheet.create({
   },
 
   subcategoryGrid: {
-  width: "100%",
+  width: 254,
+  alignSelf: "flex-start",
   flexDirection: "row",
   flexWrap: "wrap",
-  justifyContent: "space-between",
+  justifyContent: "flex-start",
   alignItems: "flex-start",
 },
   subcategoryItem: {
-  width: "32%",
+  width: 70,
   alignItems: "center",
-  marginBottom: 22,
+  marginBottom: 24,
+},
+subcategoryItemSpacing: {
+  marginRight: 22,
 },
   gridCirclePlaceholder: {
   width: 70,
   height: 70,
   borderRadius: 35,
   backgroundColor: "#D9D9D9",
-  marginBottom: 7,
+  marginBottom: 8,
 },
 
 leafCirclePlaceholder: {
@@ -395,12 +436,12 @@ leafCirclePlaceholder: {
   marginBottom: 3,
 },
   subcategoryText: {
-  fontSize: 11,
-  lineHeight: 13,
+  fontSize: 10.5,
+  lineHeight: 12,
   letterSpacing: -0.05,
   color: "#666666",
   textAlign: "center",
-  width: 78,
+  width: 70,
 },
 
   lastLevelRow: {
@@ -463,7 +504,7 @@ leafCirclePlaceholder: {
 
   leafHeader: {
   height: 108,
-  paddingHorizontal: 12,
+  paddingHorizontal: 8,
   flexDirection: "row",
   alignItems: "flex-end",
   backgroundColor: "#F5F5F5",
@@ -474,28 +515,29 @@ leafCirclePlaceholder: {
   justifyContent: "center",
   alignItems: "center",
   marginBottom: 17,
-  marginRight: 14,
+  marginRight: 6,
 },
   leafSearchBar: {
-  width: 329,
+  width: 315,
   height: 42,
   borderRadius: 15,
   backgroundColor: "#E9E9E9",
   justifyContent: "center",
   paddingHorizontal: 14,
   marginBottom: 9,
-  marginRight: 20,
+  marginRight: 8,
 },
   leafSearchPlaceholder: {
     fontSize: 12,
     color: "#9A9A9A",
   },
   leafTopIconButton: {
-  width: 20,
-  height: 20,
+  width: 24,
+  height: 28,
   justifyContent: "center",
   alignItems: "center",
-  marginBottom: 19,
+  marginBottom: 16,
+  marginRight: 0,
 },
   leafTopDivider: {
     height: 1,
@@ -506,27 +548,31 @@ leafCirclePlaceholder: {
   flexDirection: "row",
   paddingHorizontal: 8,
   marginTop: 4.5,
+  justifyContent: "space-between",
 },
   filterChip: {
-  width: 100,
+  width: 88,
   height: 26,
   borderWidth: 0.5,
   borderColor: "#BEBEBE",
-  paddingHorizontal: 8,
+  paddingHorizontal: 5,
   flexDirection: "row",
   alignItems: "center",
   justifyContent: "space-between",
   backgroundColor: "#F5F5F5",
-  marginRight: 5,
+},
+filterChipLeft: {
+  flexDirection: "row",
+  alignItems: "center",
 },
   filterChipText: {
-    fontSize: 12.08,
-    lineHeight: 15.6,
-    letterSpacing: 1.5,
-    fontWeight: "600",
-    color: "#555555",
-    marginRight: 6,
-  },
+  fontSize: 12,
+  lineHeight: 15,
+  letterSpacing: 1.2,
+  fontWeight: "600",
+  color: "#555555",
+  marginLeft: 4,
+},
   filterChipActive: {
   borderColor: "#111111",
   backgroundColor: "#EFEFEF",

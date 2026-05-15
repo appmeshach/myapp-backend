@@ -1,142 +1,231 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
+  View,
   Text,
   StyleSheet,
-  ScrollView,
   Pressable,
-  View,
+  ScrollView,
+  Platform,
+  StatusBar,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { api } from "../api/client";
-import {
-  getOrderStatusLabel,
-  getOrderStatusColors,
-} from "../utils/orderStatus";
+import { Ionicons } from "@expo/vector-icons";
+import OrdersIcon from "../../assets/icons/account/orders.svg";
+import MessagesIcon from "../../assets/icons/account/messages.svg";
+import SharedIcon from "../../assets/icons/account/shared.svg";
+import DiscountsIcon from "../../assets/icons/account/discounts.svg";
+import MyStoresIcon from "../../assets/icons/account/my-stores.svg";
+import SettingsIcon from "../../assets/icons/account/settings.svg";
+import SupportIcon from "../../assets/icons/account/support.svg";
 
-type Order = {
-  id: string;
-  state: string;
-  total_amount_kobo: number;
-  created_at: string;
-  store_name?: string;
+const TOP_SAFE_SPACE =
+  Platform.OS === "android" ? StatusBar.currentHeight || 24 : 0;
+
+type AccountMenuItem = {
+  label: string;
+  Icon: React.ElementType;
+  onPress?: () => void;
 };
 
-export default function AccountScreen() {
-  const navigation = useNavigation<any>();
-  const [loading, setLoading] = useState(true);
-  const [orders, setOrders] = useState<Order[]>([]);
-
-  async function loadOrders() {
-    try {
-      setLoading(true);
-      const res = await api.get("/profile/orders");
-      setOrders(res.data.orders || []);
-    } catch (e) {
-      console.error("LOAD ORDERS ERROR:", e);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadOrders();
-  }, []);
+export default function AccountScreen({ navigation }: any) {
+  const menuItems: AccountMenuItem[] = [
+  {
+  label: "Orders",
+  Icon: OrdersIcon,
+  onPress: () => {
+    navigation.navigate("Orders");
+  },
+},
+  {
+    label: "Messages",
+    Icon: MessagesIcon,
+  },
+  {
+    label: "Shared",
+    Icon: SharedIcon,
+  },
+  {
+    label: "Discounts",
+    Icon: DiscountsIcon,
+  },
+  {
+    label: "My stores",
+    Icon: MyStoresIcon,
+  },
+  {
+    label: "Settings",
+    Icon: SettingsIcon,
+  },
+  {
+    label: "Support",
+    Icon: SupportIcon,
+  },
+];
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>My Orders</Text>
+    <View style={styles.screen}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>ACCOUNT</Text>
 
-      {loading ? (
-        <Text>Loading orders...</Text>
-      ) : orders.length === 0 ? (
-        <Text>No orders yet.</Text>
-      ) : (
-        orders.map((order) => {
-          const colors = getOrderStatusColors(order.state);
+          <Pressable style={styles.searchButton}>
+            <Ionicons name="search-outline" size={31} color="#111111" />
+          </Pressable>
+        </View>
 
-          return (
-            <Pressable
-              key={order.id}
-              style={styles.card}
-              onPress={() =>
-                navigation.navigate("OrderDetail", { orderId: order.id })
-              }
-            >
-              <View style={styles.topRow}>
-                <Text style={styles.orderId}>Order: {order.id}</Text>
-                <View style={[styles.badge, { backgroundColor: colors.bg }]}>
-                  <Text style={[styles.badgeText, { color: colors.text }]}>
-                    {getOrderStatusLabel(order.state)}
-                  </Text>
-                </View>
-              </View>
+        <View style={styles.headerDivider} />
 
-              <Text style={styles.text}>
-                Total: ₦{order.total_amount_kobo / 100}
-              </Text>
+        <Pressable style={styles.profileRow} onPress={() => navigation.navigate("Profile")}>
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarText}>A</Text>
+          </View>
 
-              {order.store_name ? (
-                <Text style={styles.text}>Store: {order.store_name}</Text>
-              ) : null}
+          <View style={styles.profileTextArea}>
+            <Text style={styles.profileName}>Adih Terhide</Text>
+            <Text style={styles.profilePhone}>07037227551</Text>
+          </View>
 
-              <Text style={styles.date}>
-                {new Date(order.created_at).toLocaleString()}
-              </Text>
-            </Pressable>
-          );
-        })
-      )}
-    </ScrollView>
+          <Ionicons name="chevron-forward" size={37} color="#000000" />
+        </Pressable>
+
+        <View style={styles.sectionDivider} />
+
+        {menuItems.map((item) => (
+          <Pressable
+            key={item.label}
+            style={styles.menuRow}
+            onPress={item.onPress}
+          >
+            <View style={styles.menuLeft}>
+  <View style={styles.menuIconBox}>
+    <item.Icon width={27} height={27} />
+  </View>
+
+  <Text style={styles.menuLabel}>{item.label}</Text>
+</View>
+
+            <Ionicons name="chevron-forward" size={25} color="#111111" />
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
+  screen: {
+    flex: 1,
     backgroundColor: "#F7F7F7",
-    paddingBottom: 40,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: "800",
-    marginBottom: 16,
+
+  container: {
+    backgroundColor: "#F7F7F7",
+    paddingBottom: 120,
   },
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-  },
-  topRow: {
+
+  header: {
+    height: TOP_SAFE_SPACE + 80,
+    paddingTop: TOP_SAFE_SPACE + 30,
+    paddingHorizontal: 10,
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 8,
-    marginBottom: 8,
   },
-  orderId: {
-    fontSize: 14,
-    fontWeight: "700",
+
+  headerTitle: {
+    fontSize: 21,
+    fontWeight: "800",
+    color: "#111111",
+  },
+
+  searchButton: {
+    width: 38,
+    height: 38,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  headerDivider: {
+    height: 1,
+    backgroundColor: "#CFCFCF",
+  },
+
+  profileRow: {
+    height: 125,
+    backgroundColor: "#F7F7F7",
+    paddingHorizontal: 18,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  avatarCircle: {
+    width: 78,
+    height: 78,
+    borderRadius: 39,
+    borderWidth: 1.5,
+    borderColor: "#777777",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+
+  avatarText: {
+    fontSize: 55,
+    lineHeight: 60,
+    fontWeight: "900",
+    color: "#000000",
+  },
+
+  profileTextArea: {
     flex: 1,
   },
-  badge: {
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+
+  profileName: {
+    fontSize: 20,
+    lineHeight: 25,
+    fontWeight: "800",
+    color: "#000000",
+    marginBottom: 7,
   },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: "700",
+
+  profilePhone: {
+    fontSize: 20,
+    lineHeight: 25,
+    fontWeight: "800",
+    color: "#000000",
   },
-  text: {
-    fontSize: 15,
-    marginBottom: 4,
+
+  sectionDivider: {
+    height: 1,
+    backgroundColor: "#CFCFCF",
   },
-  date: {
-    marginTop: 8,
-    fontSize: 13,
-    color: "#666",
+
+  menuRow: {
+    height: 62,
+    backgroundColor: "#F7F7F7",
+    paddingHorizontal: 22,
+    borderBottomWidth: 1,
+    borderBottomColor: "#CFCFCF",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  menuLeft: {
+  flexDirection: "row",
+  alignItems: "center",
+},
+
+menuIconBox: {
+  width: 27,
+  height: 27,
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+  menuLabel: {
+    marginLeft: 18,
+    fontSize: 23,
+    fontWeight: "500",
+    color: "#111111",
   },
 });

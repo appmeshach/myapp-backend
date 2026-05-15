@@ -9,6 +9,7 @@ import {
   Image,
   Platform,
   StatusBar,
+  Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../api/client";
@@ -59,6 +60,9 @@ const [showQtyPicker, setShowQtyPicker] = useState(false);
 const [showFullDetails, setShowFullDetails] = useState(false);
 const [wishlistCount, setWishlistCount] = useState(0);
 const [isLiked, setIsLiked] = useState(false);
+const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+const [showSizeGuide, setShowSizeGuide] = useState(false);
+const [sizeGuideUnit, setSizeGuideUnit] = useState<"cmkg" | "inlb">("cmkg");
 
   useEffect(() => {
     async function loadProduct() {
@@ -134,6 +138,8 @@ isInWishlist(productId).then(setIsLiked);
     ? selectedVariant.price_override_kobo
     : product.price_kobo;
 
+    const imageVariants = Array.from({ length: 7 }, (_, index) => index);
+
 async function handleAddToWishlist() {
   if (!product) return;
 
@@ -207,7 +213,9 @@ return (
           <View style={styles.mainImagePlaceholder} />
 
           <View style={styles.imageCountPill}>
-            <Text style={styles.imageCountText}>Items 1/7</Text>
+            <Text style={styles.imageCountText}>
+  Items {selectedImageIndex + 1}/{imageVariants.length}
+</Text>
           </View>
 
           <View style={styles.floatingHeart}>
@@ -228,23 +236,30 @@ return (
         </View>
 
         <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.thumbRow}
-        >
-          <View style={[styles.thumbBox, styles.thumbBoxActive]} />
-          <View style={styles.thumbBox} />
-          <View style={styles.thumbBox} />
-          <View style={styles.thumbBox} />
-          <View style={styles.thumbBox} />
-          <View style={styles.thumbBox} />
-          <View style={styles.thumbBox} />
-        </ScrollView>
+  horizontal
+  showsHorizontalScrollIndicator={false}
+  contentContainerStyle={styles.thumbRow}
+>
+  {imageVariants.map((itemIndex) => {
+    const isSelected = selectedImageIndex === itemIndex;
+
+    return (
+      <Pressable
+        key={itemIndex}
+        style={[styles.thumbBox, isSelected && styles.thumbBoxActive]}
+        onPress={() => setSelectedImageIndex(itemIndex)}
+      />
+    );
+  })}
+</ScrollView>
 
         <View style={styles.content}>
           <View style={styles.sizeHeaderRow}>
             <Text style={styles.sizeTitle}>Size</Text>
-            <Pressable style={styles.sizeGuideBtn}>
+            <Pressable
+  style={styles.sizeGuideBtn}
+  onPress={() => setShowSizeGuide(true)}
+>
   <Image
     source={require("../../assets/icons/ruler.png")}
     style={styles.sizeGuideIcon}
@@ -336,9 +351,12 @@ return (
           </Text>
 
           <View style={styles.otherShoppingHeader}>
-            <Text style={styles.otherShoppingTitle}>Others shopping</Text>
-            <Text style={styles.otherShoppingSeeAll}>See all</Text>
-          </View>
+  <Text style={styles.otherShoppingTitle}>Others shopping</Text>
+
+  <Pressable onPress={() => navigation.navigate("OtherShoppers")}>
+    <Text style={styles.otherShoppingSeeAll}>See all</Text>
+  </Pressable>
+</View>
 
           <View style={styles.otherShoppingBox}>
             <View style={styles.otherShoppingSegment}>
@@ -451,12 +469,86 @@ return (
       </ScrollView>
 
             {addBagMessage ? (
-        <View style={styles.addBagMessageWrap}>
-          <Text style={styles.addBagMessageText}>{addBagMessage}</Text>
-        </View>
-      ) : null}
+  <View style={styles.addBagMessageWrap}>
+    <Text style={styles.addBagMessageText}>{addBagMessage}</Text>
+  </View>
+) : null}
 
-      <View style={styles.bottomBar}></View>
+<Modal
+  visible={showSizeGuide}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setShowSizeGuide(false)}
+>
+  <View style={styles.sizeGuideModalOverlay}>
+    <Pressable
+      style={styles.sizeGuideModalBackdrop}
+      onPress={() => setShowSizeGuide(false)}
+    />
+
+    <View style={styles.sizeGuideSheet}>
+      <View style={styles.sizeGuideSheetHeader}>
+        <Text style={styles.sizeGuideSheetTitle}>Size measurement</Text>
+
+        <Pressable
+          style={styles.sizeGuideCloseButton}
+          onPress={() => setShowSizeGuide(false)}
+        >
+          <Ionicons name="close-outline" size={19} color="#111111" />
+        </Pressable>
+      </View>
+
+      <View style={styles.sizeGuideControlsRow}>
+        <Pressable style={styles.sizeGuideDropdown}>
+          <Text style={styles.sizeGuideDropdownText}>NG size</Text>
+          <Ionicons name="chevron-down" size={13} color="#111111" />
+        </Pressable>
+
+        <View style={styles.sizeGuideUnitToggle}>
+          <Pressable
+            style={[
+              styles.sizeGuideUnitButton,
+              sizeGuideUnit === "cmkg" && styles.sizeGuideUnitButtonActive,
+            ]}
+            onPress={() => setSizeGuideUnit("cmkg")}
+          >
+            <Text
+              style={[
+                styles.sizeGuideUnitText,
+                sizeGuideUnit === "cmkg" && styles.sizeGuideUnitTextActive,
+              ]}
+            >
+              cm, kg
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={[
+              styles.sizeGuideUnitButton,
+              sizeGuideUnit === "inlb" && styles.sizeGuideUnitButtonActive,
+            ]}
+            onPress={() => setSizeGuideUnit("inlb")}
+          >
+            <Text
+              style={[
+                styles.sizeGuideUnitText,
+                sizeGuideUnit === "inlb" && styles.sizeGuideUnitTextActive,
+              ]}
+            >
+              in, lb
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+
+      <View style={styles.sizeGuideDivider} />
+
+      <View style={styles.sizeGuideEmptyBody} />
+    </View>
+  </View>
+</Modal>
+
+<View style={styles.bottomBar}></View>
 
       <View style={styles.bottomBar}>
         <Pressable style={styles.bottomIconButton}>
@@ -1117,4 +1209,112 @@ productPrice: {
     fontWeight: "700",
     color: "#FFFFFF",
   },
+  sizeGuideModalOverlay: {
+  flex: 1,
+  justifyContent: "flex-end",
+},
+
+sizeGuideModalBackdrop: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: "rgba(0,0,0,0)",
+},
+
+sizeGuideSheet: {
+  height: 570,
+  backgroundColor: "#FFFFFF",
+  borderTopLeftRadius: 16,
+  borderTopRightRadius: 16,
+  overflow: "hidden",
+},
+
+sizeGuideSheetHeader: {
+  height: 62,
+  justifyContent: "center",
+  alignItems: "center",
+  position: "relative",
+},
+
+sizeGuideSheetTitle: {
+  fontSize: 21,
+  fontWeight: "800",
+  color: "#111111",
+},
+
+sizeGuideCloseButton: {
+  position: "absolute",
+  right: 14,
+  top: 18,
+  width: 22,
+  height: 22,
+  borderRadius: 11,
+  borderWidth: 1,
+  borderColor: "#111111",
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+sizeGuideControlsRow: {
+  height: 42,
+  paddingHorizontal: 14,
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+},
+
+sizeGuideDropdown: {
+  height: 25,
+  borderWidth: 1,
+  borderColor: "#111111",
+  paddingHorizontal: 5,
+  flexDirection: "row",
+  alignItems: "center",
+},
+
+sizeGuideDropdownText: {
+  fontSize: 16,
+  color: "#111111",
+  marginRight: 3,
+},
+
+sizeGuideUnitToggle: {
+  flexDirection: "row",
+  borderWidth: 1,
+  borderColor: "#111111",
+},
+
+sizeGuideUnitButton: {
+  height: 25,
+  paddingHorizontal: 10,
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "#FFFFFF",
+},
+
+sizeGuideUnitButtonActive: {
+  backgroundColor: "#000000",
+},
+
+sizeGuideUnitText: {
+  fontSize: 15,
+  color: "#111111",
+  fontWeight: "600",
+},
+
+sizeGuideUnitTextActive: {
+  color: "#FFFFFF",
+},
+
+sizeGuideDivider: {
+  height: 1,
+  backgroundColor: "#999999",
+},
+
+sizeGuideEmptyBody: {
+  flex: 1,
+  backgroundColor: "#FFFFFF",
+},
 });

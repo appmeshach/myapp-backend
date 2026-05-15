@@ -33,6 +33,10 @@ import OrderDetailScreen from "../screens/OrderDetailScreen";
 import CheckoutScreen from "../screens/CheckoutScreen";
 import NewArrivalsScreen from "../screens/NewArrivalsScreen";
 import StoreDetailScreen from "../screens/StoreDetailScreen";
+import ProfileScreen from "../screens/ProfileScreen";
+import OrdersScreen from "../screens/OrdersScreen";
+import SizeGuideScreen from "../screens/SizeGuideScreen";
+import OtherShoppersScreen from "../screens/OtherShoppersScreen";
 
 import {
   getHasCompletedFirstTimeSetup,
@@ -63,6 +67,10 @@ type RootStackParamList = {
   ProductDetail: { productId: string };
   NewArrivals: undefined;
   StoreDetail: { storeId?: string };
+  Orders: undefined;
+  Profile: undefined;
+  SizeGuide: undefined;
+  OtherShoppers: undefined;
   OrderDetail: { orderId: string };
   Checkout: {
   cartItemIds: string[];
@@ -101,9 +109,10 @@ tabBarInactiveTintColor: "#6E6E6E",
 paddingTop: 10,
 paddingBottom: 18,
 backgroundColor: "#FFFFFF",
-borderTopWidth: 0,
-borderTopLeftRadius: 28,
-borderTopRightRadius: 28,
+borderTopWidth: 1,
+borderTopColor: "#E6E6E6",
+borderTopLeftRadius: 0,
+borderTopRightRadius: 0,
 
           elevation: 14,
 
@@ -194,6 +203,35 @@ function MainStack() {
 <Stack.Screen
   name="StoreDetail"
   component={StoreDetailScreen}
+  options={{
+    headerShown: false,
+  }}
+/>
+<Stack.Screen
+  name="Orders"
+  component={OrdersScreen}
+  options={{
+    headerShown: false,
+  }}
+/>
+<Stack.Screen
+  name="Profile"
+  component={ProfileScreen}
+  options={{
+    headerShown: false,
+  }}
+/>
+<Stack.Screen
+  name="SizeGuide"
+  component={SizeGuideScreen}
+  options={{
+    headerShown: false,
+  }}
+/>
+
+<Stack.Screen
+  name="OtherShoppers"
+  component={OtherShoppersScreen}
   options={{
     headerShown: false,
   }}
