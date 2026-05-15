@@ -1,0 +1,18 @@
+-- 009_add_pending_payment_state.sql
+
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_state_check;
+
+ALTER TABLE orders
+ADD CONSTRAINT orders_state_check
+CHECK (state IN (
+  'PENDING_PAYMENT',
+  'ESCROW_LOCKED',
+  'HANDOVER_TO_RIDER',
+  'IN_TRANSIT',
+  'INSPECTION_ACTIVE',
+  'DISPUTE_OPENED',
+  'SETTLED',
+  'REFUNDED',
+  'CANCELLED_SELLER',
+  'CANCELLED_ADMIN'
+));
