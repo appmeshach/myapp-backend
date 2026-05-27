@@ -37,6 +37,8 @@ import ProfileScreen from "../screens/ProfileScreen";
 import OrdersScreen from "../screens/OrdersScreen";
 import SizeGuideScreen from "../screens/SizeGuideScreen";
 import OtherShoppersScreen from "../screens/OtherShoppersScreen";
+import ChooseLocationScreen from "../screens/ChooseLocationScreen";
+import ProductReviewsScreen from "../screens/ProductReviewsScreen";
 
 import {
   getHasCompletedFirstTimeSetup,
@@ -70,8 +72,15 @@ type RootStackParamList = {
   Orders: undefined;
   Profile: undefined;
   SizeGuide: undefined;
-  OtherShoppers: undefined;
-  OrderDetail: { orderId: string };
+  ProductReviews: undefined;
+OtherShoppers: undefined;
+ChooseLocation:
+  | {
+      storeName?: string;
+      storeAddress?: string;
+    }
+  | undefined;
+OrderDetail: { orderId: string };
   Checkout: {
   cartItemIds: string[];
   selectedTotalKobo: number;
@@ -201,6 +210,13 @@ function MainStack() {
   }}
 />
 <Stack.Screen
+  name="ProductReviews"
+  component={ProductReviewsScreen}
+  options={{
+    headerShown: false,
+  }}
+/>
+<Stack.Screen
   name="StoreDetail"
   component={StoreDetailScreen}
   options={{
@@ -232,6 +248,13 @@ function MainStack() {
 <Stack.Screen
   name="OtherShoppers"
   component={OtherShoppersScreen}
+  options={{
+    headerShown: false,
+  }}
+/>
+<Stack.Screen
+  name="ChooseLocation"
+  component={ChooseLocationScreen}
   options={{
     headerShown: false,
   }}

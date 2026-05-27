@@ -8,16 +8,17 @@ type Props = {
 export default function RoleSelectScreen({ onStartShopping }: Props) {
   return (
     <View style={styles.container}>
-      <Pressable style={styles.button} onPress={onStartShopping}>
-        <Text style={styles.buttonText}>Start Shopping</Text>
-      </Pressable>
+      <Text style={styles.logo}>GYNY</Text>
 
-      <Pressable style={styles.button}>
-        <Text style={styles.buttonText}>Start Selling</Text>
-      </Pressable>
+      <Text style={styles.title}>Shop trusted stores near you</Text>
 
-      <Pressable style={styles.button}>
-        <Text style={styles.buttonText}>Transporters</Text>
+      <Text style={styles.subtitle}>
+        Find products from real stores, choose your delivery address, and track
+        your order from pickup to delivery.
+      </Text>
+
+      <Pressable style={styles.primaryButton} onPress={onStartShopping}>
+        <Text style={styles.primaryButtonText}>Start Shopping</Text>
       </Pressable>
     </View>
   );
@@ -26,21 +27,50 @@ export default function RoleSelectScreen({ onStartShopping }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#E9EEF1",
+    backgroundColor: "#F5F5F5",
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
+    paddingHorizontal: 24,
   },
-  button: {
+
+  logo: {
+    fontSize: 38,
+    fontWeight: "900",
+    color: "#111111",
+    marginBottom: 14,
+    letterSpacing: 1,
+  },
+
+  title: {
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: "800",
+    color: "#111111",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+
+  subtitle: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#666666",
+    textAlign: "center",
+    marginBottom: 28,
+    maxWidth: 320,
+  },
+
+  primaryButton: {
     width: 220,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: "#111111",
-    paddingVertical: 14,
-    borderRadius: 6,
-    marginBottom: 16,
     alignItems: "center",
+    justifyContent: "center",
   },
-  buttonText: {
+
+  primaryButtonText: {
     color: "#FFFFFF",
-    fontWeight: "700",
+    fontSize: 15,
+    fontWeight: "800",
   },
 });

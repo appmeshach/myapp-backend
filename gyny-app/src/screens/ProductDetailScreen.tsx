@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -10,8 +10,18 @@ import {
   Platform,
   StatusBar,
   Modal,
+  Animated,
+  Easing,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import DropoffLocationIcon from "../../assets/icons/location/dropoff-location.svg";
+import EditLocationIcon from "../../assets/icons/location/edit-location.svg";
+import ProductInfoSizeGuideIcon from "../../assets/icons/product-info/size-guide.svg";
+import ProductInfoReportIcon from "../../assets/icons/product-info/report.svg";
+import ProductInfoLightIcon from "../../assets/icons/product-info/light.svg";
+import ProductInfoChevronRightIcon from "../../assets/icons/product-info/chevron-right.svg";
+import ProductInfoCloseIcon from "../../assets/icons/product-info/close-circle.svg";
+import RatingStars from "../components/RatingStars";
 import { api } from "../api/client";
 import {
   addWishlistItem,
@@ -58,11 +68,16 @@ const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
 const [qty, setQty] = useState(1);
 const [showQtyPicker, setShowQtyPicker] = useState(false);
 const [showFullDetails, setShowFullDetails] = useState(false);
+const [showProductInfo, setShowProductInfo] = useState(false);
+const [showStoreHours, setShowStoreHours] = useState(false);
 const [wishlistCount, setWishlistCount] = useState(0);
 const [isLiked, setIsLiked] = useState(false);
 const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-const [showSizeGuide, setShowSizeGuide] = useState(false);
-const [sizeGuideUnit, setSizeGuideUnit] = useState<"cmkg" | "inlb">("cmkg");
+const [showStickyTabs, setShowStickyTabs] = useState(false);
+const [activeStickyTab, setActiveStickyTab] = useState<
+  "Overview" | "Reviews" | "Description"
+>("Overview");
+const pickupSlideAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     async function loadProduct() {
@@ -88,6 +103,30 @@ const [sizeGuideUnit, setSizeGuideUnit] = useState<"cmkg" | "inlb">("cmkg");
 getWishlistCount().then(setWishlistCount);
 isInWishlist(productId).then(setIsLiked);
   }, [productId]);
+
+  useEffect(() => {
+  const animation = Animated.loop(
+    Animated.sequence([
+      Animated.timing(pickupSlideAnim, {
+        toValue: 1,
+        duration: 8500,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+      Animated.timing(pickupSlideAnim, {
+        toValue: 0,
+        duration: 0,
+        useNativeDriver: true,
+      }),
+    ])
+  );
+
+  animation.start();
+
+  return () => {
+    animation.stop();
+  };
+}, [pickupSlideAnim]);
 
     async function handleAddToBag() {
   if (!product) return;
@@ -139,6 +178,36 @@ isInWishlist(productId).then(setIsLiked);
     : product.price_kobo;
 
     const imageVariants = Array.from({ length: 7 }, (_, index) => index);
+    const collapsedReviews = [
+  {
+    id: "1",
+    name: "Terhide: Green/M",
+    date: "Apr 15, 2026",
+    rating: 4.6,
+    text: "Very nice product it was delivered on time and i like the seller",
+  },
+  {
+    id: "2",
+    name: "Amaka: Black/L",
+    date: "Apr 12, 2026",
+    rating: 3.8,
+    text: "The item matched what I saw and the delivery was smooth.",
+  },
+  {
+    id: "3",
+    name: "Daniel: Blue/M",
+    date: "Apr 10, 2026",
+    rating: 4.2,
+    text: "Good quality for the price. Seller communication was clear.",
+  },
+  {
+    id: "4",
+    name: "Bisi: White/S",
+    date: "Apr 8, 2026",
+    rating: 3.5,
+    text: "I like the fit and the item came in good condition.",
+  },
+];
 
 async function handleAddToWishlist() {
   if (!product) return;
@@ -180,7 +249,23 @@ async function handleAddToWishlist() {
 
 return (
     <View style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+  contentContainerStyle={styles.scrollContent}
+  scrollEventThrottle={16}
+  onScroll={(event) => {
+  const y = event.nativeEvent.contentOffset.y;
+
+  setShowStickyTabs(y > 430);
+
+  if (y > 1120) {
+    setActiveStickyTab("Description");
+  } else if (y > 760) {
+    setActiveStickyTab("Reviews");
+  } else {
+    setActiveStickyTab("Overview");
+  }
+}}
+>
         <View style={styles.imageSection}>
           <View style={styles.topIconsRow}>
             <Pressable style={styles.circleButton} onPress={() => navigation.goBack()}>
@@ -258,7 +343,7 @@ return (
             <Text style={styles.sizeTitle}>Size</Text>
             <Pressable
   style={styles.sizeGuideBtn}
-  onPress={() => setShowSizeGuide(true)}
+  onPress={() => navigation.navigate("SizeGuide")}
 >
   <Image
     source={require("../../assets/icons/ruler.png")}
@@ -372,57 +457,169 @@ return (
               <View style={styles.diagonalLine} />
             </View>
           </View>
-          <View style={styles.tabsRow}>
-  <Pressable style={[styles.tabButton, styles.tabButtonActive]}>
-    <Text style={[styles.tabText, styles.tabTextActive]}>Overview</Text>
-  </Pressable>
 
-  <Pressable style={styles.tabButton}>
-    <Text style={styles.tabText}>Reviews</Text>
-  </Pressable>
+          <View style={styles.afterOtherShoppingDivider} />
+          
 
-  <Pressable style={styles.tabButton}>
-    <Text style={styles.tabText}>Description</Text>
-  </Pressable>
+<Pressable
+  style={styles.deliverySection}
+  onPress={() =>
+    navigation.navigate("ChooseLocation", {
+      storeName: product.store_name || "Store",
+      storeAddress: "Store address will show here",
+    })
+  }
+>
+  <Text style={styles.deliveryTitle}>Choose Address</Text>
+
+  <View style={styles.dropoffInputBox}>
+  <DropoffLocationIcon width={22} height={22} />
+
+  <Text style={styles.dropoffInputText}>Dropoff location</Text>
+
+  <EditLocationIcon width={18} height={18} />
 </View>
+</Pressable>
 
-<View style={styles.addressCard}>
-  <Text style={styles.addressTitle}>Choose drop-off point</Text>
-  <Text style={styles.addressText}>
-    Select where you want this item delivered for easier handoff.
-  </Text>
-</View>
+<View style={styles.fullWidthSectionDivider} />
 
-<View style={styles.reviewsPreviewCard}>
-  <View style={styles.sectionHeaderRow}>
-    <Text style={styles.sectionHeaderTitle}>Reviews</Text>
-    <Text style={styles.sectionHeaderAction}>See all</Text>
+<Pressable
+  style={styles.storeTimingSection}
+  onPress={() => setShowStoreHours(true)}
+>
+  <View style={styles.storeHoursRow}>
+    <View style={styles.storeHoursTitleRow}>
+      <Text style={styles.storeHoursTitle}>Store hours</Text>
+      <Ionicons name="chevron-forward" size={20} color="#111111" />
+    </View>
+
+    <ProductInfoLightIcon width={22} height={22} />
   </View>
 
-  <Text style={styles.reviewSnippet}>
-    “Very neat product and fast delivery. Seller communication was good.”
-  </Text>
+  <Text style={styles.storeHoursText}>Monday: 9:00 AM - 8:00 PM</Text>
+  <Text style={styles.storeHoursText}>Tuesday: 9:00 AM - 8:00 PM</Text>
+</Pressable>
+
+<View style={styles.fullWidthSectionDivider} />
+
+<View style={styles.pickupEstimateSection}>
+  <Animated.Text
+    numberOfLines={1}
+    style={[
+      styles.pickupEstimateText,
+      {
+        transform: [
+          {
+            translateX: pickupSlideAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [360, -520],
+            }),
+          },
+        ],
+      },
+    ]}
+  >
+    Estimated pickup: 5–10 mins after order confirmation
+  </Animated.Text>
 </View>
 
-<View style={styles.detailsCard}>
-  <Text style={styles.detailsTitle}>Product details</Text>
+<View style={styles.fullWidthSectionDivider} />
 
-  <Text
-    style={styles.detailsText}
-    numberOfLines={showFullDetails ? undefined : 3}
-  >
-    {product.description || "No product details yet."}
+<Pressable
+  style={styles.reviewsPreviewCard}
+  onPress={() => navigation.navigate("ProductReviews")}
+>
+  <View style={styles.reviewHeaderRow}>
+    <View style={styles.reviewHeaderLeft}>
+      <Text style={styles.reviewTitle}>Reviews</Text>
+
+      <View style={styles.verifiedBadge}>
+        <Text style={styles.verifiedBadgeText}>
+          All from verified purchases
+        </Text>
+      </View>
+    </View>
+
+    <Ionicons name="chevron-forward" size={22} color="#111111" />
+  </View>
+
+  <ScrollView
+  horizontal
+  showsHorizontalScrollIndicator={false}
+  contentContainerStyle={styles.reviewImageStrip}
+>
+  <View style={styles.reviewImageTile} />
+  <View style={styles.reviewImageTile} />
+  <View style={styles.reviewImageTile} />
+  <View style={styles.reviewImageTile} />
+  <View style={styles.reviewImageTile} />
+  <View style={styles.reviewImageTile} />
+  <View style={styles.reviewImageTile} />
+</ScrollView>
+
+  <View style={styles.collapsedReviewsList}>
+  {collapsedReviews.map((review, index) => (
+    <View
+      key={review.id}
+      style={[
+        styles.reviewPreviewBody,
+        index < collapsedReviews.length - 1 && styles.reviewPreviewBodyBorder,
+      ]}
+    >
+      <View style={styles.reviewerAvatar} />
+
+      <View style={styles.reviewPreviewTextArea}>
+        <View style={styles.reviewerTopRow}>
+          <View>
+            <Text style={styles.reviewerName}>{review.name}</Text>
+
+            <View style={styles.starRow}>
+  <RatingStars rating={review.rating} size={14} gap={2} />
+</View>
+          </View>
+
+          <Text style={styles.reviewDate}>{review.date}</Text>
+        </View>
+
+        <Text style={styles.reviewPreviewText}>{review.text}</Text>
+      </View>
+    </View>
+  ))}
+</View>
+</Pressable>
+
+<Pressable
+  style={styles.productInfoCard}
+  onPress={() => setShowProductInfo(true)}
+>
+  <View style={styles.productInfoHeaderRow}>
+  <View style={styles.productInfoTitleRow}>
+    <Text style={styles.productInfoTitle}>Product Info...</Text>
+    <ProductInfoChevronRightIcon width={22} height={22} />
+  </View>
+
+  <ProductInfoLightIcon width={22} height={22} />
+</View>
+
+  <Text style={styles.productInfoPreviewText} numberOfLines={1}>
+    Specification | material: cotton
   </Text>
 
-  <Pressable
-    style={styles.viewMoreButton}
-    onPress={() => setShowFullDetails((prev) => !prev)}
-  >
-    <Text style={styles.viewMoreButtonText}>
-      {showFullDetails ? "View less" : "View more"}
-    </Text>
-  </Pressable>
+  <Text style={styles.productInfoPreviewText} numberOfLines={1}>
+    Description | {product.description || "This is a bone straight human hair product..."}
+  </Text>
+
+  <View style={styles.productInfoFooterRow}>
+  <View style={styles.sizeGuideMiniBadge}>
+    <ProductInfoSizeGuideIcon width={60} height={18} />
+  </View>
+
+  <View style={styles.reportRow}>
+    <ProductInfoReportIcon width={17} height={17} />
+    <Text style={styles.reportText}>Report</Text>
+  </View>
 </View>
+</Pressable>
 
 <Pressable
   style={styles.storeCard}
@@ -468,85 +665,224 @@ return (
         </View>
       </ScrollView>
 
+      <Modal
+  visible={showStoreHours}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setShowStoreHours(false)}
+>
+  <View style={styles.storeHoursModalOverlay}>
+    <Pressable
+      style={styles.storeHoursBackdrop}
+      onPress={() => setShowStoreHours(false)}
+    />
+
+    <View style={styles.storeHoursSheet}>
+      <View style={styles.storeHoursSheetHeader}>
+        <Text style={styles.storeHoursSheetTitle}>Store hours</Text>
+
+        <Pressable
+          style={styles.storeHoursCloseButton}
+          onPress={() => setShowStoreHours(false)}
+        >
+          <ProductInfoCloseIcon width={22} height={22} />
+        </Pressable>
+      </View>
+
+      <View style={styles.storeHoursSheetBody}>
+        <Text style={styles.storeHoursSheetText}>Monday: 9:00 AM - 8:00 PM</Text>
+        <Text style={styles.storeHoursSheetText}>Tuesday: 9:00 AM - 8:00 PM</Text>
+        <Text style={styles.storeHoursSheetText}>Wednesday: 9:00 AM - 8:00 PM</Text>
+        <Text style={styles.storeHoursSheetText}>Thursday: 9:00 AM - 8:00 PM</Text>
+        <Text style={styles.storeHoursSheetText}>Friday: 9:00 AM - 8:00 PM</Text>
+        <Text style={styles.storeHoursSheetText}>Saturday: 10:00 AM - 7:00 PM</Text>
+        <Text style={styles.storeHoursSheetText}>Sunday: Closed</Text>
+      </View>
+    </View>
+  </View>
+</Modal>
+      
+      <Modal
+  visible={showProductInfo}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setShowProductInfo(false)}
+>
+  <View style={styles.productInfoModalOverlay}>
+    <Pressable
+      style={styles.productInfoBackdrop}
+      onPress={() => setShowProductInfo(false)}
+    />
+
+    <View style={styles.productInfoSheet}>
+      <View style={styles.productInfoSheetHeader}>
+        <Text style={styles.productInfoSheetTitle}>Product information</Text>
+
+        <Pressable
+  style={styles.productInfoCloseButton}
+  onPress={() => setShowProductInfo(false)}
+>
+  <ProductInfoCloseIcon width={22} height={22} />
+</Pressable>
+      </View>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.productInfoSheetContent}
+      >
+        <View style={styles.productInfoSection}>
+          <Text style={styles.productInfoSectionTitle}>Description</Text>
+          <Text style={styles.productInfoSectionText}>
+            {product.description || "A short paragraph about the item."}
+          </Text>
+        </View>
+
+        <View style={styles.productInfoSectionDivider} />
+
+        <View style={styles.productInfoSection}>
+          <Text style={styles.productInfoSectionTitle}>Key features</Text>
+          <Text style={styles.productInfoSectionText}>Main feature 1</Text>
+          <Text style={styles.productInfoSectionText}>Main feature 2</Text>
+          <Text style={styles.productInfoSectionText}>Main feature 3</Text>
+        </View>
+
+        <View style={styles.productInfoSectionDivider} />
+
+        <View style={styles.productInfoSection}>
+          <Text style={styles.productInfoSectionTitle}>Specifications</Text>
+          <Text style={styles.productInfoSectionText}>Brand:</Text>
+          <Text style={styles.productInfoSectionText}>Material: cotton</Text>
+          <Text style={styles.productInfoSectionText}>Color:</Text>
+          <Text style={styles.productInfoSectionText}>Size:</Text>
+          <Text style={styles.productInfoSectionText}>Condition:</Text>
+        </View>
+
+        <View style={styles.productInfoSectionDivider} />
+
+        <View style={styles.productInfoSection}>
+          <Text style={styles.productInfoSectionTitle}>What’s included</Text>
+          <Text style={styles.productInfoSectionText}>- Item</Text>
+          <Text style={styles.productInfoSectionText}>- Packaging</Text>
+          <Text style={styles.productInfoSectionText}>- Accessories if available</Text>
+        </View>
+
+        <View style={styles.productInfoSectionDivider} />
+
+        <View style={styles.productInfoSection}>
+          <Text style={styles.productInfoSectionTitle}>
+            Usage / care instructions
+          </Text>
+          <Text style={styles.productInfoSectionText}>
+            Use, wash, store, or maintain this item according to the seller’s
+            instructions.
+          </Text>
+        </View>
+
+        <View style={styles.productInfoSectionDivider} />
+
+        <View style={styles.productInfoSection}>
+          <Text style={styles.productInfoSectionTitle}>
+            Return / inspection note
+          </Text>
+          <Text style={styles.productInfoSectionText}>
+            This item enters a 24-hour inspection window after delivery. Returns
+            are only allowed if the item is damaged, defective, or different from
+            the listing.
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
+  </View>
+</Modal>
+      {showStickyTabs && (
+  <View style={styles.stickyTabsHeader}>
+    <Pressable style={styles.stickyBackButton} onPress={() => navigation.goBack()}>
+      <Image
+        source={require("../../assets/icons/back-arrow.png")}
+        style={styles.stickyHeaderIcon}
+        resizeMode="contain"
+      />
+    </Pressable>
+
+    <View style={styles.stickyTabsRow}>
+      <Pressable
+  style={
+    activeStickyTab === "Overview"
+      ? styles.stickyTabButtonActive
+      : styles.stickyTabButton
+  }
+>
+  <Text
+    style={
+      activeStickyTab === "Overview"
+        ? styles.stickyTabTextActive
+        : styles.stickyTabText
+    }
+  >
+    Overview
+  </Text>
+</Pressable>
+
+<Pressable
+  style={
+    activeStickyTab === "Reviews"
+      ? styles.stickyTabButtonActive
+      : styles.stickyTabButton
+  }
+>
+  <Text
+    style={
+      activeStickyTab === "Reviews"
+        ? styles.stickyTabTextActive
+        : styles.stickyTabText
+    }
+  >
+    Reviews
+  </Text>
+</Pressable>
+
+<Pressable
+  style={
+    activeStickyTab === "Description"
+      ? styles.stickyTabButtonActive
+      : styles.stickyTabButton
+  }
+>
+  <Text
+    style={
+      activeStickyTab === "Description"
+        ? styles.stickyTabTextActive
+        : styles.stickyTabText
+    }
+  >
+    Description
+  </Text>
+</Pressable>
+    </View>
+
+    <Pressable style={styles.stickyIconButton}>
+      <Image
+        source={require("../../assets/icons/search.png")}
+        style={styles.stickyHeaderIcon}
+        resizeMode="contain"
+      />
+    </Pressable>
+
+    <Pressable style={styles.stickyIconButton}>
+      <Image
+        source={require("../../assets/icons/share.png")}
+        style={styles.stickyHeaderIcon}
+        resizeMode="contain"
+      />
+    </Pressable>
+  </View>
+)}
+
             {addBagMessage ? (
   <View style={styles.addBagMessageWrap}>
     <Text style={styles.addBagMessageText}>{addBagMessage}</Text>
   </View>
 ) : null}
-
-<Modal
-  visible={showSizeGuide}
-  transparent
-  animationType="slide"
-  onRequestClose={() => setShowSizeGuide(false)}
->
-  <View style={styles.sizeGuideModalOverlay}>
-    <Pressable
-      style={styles.sizeGuideModalBackdrop}
-      onPress={() => setShowSizeGuide(false)}
-    />
-
-    <View style={styles.sizeGuideSheet}>
-      <View style={styles.sizeGuideSheetHeader}>
-        <Text style={styles.sizeGuideSheetTitle}>Size measurement</Text>
-
-        <Pressable
-          style={styles.sizeGuideCloseButton}
-          onPress={() => setShowSizeGuide(false)}
-        >
-          <Ionicons name="close-outline" size={19} color="#111111" />
-        </Pressable>
-      </View>
-
-      <View style={styles.sizeGuideControlsRow}>
-        <Pressable style={styles.sizeGuideDropdown}>
-          <Text style={styles.sizeGuideDropdownText}>NG size</Text>
-          <Ionicons name="chevron-down" size={13} color="#111111" />
-        </Pressable>
-
-        <View style={styles.sizeGuideUnitToggle}>
-          <Pressable
-            style={[
-              styles.sizeGuideUnitButton,
-              sizeGuideUnit === "cmkg" && styles.sizeGuideUnitButtonActive,
-            ]}
-            onPress={() => setSizeGuideUnit("cmkg")}
-          >
-            <Text
-              style={[
-                styles.sizeGuideUnitText,
-                sizeGuideUnit === "cmkg" && styles.sizeGuideUnitTextActive,
-              ]}
-            >
-              cm, kg
-            </Text>
-          </Pressable>
-
-          <Pressable
-            style={[
-              styles.sizeGuideUnitButton,
-              sizeGuideUnit === "inlb" && styles.sizeGuideUnitButtonActive,
-            ]}
-            onPress={() => setSizeGuideUnit("inlb")}
-          >
-            <Text
-              style={[
-                styles.sizeGuideUnitText,
-                sizeGuideUnit === "inlb" && styles.sizeGuideUnitTextActive,
-              ]}
-            >
-              in, lb
-            </Text>
-          </Pressable>
-        </View>
-      </View>
-
-      <View style={styles.sizeGuideDivider} />
-
-      <View style={styles.sizeGuideEmptyBody} />
-    </View>
-  </View>
-</Modal>
 
 <View style={styles.bottomBar}></View>
 
@@ -631,53 +967,40 @@ const styles = StyleSheet.create({
     color: "#111111",
     textAlign: "center",
   },
-  tabsRow: {
-  height: 78,
-  flexDirection: "row",
-  alignItems: "flex-end",
-  borderTopWidth: 24,
+
+deliverySection: {
+  backgroundColor: "#FFFFFF",
+  paddingTop: 8,
+  paddingBottom: 12,
   borderBottomWidth: 1,
-  borderTopColor: "#ECECEC",
-  borderBottomColor: "#DDDDDD",
-  marginTop: 10,
-  marginBottom: 10,
+  borderBottomColor: "#E5E5E5",
+  marginHorizontal: -12,
+  paddingHorizontal: 12,
 },
 
-tabButton: {
-  flex: 1,
+deliveryTitle: {
+  fontSize: 20,
+  fontWeight: "800",
+  color: "#111111",
+  marginBottom: 8,
+},
+
+dropoffInputBox: {
+  height: 35,
+  backgroundColor: "#E4F4FC",
+  borderRadius: 3,
+  borderWidth: 1,
+  borderColor: "#C8DDE8",
+  flexDirection: "row",
   alignItems: "center",
-  justifyContent: "flex-end",
-  paddingBottom: 10,
+  paddingHorizontal: 12,
 },
 
-tabButtonActive: {
-  borderBottomWidth: 2,
-  borderBottomColor: "#111111",
-},
-
-tabText: {
-  fontSize: 14,
+dropoffInputText: {
+  flex: 1,
+  fontSize: 18,
   color: "#666666",
-},
-
-tabTextActive: {
-  color: "#111111",
-  fontWeight: "700",
-},
-
-addressCard: {
-  backgroundColor: "transparent",
-paddingVertical: 12,
-borderBottomWidth: 1,
-borderBottomColor: "#EAEAEA",
-marginBottom: 10,
-},
-
-addressTitle: {
-  fontSize: 15,
-  fontWeight: "700",
-  color: "#111111",
-  marginBottom: 10,
+  marginLeft: 10,
 },
 viewMoreButton: {
   alignSelf: "center",
@@ -694,19 +1017,115 @@ viewMoreButtonText: {
   color: "#111111",
 },
 
-addressText: {
-  fontSize: 13,
-  lineHeight: 20,
-  color: "#5A5A5A",
+reviewsPreviewCard: {
+  backgroundColor: "#FFFFFF",
+  borderBottomWidth: 10,
+  borderBottomColor: "#ECECEC",
+  marginHorizontal: -12,
+},
+reviewHeaderRow: {
+  height: 45,
+  paddingHorizontal: 10,
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
 },
 
-reviewsPreviewCard: {
-  backgroundColor: "transparent",
-paddingVertical: 12,
-borderBottomWidth: 1,
-borderBottomColor: "#EAEAEA",
-marginBottom: 10,
-marginTop: 10,
+reviewHeaderLeft: {
+  flexDirection: "row",
+  alignItems: "center",
+},
+
+reviewTitle: {
+  fontSize: 20,
+  fontWeight: "800",
+  color: "#111111",
+  marginRight: 6,
+},
+
+verifiedBadge: {
+  backgroundColor: "#083245",
+  paddingHorizontal: 4,
+  paddingVertical: 2,
+},
+
+verifiedBadgeText: {
+  fontSize: 10,
+  color: "#FFFFFF",
+  fontWeight: "700",
+},
+
+reviewImageStrip: {
+  height: 64,
+  backgroundColor: "#DFF2FB",
+  flexDirection: "row",
+},
+
+reviewImageTile: {
+  width: 88,
+  height: 64,
+  backgroundColor: "#DFF2FB",
+  borderRightWidth: 1,
+  borderRightColor: "#D0E4EE",
+},
+
+collapsedReviewsList: {
+  backgroundColor: "#FFFFFF",
+},
+
+reviewPreviewBody: {
+  flexDirection: "row",
+  paddingHorizontal: 12,
+  paddingTop: 12,
+  paddingBottom: 12,
+  backgroundColor: "#FFFFFF",
+},
+
+reviewPreviewBodyBorder: {
+  borderBottomWidth: 1,
+  borderBottomColor: "#E2E2E2",
+},
+
+reviewerAvatar: {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  backgroundColor: "#D9D9D9",
+  marginRight: 8,
+},
+
+reviewPreviewTextArea: {
+  flex: 1,
+},
+
+reviewerTopRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  marginBottom: 6,
+},
+
+reviewerName: {
+  fontSize: 12,
+  color: "#444444",
+  fontWeight: "700",
+},
+
+starRow: {
+  flexDirection: "row",
+  marginTop: 2,
+},
+
+reviewDate: {
+  fontSize: 13,
+  color: "#111111",
+},
+
+reviewPreviewText: {
+  fontSize: 18,
+  lineHeight: 23,
+  color: "#666666",
+  paddingRight: 6,
 },
 
 sectionHeaderRow: {
@@ -733,37 +1152,17 @@ reviewSnippet: {
   color: "#4A4A4A",
 },
 
-detailsCard: {
-  backgroundColor: "transparent",
-paddingVertical: 12,
-borderBottomWidth: 1,
-borderBottomColor: "#EAEAEA",
-marginBottom: 10,
-marginTop: 10,
-},
-
-detailsTitle: {
-  fontSize: 16,
-  fontWeight: "700",
-  color: "#111111",
-  marginBottom: 10,
-},
-
-detailsText: {
-  fontSize: 14,
-  lineHeight: 22,
-  color: "#444444",
-},
-
 storeCard: {
   backgroundColor: "#FFFFFF",
   paddingVertical: 8,
+  paddingHorizontal: 12,
   borderTopWidth: 1,
   borderBottomWidth: 1,
   borderTopColor: "#E5E5E5",
   borderBottomColor: "#E5E5E5",
   marginTop: 0,
   marginBottom: 0,
+  marginHorizontal: -12,
 },
 
 storeProfileRow: {
@@ -1133,6 +1532,126 @@ productPrice: {
     backgroundColor: "#F0F0F0",
     flexDirection: "row",
   },
+  afterOtherShoppingDivider: {
+  height: 10,
+  backgroundColor: "#ECECEC",
+  marginTop: 8,
+  marginBottom: 0,
+  marginHorizontal: -12,
+},
+
+fullWidthSectionDivider: {
+  height: 10,
+  backgroundColor: "#ECECEC",
+  marginHorizontal: -12,
+},
+storeTimingSection: {
+  backgroundColor: "#FFFFFF",
+  marginHorizontal: -12,
+  paddingHorizontal: 12,
+  paddingTop: 12,
+  paddingBottom: 12,
+},
+
+storeHoursRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  marginBottom: 8,
+},
+
+storeHoursTitleRow: {
+  flexDirection: "row",
+  alignItems: "center",
+},
+
+storeHoursTitle: {
+  fontSize: 19,
+  fontWeight: "800",
+  color: "#111111",
+  marginRight: 4,
+},
+
+storeHoursText: {
+  fontSize: 18,
+  lineHeight: 25,
+  color: "#555555",
+},
+
+pickupEstimateSection: {
+  height: 35,
+  backgroundColor: "#FFFFFF",
+  marginHorizontal: -12,
+  overflow: "hidden",
+  justifyContent: "center",
+},
+
+pickupEstimateText: {
+  fontSize: 18,
+  fontWeight: "800",
+  color: "#B73232",
+  width: 520,
+},
+
+storeHoursModalOverlay: {
+  flex: 1,
+  justifyContent: "flex-end",
+},
+
+storeHoursBackdrop: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: "rgba(0,0,0,0)",
+},
+
+storeHoursSheet: {
+  height: 340,
+  backgroundColor: "#FFFFFF",
+  borderTopLeftRadius: 16,
+  borderTopRightRadius: 16,
+  overflow: "hidden",
+  borderWidth: 1,
+  borderColor: "#D0D0D0",
+},
+
+storeHoursSheetHeader: {
+  height: 58,
+  backgroundColor: "#ECECEC",
+  alignItems: "center",
+  justifyContent: "center",
+  borderBottomWidth: 1,
+  borderBottomColor: "#CFCFCF",
+},
+
+storeHoursSheetTitle: {
+  fontSize: 22,
+  fontWeight: "800",
+  color: "#111111",
+},
+
+storeHoursCloseButton: {
+  position: "absolute",
+  right: 18,
+  top: 18,
+  width: 22,
+  height: 22,
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+storeHoursSheetBody: {
+  paddingHorizontal: 16,
+  paddingTop: 20,
+},
+
+storeHoursSheetText: {
+  fontSize: 18,
+  lineHeight: 24,
+  color: "#666666",
+},
   otherShoppingSegment: {
     flex: 1,
     position: "relative",
@@ -1209,12 +1728,147 @@ productPrice: {
     fontWeight: "700",
     color: "#FFFFFF",
   },
-  sizeGuideModalOverlay: {
+  stickyTabsHeader: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  height: TOP_SAFE_SPACE + 44,
+  paddingTop: TOP_SAFE_SPACE,
+  backgroundColor: "#FFFFFF",
+  flexDirection: "row",
+  alignItems: "center",
+  borderBottomWidth: 1,
+  borderBottomColor: "#E5E5E5",
+  zIndex: 2000,
+  elevation: 20,
+},
+
+stickyBackButton: {
+  width: 42,
+  height: 44,
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+stickyHeaderIcon: {
+  width: 20,
+  height: 20,
+},
+
+stickyTabsRow: {
+  flex: 1,
+  height: 44,
+  flexDirection: "row",
+  alignItems: "center",
+},
+
+stickyTabButton: {
+  height: 44,
+  justifyContent: "center",
+  alignItems: "center",
+  marginRight: 14,
+},
+
+stickyTabButtonActive: {
+  height: 44,
+  justifyContent: "center",
+  alignItems: "center",
+  marginRight: 14,
+  borderBottomWidth: 4,
+  borderBottomColor: "#000000",
+},
+
+stickyTabText: {
+  fontSize: 17,
+  fontWeight: "800",
+  color: "#777777",
+},
+
+stickyTabTextActive: {
+  fontSize: 17,
+  fontWeight: "800",
+  color: "#111111",
+},
+
+stickyIconButton: {
+  width: 34,
+  height: 44,
+  alignItems: "center",
+  justifyContent: "center",
+},
+productInfoCard: {
+  backgroundColor: "#FFFFFF",
+  paddingTop: 10,
+  paddingBottom: 10,
+  borderBottomWidth: 10,
+  borderBottomColor: "#ECECEC",
+  marginHorizontal: -12,
+  paddingHorizontal: 12,
+},
+
+productInfoHeaderRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  marginBottom: 8,
+},
+
+productInfoTitleRow: {
+  flexDirection: "row",
+  alignItems: "center",
+},
+
+productInfoTitle: {
+  fontSize: 20,
+  fontWeight: "800",
+  color: "#111111",
+  marginRight: 4,
+},
+
+productInfoPreviewText: {
+  fontSize: 16,
+  lineHeight: 25,
+  color: "#111111",
+},
+
+productInfoFooterRow: {
+  marginTop: 12,
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+},
+
+sizeGuideMiniBadge: {
+  height: 18,
+  justifyContent: "center",
+  alignItems: "center",
+},
+
+sizeGuideMiniBadgeText: {
+  color: "#FFFFFF",
+  fontSize: 9,
+  fontWeight: "700",
+},
+
+reportRow: {
+  flexDirection: "row",
+  alignItems: "center",
+},
+
+reportText: {
+  fontSize: 13,
+  color: "#111111",
+  fontWeight: "700",
+  marginLeft: 2,
+},
+
+productInfoModalOverlay: {
   flex: 1,
   justifyContent: "flex-end",
 },
 
-sizeGuideModalBackdrop: {
+productInfoBackdrop: {
   position: "absolute",
   top: 0,
   left: 0,
@@ -1223,98 +1877,67 @@ sizeGuideModalBackdrop: {
   backgroundColor: "rgba(0,0,0,0)",
 },
 
-sizeGuideSheet: {
-  height: 570,
+productInfoSheet: {
+  height: 615,
   backgroundColor: "#FFFFFF",
   borderTopLeftRadius: 16,
   borderTopRightRadius: 16,
   overflow: "hidden",
+  borderWidth: 1,
+  borderColor: "#D0D0D0",
 },
 
-sizeGuideSheetHeader: {
-  height: 62,
-  justifyContent: "center",
+productInfoSheetHeader: {
+  height: 64,
+  backgroundColor: "#ECECEC",
   alignItems: "center",
-  position: "relative",
+  justifyContent: "center",
+  borderBottomWidth: 1,
+  borderBottomColor: "#CFCFCF",
 },
 
-sizeGuideSheetTitle: {
-  fontSize: 21,
+productInfoSheetTitle: {
+  fontSize: 22,
   fontWeight: "800",
   color: "#111111",
 },
 
-sizeGuideCloseButton: {
+productInfoCloseButton: {
   position: "absolute",
-  right: 14,
-  top: 18,
+  right: 18,
+  top: 20,
   width: 22,
   height: 22,
-  borderRadius: 11,
-  borderWidth: 1,
-  borderColor: "#111111",
   alignItems: "center",
   justifyContent: "center",
 },
 
-sizeGuideControlsRow: {
-  height: 42,
-  paddingHorizontal: 14,
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "space-between",
+productInfoSheetContent: {
+  paddingBottom: 12,
 },
 
-sizeGuideDropdown: {
-  height: 25,
-  borderWidth: 1,
-  borderColor: "#111111",
-  paddingHorizontal: 5,
-  flexDirection: "row",
-  alignItems: "center",
-},
-
-sizeGuideDropdownText: {
-  fontSize: 16,
-  color: "#111111",
-  marginRight: 3,
-},
-
-sizeGuideUnitToggle: {
-  flexDirection: "row",
-  borderWidth: 1,
-  borderColor: "#111111",
-},
-
-sizeGuideUnitButton: {
-  height: 25,
-  paddingHorizontal: 10,
-  alignItems: "center",
-  justifyContent: "center",
+productInfoSection: {
   backgroundColor: "#FFFFFF",
+  paddingHorizontal: 12,
+  paddingTop: 14,
+  paddingBottom: 24,
 },
 
-sizeGuideUnitButtonActive: {
-  backgroundColor: "#000000",
+productInfoSectionTitle: {
+  fontSize: 20,
+  fontWeight: "800",
+  color: "#222222",
+  marginBottom: 4,
 },
 
-sizeGuideUnitText: {
-  fontSize: 15,
-  color: "#111111",
-  fontWeight: "600",
+productInfoSectionText: {
+  fontSize: 18,
+  lineHeight: 24,
+  color: "#444444",
 },
 
-sizeGuideUnitTextActive: {
-  color: "#FFFFFF",
-},
-
-sizeGuideDivider: {
-  height: 1,
-  backgroundColor: "#999999",
-},
-
-sizeGuideEmptyBody: {
-  flex: 1,
-  backgroundColor: "#FFFFFF",
+productInfoSectionDivider: {
+  height: 10,
+  backgroundColor: "#ECECEC",
 },
 });

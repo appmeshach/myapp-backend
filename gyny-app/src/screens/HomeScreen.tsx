@@ -11,6 +11,7 @@ import {
   Image,
   Platform,
   StatusBar,
+  Animated,
 } from "react-native";
 import { api, IS_SIGNED_IN } from "../api/client";
 import ProductCard from "../components/ProductCard";
@@ -42,6 +43,7 @@ const heroSlides = [
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const heroScrollRef = useRef<ScrollView>(null);
+  const heroScrollX = useRef(new Animated.Value(0)).current;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -158,25 +160,74 @@ const newArrivalsProducts = repeatedLatest;
 </View>
         </Pressable>
 
-        <ScrollView
-  ref={heroScrollRef}
-  horizontal
-  pagingEnabled
-  scrollEnabled={true}
-  nestedScrollEnabled={true}
-  directionalLockEnabled={true}
-  showsHorizontalScrollIndicator={false}
-  onScroll={handleHeroScroll}
-  scrollEventThrottle={16}
-  style={styles.heroCarousel}
->
-          {heroSlides.map((slide) => (
-            <View
-              key={slide.id}
-              style={[styles.heroImage, { backgroundColor: slide.color }]}
-            />
-          ))}
-        </ScrollView>
+                <Animated.ScrollView
+          ref={heroScrollRef as any}
+          horizontal
+          pagingEnabled
+          scrollEnabled={true}
+          nestedScrollEnabled={true}
+          directionalLockEnabled={true}
+          showsHorizontalScrollIndicator={false}
+          scrollEventThrottle={16}
+          style={styles.heroCarousel}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { x: heroScrollX } } }],
+            {
+              useNativeDriver: true,
+              listener: handleHeroScroll,
+            }
+          )}
+        >
+          {heroSlides.map((slide, index) => {
+            const inputRange = [
+              (index - 1) * SCREEN_WIDTH,
+              index * SCREEN_WIDTH,
+              (index + 1) * SCREEN_WIDTH,
+            ];
+
+            const rotateY = heroScrollX.interpolate({
+              inputRange,
+              outputRange: ["18deg", "0deg", "-18deg"],
+              extrapolate: "clamp",
+            });
+
+            const scale = heroScrollX.interpolate({
+              inputRange,
+              outputRange: [0.92, 1, 0.92],
+              extrapolate: "clamp",
+            });
+
+            const opacity = heroScrollX.interpolate({
+              inputRange,
+              outputRange: [0.86, 1, 0.86],
+              extrapolate: "clamp",
+            });
+
+            return (
+              <Animated.View
+                key={slide.id}
+                style={[
+                  styles.heroSlideWrap,
+                  {
+                    opacity,
+                    transform: [
+                      { perspective: 900 },
+                      { rotateY },
+                      { scale },
+                    ],
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.heroImage,
+                    { backgroundColor: slide.color },
+                  ]}
+                />
+              </Animated.View>
+            );
+          })}
+        </Animated.ScrollView>
 
         <View style={styles.dotsRow}>
   {heroSlides.map((_, index) => (
@@ -457,13 +508,24 @@ horizontalCardWrap: {
   color: "#8A8A8A",
   paddingRight: 8,
   },
-  heroCarousel: {
+    heroCarousel: {
     width: SCREEN_WIDTH,
   },
+
+  heroSlideWrap: {
+    width: SCREEN_WIDTH,
+    height: 344 + TOP_SAFE_SPACE,
+    paddingHorizontal: 0,
+    overflow: "hidden",
+  },
+
   heroImage: {
-  width: SCREEN_WIDTH,
-  height: 344 + TOP_SAFE_SPACE,
-},
+    width: "100%",
+    height: "100%",
+    borderBottomLeftRadius: 34,
+    borderBottomRightRadius: 34,
+    overflow: "hidden",
+  },
   dotsRow: {
   position: "absolute",
   bottom: 11,

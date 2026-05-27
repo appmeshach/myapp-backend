@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { IS_SIGNED_IN } from "../api/client";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { categoryTree } from "../data/categoryTree";
 import type { CategoryNode } from "../data/categoryTree";
 
@@ -139,27 +140,65 @@ const currentPath = categoryPaths[selectedMainCategory] || [];
                   </Pressable>
                 )}
 
-                {!isLastLevel && (
-                  <View style={styles.subcategoryGrid}>
-                  {Object.keys(currentNode).map((item, index) => (
-  <Pressable
-    key={item}
-    style={[
-      styles.subcategoryItem,
-      (index + 1) % 3 !== 0 && styles.subcategoryItemSpacing,
-    ]}
-    onPress={() =>
-      setCategoryPaths((prev) => ({
-        ...prev,
-        [selectedMainCategory]: [...currentPath, item],
-      }))
-    }
-  >
-    <View style={styles.gridCirclePlaceholder} />
-    <Text style={styles.subcategoryText}>{item}</Text>
-  </Pressable>
-))}
-                  </View>
+                                {!isLastLevel && (
+                  <>
+                    <View style={styles.subcategoryGrid}>
+                      {Object.keys(currentNode).map((item, index) => (
+                        <Pressable
+                          key={item}
+                          style={[
+                            styles.subcategoryItem,
+                            (index + 1) % 3 !== 0 &&
+                              styles.subcategoryItemSpacing,
+                          ]}
+                          onPress={() =>
+                            setCategoryPaths((prev) => ({
+                              ...prev,
+                              [selectedMainCategory]: [...currentPath, item],
+                            }))
+                          }
+                        >
+                          <View style={styles.gridCirclePlaceholder} />
+                          <Text style={styles.subcategoryText}>{item}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+
+                    <View style={styles.requestItemRow}>
+                      <Text style={styles.requestItemQuestion}>
+                        Can’t find item?
+                      </Text>
+
+                      <Pressable
+                        style={styles.requestItemButtonWrap}
+                        onPress={() => {
+                          console.log("Request item pressed");
+                        }}
+                      >
+                        <LinearGradient
+                          colors={[
+                            "rgba(255,255,255,0.22)",
+                            "rgba(255,255,255,0.08)",
+                            "rgba(255,255,255,0.16)",
+                          ]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={styles.requestItemButton}
+                        >
+                          <Text style={styles.requestItemButtonText}>
+                            Request
+                          </Text>
+
+                          <Ionicons
+  name="arrow-forward"
+  size={16}
+  color="#FFFFFF"
+  style={styles.requestItemArrow}
+/>
+                        </LinearGradient>
+                      </Pressable>
+                    </View>
+                  </>
                 )}
 
                 {!isLastLevel &&
@@ -388,10 +427,11 @@ rightPane: {
   backgroundColor: "#F5F5F5",
 },
   rightPaneContent: {
+  flexGrow: 1,
   paddingLeft: 6,
   paddingRight: 0,
   paddingTop: 12,
-  paddingBottom: 90,
+  paddingBottom: 8,
 },
 
   backRow: {
@@ -582,8 +622,56 @@ filterChipTextActive: {
   color: "#111111",
 },
 
-  leafBodyPlaceholder: {
+    leafBodyPlaceholder: {
     flex: 1,
     backgroundColor: "#F5F5F5",
   },
+
+  requestItemRow: {
+  alignSelf: "flex-end",
+  marginTop: "auto",
+  marginRight: 4,
+  marginBottom: 0,
+  flexDirection: "row",
+  alignItems: "center",
+},
+
+  requestItemQuestion: {
+    fontSize: 11,
+    color: "#111111",
+    marginRight: 4,
+  },
+
+  requestItemButtonWrap: {
+    borderRadius: 999,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+
+  requestItemButton: {
+    height: 24,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.28)",
+    backgroundColor: "rgba(38,31,47,0.78)",
+    paddingHorizontal: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  requestItemButtonText: {
+  fontSize: 11,
+  lineHeight: 12,
+  fontWeight: "800",
+  color: "#FFFFFF",
+  marginRight: 3,
+  transform: [{ translateY: 0.1 }],
+},
+requestItemArrow: {
+  transform: [{ translateY: 0.1 }],
+},
 });

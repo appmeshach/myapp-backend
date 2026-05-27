@@ -2688,6 +2688,415 @@ export const categoryTree: CategoryNode = {
   ],
 },
   },
-  "Automotive & Mobility": {},
-  "Office, Business & Education": {},
+  "Automotive & Mobility": {
+  "Automotive Accessories": {
+    "Interior Accessories": [
+      "Seat Covers & Cushions",
+      "Steering Wheel Covers",
+      "Floor Mats & Cargo Liners",
+      "Sunshades",
+      "Interior Organizers",
+      "Air Fresheners",
+      "Car Decorations",
+      "Keychains & Key Covers",
+      "Armrest & Console Accessories",
+    ],
+
+    "Exterior Accessories": [
+      "Car Covers",
+      "Car Wraps & Stickers",
+      "License Plate Accessories",
+      "Spoilers & Styling Parts",
+      "Roof Racks & Cargo Carriers",
+      "Mirror Accessories",
+      "Weather Protection Accessories",
+    ],
+
+    "Car Care & Maintenance": {
+      "Exterior Care": [
+        "Car Wash Kits",
+        "Cleaning Agents",
+        "Polishing Pads",
+        "Paint Protection",
+        "Touch-Up Paint",
+      ],
+
+      "Interior Care": [
+        "Interior Cleaners",
+        "Upholstery Care",
+        "Dashboard Care",
+      ],
+
+      "Oils & Fluids": [
+        "Engine Oil",
+        "Brake Fluid",
+        "Coolants",
+        "Lubricants & Greases",
+      ],
+    },
+
+    "Tires & Wheels": [
+      "Tires",
+      "Rim Accessories",
+      "Tire Inflators",
+      "Tire Repair Kits",
+      "Wheel Covers",
+    ],
+
+    "Safety & Emergency": [
+      "Warning Triangles",
+      "Emergency Kits",
+      "Fire Extinguishers",
+      "First Aid Kits",
+      "Jump Starters",
+    ],
+
+    "Automotive Tools & Equipment": [
+      "Car Jacks & Lifting Tools",
+      "Diagnostic Tools",
+      "Oil Service Tools",
+      "Tire Tools",
+      "Repair Tool Kits",
+      "Air Compressors",
+    ],
+
+    "Replacement Parts": [
+      "Engine Components",
+      "Brake Systems",
+      "Filters",
+      "Ignition Systems",
+      "Electrical Components",
+      "Suspension Parts",
+      "AC & Heating Parts",
+      "Transmission Parts",
+      "Sensors & ECU Modules",
+    ],
+  },
+
+  "Car Electronics": {
+    "Car Audio & Entertainment": [
+      "Car Stereos",
+      "Speakers",
+      "Subwoofers",
+      "Amplifiers",
+      "Video Players",
+    ],
+
+    "Navigation & Smart Driving": [
+      "GPS Devices",
+      "Smart Driving Systems",
+      "Heads-Up Displays",
+      "Driving Simulators",
+    ],
+
+    "Security & Surveillance": [
+      "Dash Cams",
+      "DVR Systems",
+      "Car Alarm Systems",
+      "Vehicle Tracking Devices",
+    ],
+
+    "Charging & Power": [
+      "Car Chargers",
+      "Inverters",
+      "Battery Chargers",
+      "Jump Starters (Electronic)",
+    ],
+
+    "Car Lighting Electronics": [
+      "LED Headlights",
+      "Signal Lights",
+      "Decorative Lights",
+      "Interior Lighting",
+    ],
+
+    "EV & New Energy": [
+      "EV Charging Cables",
+      "EV Chargers",
+      "EV Adapters",
+    ],
+  },
+
+  "Motorcycle Accessories": {
+    "Motorcycle Protective Gear": [
+      "Helmets",
+      "Riding Gloves",
+      "Protective Jackets",
+      "Knee & Elbow Guards",
+    ],
+
+    "Motorcycle Parts": [
+      "Engine Parts",
+      "Brake Systems",
+      "Chains & Sprockets",
+      "Exhaust Systems",
+      "Suspension Parts",
+    ],
+
+    "Motorcycle Electronics": [
+      "Bike GPS",
+      "Bike Audio Systems",
+      "Motorcycle Lighting",
+      "Battery & Charging Systems",
+    ],
+
+    "Motorcycle Storage & Utility": [
+      "Saddlebags",
+      "Tank Bags",
+      "Luggage Racks",
+      "Bike Covers",
+    ],
+
+    "Motorcycle Maintenance": [
+      "Bike Cleaning Kits",
+      "Chain Lubricants",
+      "Oil & Fluids",
+      "Repair Tools",
+    ],
+  },
+},
+  "Office, Business & Education": {
+  "Office & School Supplies": {
+    "Writing & Correction Supplies": [
+      "Pens, Pencils & Markers",
+      "Highlighters",
+      "Correction Pens & Tape",
+      "Sharpeners & Erasers",
+      "Stamps & Ink Pads",
+    ],
+
+    "Paper Products & Notebooks": [
+      "Notebooks & Journals",
+      "Printer Paper",
+      "Sticky Notes",
+      "Planners & Calendars",
+      "Index Cards",
+    ],
+
+    "Filing & Organization": [
+      "Files & Folders",
+      "Binders & Accessories",
+      "Desk Organizers",
+      "Storage Boxes & Trays",
+      "Bookends & Magazine Holders",
+    ],
+
+    "Desk & Workspace Essentials": [
+      "Desk Pads & Mats",
+      "Monitor & Laptop Stands",
+      "Office Lighting",
+      "Cable Management",
+      "Badge & Card Holders",
+    ],
+
+    "Adhesives, Fasteners & Mailing": [
+      "Tapes & Dispensers",
+      "Glue & Adhesives",
+      "Staplers & Staples",
+      "Clips, Pins & Tacks",
+      "Packaging & Shipping Supplies",
+    ],
+
+    "Art, Craft & Presentation Supplies": [
+      "Drawing & Sketching",
+      "Paints & Brushes",
+      "Craft Tools",
+      "Presentation Boards",
+      "Whiteboards & Accessories",
+    ],
+
+    "Office Electronics": [
+      "Calculators",
+      "Label Makers",
+      "Laminators",
+      "Shredders",
+      "Projectors & Presentation Tools",
+    ],
+
+    "Classroom & Educational Supplies": [
+      "Classroom Decorations",
+      "Educational Charts",
+      "Teaching Materials",
+      "Learning Tools",
+      "Science Education Kits",
+    ],
+
+    "Office Furniture & Workspace": [
+      "Office Chairs",
+      "Desks & Workstations",
+      "Office Storage Cabinets",
+      "Shelving",
+      "Furniture Parts & Accessories",
+    ],
+  },
+
+  "Books & Media": {
+    "Educational & Academic Books": [
+      "School Textbooks",
+      "Science & Math",
+      "Engineering & Technology",
+      "Medical Books",
+      "Teaching & Education",
+    ],
+
+    "Literature & Fiction": [
+      "Novels & Fiction",
+      "Classics",
+      "Poetry",
+      "Drama",
+    ],
+
+    "Children, Teens & Young Adult": [
+      "Children’s Books",
+      "Teen Fiction",
+      "Picture Books",
+      "Learning Books",
+    ],
+
+    "Business & Self Development": [
+      "Business & Finance",
+      "Leadership",
+      "Entrepreneurship",
+      "Personal Development",
+    ],
+
+    "Lifestyle & Hobby Books": [
+      "Cookbooks & Food",
+      "Arts & Photography",
+      "Crafts & DIY",
+      "Sports & Outdoors",
+      "Parenting & Relationships",
+    ],
+
+    "Comics & Entertainment": [
+      "Comics & Graphic Novels",
+      "Humor & Entertainment",
+      "Pop Culture Books",
+    ],
+
+    "Physical Media & Collectibles": [
+      "CDs & Vinyl Records",
+      "DVDs & Blu-ray",
+      "Media Storage Accessories",
+      "Licensed Merchandise & Souvenirs",
+    ],
+  },
+
+  "Musical Instruments": {
+    "String Instruments": [
+      "Guitars",
+      "Violins",
+      "Bass Guitars",
+      "Ukuleles",
+    ],
+
+    "Keyboards & Pianos": [
+      "Digital Pianos",
+      "MIDI Keyboards",
+      "Synthesizers",
+    ],
+
+    "Drums & Percussion": [
+      "Drum Sets",
+      "Electronic Drums",
+      "Percussion Instruments",
+    ],
+
+    "Wind & Brass Instruments": [
+      "Saxophones",
+      "Trumpets",
+      "Flutes",
+      "Clarinets",
+    ],
+
+    "Studio & Recording Equipment": [
+      "Audio Interfaces",
+      "Studio Monitors",
+      "Recording Microphones",
+      "Mixers",
+    ],
+
+    "DJ & Live Performance": [
+      "DJ Controllers",
+      "Turntables",
+      "Live Sound Equipment",
+      "Stage Accessories",
+    ],
+
+    "Instrument Accessories": [
+      "Strings & Picks",
+      "Instrument Cases",
+      "Stands & Holders",
+      "Tuners & Metronomes",
+    ],
+  },
+
+  "Business & Industrial Supplies": {
+    "Tools & Equipment": [
+      "Hand Tools",
+      "Power Tools",
+      "Cutting Tools",
+      "Measuring & Inspection Tools",
+      "Industrial Tool Accessories",
+    ],
+
+    "Safety & Occupational Products": [
+      "PPE & Safety Gear",
+      "Workplace Safety Equipment",
+      "Warning Signs",
+      "Industrial Safety Supplies",
+    ],
+
+    "Packaging, Shipping & Material Handling": [
+      "Packaging Supplies",
+      "Shipping Materials",
+      "Shelving & Storage",
+      "Carts & Trolleys",
+      "Lifting Equipment",
+    ],
+
+    "Industrial Hardware & Materials": [
+      "Fasteners",
+      "Abrasives & Finishing Products",
+      "Industrial Adhesives & Sealants",
+      "Raw Industrial Materials",
+    ],
+
+    "Electrical, Hydraulics & Pneumatics": [
+      "Industrial Electronics",
+      "Power Components",
+      "Hydraulics",
+      "Pneumatic Systems",
+      "Pumps & Plumbing Supplies",
+    ],
+
+    "Commercial & Retail Equipment": [
+      "POS Equipment",
+      "Retail Store Fixtures",
+      "Barcode & Label Systems",
+      "Commercial Lighting",
+    ],
+
+    "Medical, Lab & Scientific Supplies": [
+      "Laboratory Equipment",
+      "Scientific Instruments",
+      "Professional Medical Supplies",
+      "Dental Supplies",
+    ],
+
+    "Manufacturing & Automation": [
+      "Industrial Automation",
+      "Robotics & Machine Vision",
+      "PLCs & Controllers",
+      "Motors & Motion Control",
+    ],
+
+    "3D Printing & Prototyping": [
+      "3D Printers",
+      "3D Scanner Systems",
+      "Filaments & Resin",
+      "3D Printer Parts",
+    ],
+  },
+},
 };
