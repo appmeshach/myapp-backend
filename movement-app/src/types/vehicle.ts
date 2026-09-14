@@ -1,7 +1,7 @@
 export type Vehicle = {
   id: string;
   make: string;
-  model: string;
+  model: string | null;
   year?: number | null;
   color: string;
   seatCapacity: number;
@@ -22,7 +22,7 @@ export type MemberVehicleAccess = {
 export type VehiclePublicProfile = {
   vehicleId: string;
   make: string;
-  model: string;
+  model: string | null;
   year?: number | null;
   color: string;
   seatCapacity: number;

@@ -126,7 +126,7 @@ export type MaskedMovementOffer = {
   offerStatus: string;
   offerCreatedAt: string;
   vehicleMake: string;
-  vehicleModel: string;
+  vehicleModel: string | null;
   vehicleYear: number | null;
   vehicleColor: string;
   vehicleSeatCapacity: number;
@@ -156,4 +156,22 @@ export type AlignmentStatusSummary = {
   activatedAt: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type PostActivationPerson = {
+  personNumber: number;
+  personRole: "offering_member" | "primary_requester" | "invited_participant";
+  firstName: string | null;
+  age: number | null;
+  verified: boolean;
+  rating: number | null;
+  completedMovements: number;
+  // Opaque temporary token for a future authenticated image proxy, not an image URL.
+  profilePhotoToken: string | null;
+  profilePhotoExpiresAt: string | null;
+};
+
+export type PostActivationVehicle = {
+  vehicleDisplayName: string;
+  plateNumber: string;
 };

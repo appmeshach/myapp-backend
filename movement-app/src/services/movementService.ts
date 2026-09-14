@@ -6,6 +6,8 @@ import {
     CreateMovementOfferInput,
     MaskedMovementNeed,
     MaskedMovementOffer,
+    PostActivationPerson,
+    PostActivationVehicle,
 } from '../types/movement';
 
 interface MaskedMovementNeedRpcRow {
@@ -36,7 +38,7 @@ interface MaskedMovementOfferRpcRow {
   offer_status: string;
   offer_created_at: string;
   vehicle_make: string;
-  vehicle_model: string;
+  vehicle_model: string | null;
   vehicle_year: number | null;
   vehicle_color: string;
   vehicle_seat_capacity: number;
@@ -66,6 +68,23 @@ interface AlignmentStatusSummaryRpcRow {
   activated_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+interface PostActivationPersonRpcRow {
+  person_number: number;
+  person_role: PostActivationPerson['personRole'];
+  first_name: string | null;
+  age: number | null;
+  verified: boolean;
+  rating: number | null;
+  completed_movements: number;
+  profile_photo_token: string | null;
+  profile_photo_expires_at: string | null;
+}
+
+interface PostActivationVehicleRpcRow {
+  vehicle_display_name: string;
+  plate_number: string;
 }
 
 export async function discoverMaskedMovementNeeds(
@@ -214,5 +233,54 @@ export async function getMyAlignmentStatus(
     activatedAt: row.activated_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  };
+}
+
+export async function getPostActivationPeople(
+  movementNeedId: string
+): Promise<PostActivationPerson[]> {
+  const { data, error } = await supabase.rpc('get_post_activation_people', {
+    p_movement_need_id: movementNeedId,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  const rows = (data ?? []) as PostActivationPersonRpcRow[];
+
+  return rows.map((row) => ({
+    personNumber: row.person_number,
+    personRole: row.person_role,
+    firstName: row.first_name,
+    age: row.age,
+    verified: row.verified,
+    rating: row.rating,
+    completedMovements: row.completed_movements,
+    profilePhotoToken: row.profile_photo_token,
+    profilePhotoExpiresAt: row.profile_photo_expires_at,
+  }));
+}
+
+export async function getPostActivationVehicle(
+  movementNeedId: string
+): Promise<PostActivationVehicle | null> {
+  const { data, error } = await supabase.rpc('get_post_activation_vehicle', {
+    p_movement_need_id: movementNeedId,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  const row = (data as PostActivationVehicleRpcRow[] | null)?.[0];
+
+  if (!row) {
+    return null;
+  }
+
+  return {
+    vehicleDisplayName: row.vehicle_display_name,
+    plateNumber: row.plate_number,
   };
 }
