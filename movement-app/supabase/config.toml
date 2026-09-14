@@ -1,0 +1,6 @@
+project_id = "movement-app"
+
+[functions.post-activation-photo]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/post-activation-photo/index.ts"
