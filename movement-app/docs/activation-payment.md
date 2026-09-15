@@ -34,4 +34,14 @@ Amount and currency initially come from public.alignments.activation_fee_minor a
 
 The client busy guard is convenience only. Separate controllers/devices/workers can call concurrently. The database locks the alignment and reuses its pending row, with unique pending/succeeded indexes as backstops. Timeout/retry and adapter-unavailable retry must reuse that server context; the external adapter must durably deduplicate checkout creation. Current tests prove repeated calls reuse the identity returned by the DB stub, not actual PostgreSQL concurrency or provider idempotency. No remote SQL was run. Final-gate/capture coverage verifies the existing SQL gate and lack of a success shortcut; it does not simulate real funds or implement refunds.
 
-Client controllers must receive the backend service, not arbitrary provider callbacks. Runtime allowlisting rejects objects, face-success results and unsupported states. A modified client can change its own display, but cannot authorize payment or activate the database. There is no new mounted payment UI; lifecycle integration remains required when a screen is added.
+Client controllers must receive the backend service, not arbitrary provider callbacks. Runtime allowlisting rejects objects, face-success results and unsupported states. A modified client can change its own display, but cannot authorize payment or activate the database. The mounted activation card uses the lifecycle owner described below.
+
+## Mounted activation UI
+
+The movement-verification screen now mounts ActivationPaymentCard alongside the current-member face card. It accepts only movementNeedId; it neither reads nor derives aggregate readiness from the face model. No amounts are shown. Continue/retry calls the existing payment service on explicit taps only, never on mount or a polling timer. Provider-unavailable is truthful build-unavailable copy, not payment failure.
+
+useActivationPayment owns a controller for the focused, active authenticated account. Blur, unmount, background and account switches dispose old attempts and clear their display; late results cannot cross owners. Re-entering requires an explicit request. No lifecycle event automatically initiates payment.
+
+Authoritative activation is observable for the offering member through the existing create-activation-payment response when the database alignment is activated. This is a mutation endpoint, not a read-only status feed; retries remain payment initiation attempts and rely on DB/adapter idempotency. It does not provide traveller activation observation or report in-progress/completed as activated. No broader status contract is claimed. No migration or new RPC was needed for this payer flow.
+
+The optional onContinueJourney callback appears only after the service reports activated. No callback is supplied by the current route because no journey screen exists; no journey start/end functionality was added. Actual checkout, real payment and callback settlement remain blocked on provider/pricing work described above.

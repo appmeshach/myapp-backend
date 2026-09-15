@@ -317,7 +317,7 @@ for (const input of [undefined,'','bad-id',['44444444-4444-4444-8444-44444444444
   const screen = loader({
     'expo-router':{ Stack:{Screen:'Screen'},useLocalSearchParams:() => ({movementNeedId:input}) },
     'react-native':{ScrollView:'ScrollView',Text:'Text'},
-    '../components/VerificationCards':{MovementFaceVerificationCard:() => {cards++; return null;}},
+    '../components/ActivationPaymentCard':{ActivationPaymentCard:()=>null}, '../components/VerificationCards':{MovementFaceVerificationCard:() => {cards++; return null;}},
   })('src/app/movement-verification.tsx').default;
   assert.match(renderedText(screen()),/Open a movement/); assert.equal(cards,0);
 });
@@ -328,7 +328,7 @@ test('valid movement route passes only the movement need ID', () => {
   const screen = loader({
     'expo-router':{ Stack:{Screen:'Screen'},useLocalSearchParams:() => ({movementNeedId:need}) },
     'react-native':{ScrollView:'ScrollView',Text:'Text'},
-    '../components/VerificationCards':{MovementFaceVerificationCard:p => {props=p; return null;}},
+    '../components/ActivationPaymentCard':{ActivationPaymentCard:()=>null}, '../components/VerificationCards':{MovementFaceVerificationCard:p => {props=p; return null;}},
   })('src/app/movement-verification.tsx').default;
   renderedText(screen()); assert.deepEqual(Object.keys(props),['movementNeedId','identityPhotoLink']); assert.equal(props.movementNeedId,need);
 });
