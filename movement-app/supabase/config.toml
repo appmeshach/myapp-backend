@@ -4,3 +4,20 @@ project_id = "movement-app"
 enabled = true
 verify_jwt = true
 entrypoint = "./functions/post-activation-photo/index.ts"
+
+[functions.submit-profile-photo]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/submit-profile-photo/index.ts"
+
+[functions.start-face-verification]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/start-face-verification/index.ts"
+
+[functions.face-verification-callback]
+enabled = true
+# Future callbacks authenticate through provider signatures, never user JWTs.
+# The shipped handler has no provider and rejects every callback.
+verify_jwt = false
+entrypoint = "./functions/face-verification-callback/index.ts"

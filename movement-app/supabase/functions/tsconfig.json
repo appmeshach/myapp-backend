@@ -10,5 +10,5 @@
     "allowImportingTsExtensions": true,
     "skipLibCheck": true
   },
-  "include": ["post-activation-photo/**/*.ts"]
+  "include": ["**/*.ts"]
 }
