@@ -1,5 +1,10 @@
 project_id = "movement-app"
 
+[functions.create-activation-payment]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/create-activation-payment/index.ts"
+
 [functions.post-activation-photo]
 enabled = true
 verify_jwt = true
