@@ -1,6 +1,6 @@
 import { initialMovement, initialPhoto, movementTransition, photoTransition, safeVerificationError } from './verificationState';
 import type { MovementEvent, MovementState, PhotoEvent, PhotoState } from './verificationState';
-import type { AlignmentFaceVerificationStatus, ProfilePhotoSubmissionStatus, PhotoSubmissionReceipt } from '../types/faceVerification';
+import type { AlignmentFaceVerificationStatus, ProfilePhotoSubmissionStatus, PhotoSubmissionReceipt, FaceVerificationStartResult } from '../types/faceVerification';
 import type { MovementBiometricProvider } from '../providers/movementBiometricProvider';
 
 // One timer and at most one read per owner; timers begin after a read finishes.
@@ -65,51 +65,68 @@ export function createPhotoController(services: { status(signal?: AbortSignal): 
     dispose() { dead = true; generation++; cancelRead(); listeners.clear(); },
   };
 }
-export function createMovementController(need: string, status: (need: string, signal?: AbortSignal) => Promise<AlignmentFaceVerificationStatus | null>, provider: MovementBiometricProvider,
+export function createMovementController(need: string, services: {
+  status(need: string, signal?: AbortSignal): Promise<AlignmentFaceVerificationStatus | null>;
+  start(need: string, signal: AbortSignal): Promise<FaceVerificationStartResult>;
+}, provider: MovementBiometricProvider,
   now: () => number = Date.now) {
   let state: MovementState = { ...initialMovement }; let generation = 0; let dead = false; let busy = false;
   let readId = 0; let readAbort: AbortController | undefined;
+  let startAbort: AbortController | undefined;
+  const validNeed = typeof need === 'string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(need);
   function cancelRead() { readId++; readAbort?.abort(); }
+  function stopAttempt() { generation++; startAbort?.abort(); startAbort = undefined; busy = false; cancelRead(); }
   const listeners = new Set<() => void>();
   function event(e: MovementEvent) { if (dead) return; state = movementTransition(state,e); listeners.forEach(fn => fn()); }
   async function refresh() {
     if (busy || dead) return; const current = generation;
+    if (!validNeed) { event({ type: 'backend', row: null, now: now() }); return; }
     cancelRead(); const request = readId; readAbort = new AbortController();
     const live = () => !dead && current === generation && request === readId;
     event({ type: 'tick', now: now() });
-    try { const row = await status(need, readAbort.signal); if (live()) event({ type: 'backend', row, now: now() }); }
+    try { const row = await services.status(need, readAbort.signal); if (live()) event({ type: 'backend', row, now: now() }); }
     catch (e) { if (live()) event({ type: 'error', error: safeVerificationError(e) }); }
   }
   return {
     getSnapshot: () => state,
     subscribe(fn: () => void) { listeners.add(fn); return () => { listeners.delete(fn); }; }, refresh,
     shouldPoll: () => busy || state.phase === 'pending' || (!state.loaded && state.error === 'network_unavailable'),
-    tick() { event({ type: 'tick', now: now() }); },
+    tick() { event({ type: 'tick', now: now() }); if (state.phase === 'expired' && busy) stopAttempt(); },
+    cancel() { if (dead) return; stopAttempt(); event({ type: 'cancel' }); },
     async start() {
-      if (busy || dead || ['not_required','pending','provider_session_ready'].includes(state.phase)) return;
+      if (!validNeed || busy || dead || ['not_required','pending','provider_session_ready'].includes(state.phase)) return false;
       busy = true; cancelRead(); const current = ++generation; event({ type: 'start' });
-      const live = () => !dead && current === generation;
+      startAbort = new AbortController(); const signal = startAbort.signal;
+      const live = () => !dead && current === generation && !signal.aborted;
       try {
-        if (!await provider.isAvailable()) { if (live()) event({ type: 'unavailable' }); return; }
-        if (!live()) return;
-        const receipt = await provider.start(need);
-        if (!live()) return; event({ type: 'session', expiresAt: receipt.expiresAt });
-        const captured = await provider.presentCapture();
-        if (!live()) return;
-        if (captured === 'submitted') event({ type: 'capture_submitted' });
+        const receipt = await services.start(need, signal);
+        if (!live()) return false;
+        if (receipt.status === 'provider_unavailable') { event({ type: 'unavailable' }); return false; }
+        event({ type: 'session', expiresAt: receipt.expiresAt });
+        if (Date.parse(receipt.expiresAt) <= now()) { event({ type: 'tick', now: now() }); return false; }
+        if (!await provider.isAvailable(signal)) { if (live()) event({ type: 'unavailable' }); return false; }
+        if (!live()) return false;
+        const prepared = await provider.start({ movementNeedId: need, expiresAt: receipt.expiresAt }, signal);
+        if (!live()) return false;
+        if (prepared !== 'ready') { event({ type: 'unavailable' }); return false; }
+        const captured = await provider.presentCapture(signal);
+        if (!live()) return false;
+        if (captured === 'submitted') { event({ type: 'capture_submitted' }); return true; }
+        else if (captured === 'cancelled') { event({ type: 'cancel' }); return true; }
         else if (captured === 'unavailable') event({ type: 'unavailable' });
         else event({ type: 'error', error: 'verification_unavailable' });
       } catch (e) { if (live()) event({ type: 'error', error: safeVerificationError(e) }); }
-      finally { busy = false; if (!dead && current !== generation) await refresh(); }
+      finally { if (current === generation) { busy = false; startAbort?.abort(); startAbort = undefined; } }
+      return false;
     },
-    reset() { generation++; cancelRead(); state = { ...initialMovement }; if (!dead) listeners.forEach(fn => fn()); },
+    reset() { stopAttempt(); state = { ...initialMovement }; if (!dead) listeners.forEach(fn => fn()); },
     activate() { dead = false; listeners.forEach(fn => fn()); },
     deactivate() {
       if (state.phase === 'starting' || state.phase === 'provider_session_ready') {
         state = { ...state, phase: 'required', ownReady: false };
       }
-      dead = true; generation++; cancelRead();
+      dead = true; stopAttempt();
     },
-    dispose() { dead = true; generation++; cancelRead(); listeners.clear(); },
+    dispose() { dead = true; stopAttempt(); listeners.clear(); },
   };
 }

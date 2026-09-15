@@ -3,7 +3,7 @@ import { AppState } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { supabase } from '../lib/supabase';
 import { getMyAlignmentFaceVerificationStatus, getMyProfilePhotoSubmissionStatus } from '../services/faceVerificationService';
-import { submitMovementIdentityPhoto } from '../services/faceOrchestrationService';
+import { startMyMovementFaceVerification, submitMovementIdentityPhoto } from '../services/faceOrchestrationService';
 import { unavailableBiometricProvider } from '../providers/movementBiometricProvider';
 import type { MovementBiometricProvider } from '../providers/movementBiometricProvider';
 import { createMovementController, createPhotoController, createStatusPoller } from '../state/verificationController';
@@ -48,7 +48,9 @@ export function useProfilePhotoVerification() {
 }
 export function useMovementFaceVerification(movementNeedId: string, provider: MovementBiometricProvider = unavailableBiometricProvider) {
   const account = useAccountGeneration();
-  const owner = useMemo(() => createMovementController(movementNeedId, getMyAlignmentFaceVerificationStatus, provider),
+  const owner = useMemo(() => createMovementController(movementNeedId, {
+    status: getMyAlignmentFaceVerificationStatus, start: startMyMovementFaceVerification,
+  }, provider),
     [movementNeedId, provider, account.generation]);
   const poller = useStatusOwner(owner, account.signedIn);
   const state = useSyncExternalStore(owner.subscribe, owner.getSnapshot, owner.getSnapshot);
@@ -60,5 +62,6 @@ export function useMovementFaceVerification(movementNeedId: string, provider: Mo
     return () => clearTimeout(timer);
   }, [state.expiresAt, state.phase, owner]);
   return { state, signedIn: account.signedIn, refresh: poller.refresh,
-    async start() { if (!account.signedIn) return; await owner.start(); if (owner.getSnapshot().phase === 'pending') await poller.refresh(); } };
+    cancel() { owner.cancel(); },
+    async start() { if (!account.signedIn) return; const refreshNeeded = await owner.start(); if (refreshNeeded) await poller.refresh(); } };
 }

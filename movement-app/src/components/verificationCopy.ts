@@ -20,11 +20,12 @@ export function movementCopy(s: MovementState) {
   const copy = {
     not_required: 'No face check is available for this movement.', required: 'Complete a fresh live face check before this movement can activate.',
     starting: 'Starting your check…', provider_unavailable: 'Live face checks are not available yet. Please try again later.',
-    provider_session_ready: 'Your check is ready to continue.', pending: 'Verification in progress.',
-    succeeded: s.ownReady ? 'Your face check is ready for this movement.' : 'Your check is recorded. Activation readiness must be confirmed again.',
+    provider_session_ready: 'Preparing verification.', pending: 'Verification in progress.',
+    succeeded: s.ownReady && !s.error ? 'Your live face check is complete for this movement.' : 'Your check is recorded. Activation readiness must be confirmed again.',
     failed: 'The check could not be completed. You can try again.', expired: 'Verification expired. Start a new check to continue.',
   };
-  return { title: 'Live face check required', body: copy[s.phase],
+  return { title: s.phase === 'succeeded' && s.ownReady && !s.error ? 'Verified for this movement'
+    : s.phase === 'not_required' ? 'Movement face check' : 'Live face check required', body: copy[s.phase],
     canStart: ['required','provider_unavailable','failed','expired'].includes(s.phase) || (s.phase === 'succeeded' && !s.ownReady),
-    action: ['failed','expired','provider_unavailable'].includes(s.phase) ? 'Try again' : 'Start face check' };
+    action: ['failed','expired','provider_unavailable'].includes(s.phase) ? 'Try again' : 'Start live face check' };
 }

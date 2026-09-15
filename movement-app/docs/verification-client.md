@@ -21,7 +21,9 @@ Only a safe backend success with readiness can mark the current member ready.
 Provider capture submission alone means pending.
 
 `identity-photo` hosts the reusable photo card. `movement-verification` accepts
-a `movementNeedId` route parameter and hosts the movement card. The starter home
+a `movementNeedId` route parameter and hosts the movement card. Unknown route
+parameters, arrays and malformed IDs render an unavailable message without
+mounting the network-owning card. The starter home
 links to both; the movement route requires an actual movement before showing
 the card. There is no aggregate participant readiness UI or payment action.
 
@@ -60,11 +62,43 @@ results or expose private session IDs to solve ordering.
 
 ## Remaining integrations
 
-`MovementBiometricProvider` is the single SDK boundary. The shipped implementation
-always reports unavailable. Tests inject adapters directly; there is no production
-environment toggle for fake success. A future adapter can use the existing start
-helper, keep any SDK handles privately, and present capture. Only server-verified
-callbacks may establish success.
+`MovementBiometricProvider` is the single SDK boundary. Start now calls
+`startMyMovementFaceVerification` first, using the authenticated Edge Function
+with exactly `{ movementNeedId }`. A 503 maps to provider_unavailable without
+reading or exposing its body. With no server provider configured, the endpoint
+does not issue a receipt, so the SDK seam is not invoked.
+
+After a valid pending/expiry receipt, the controller calls adapter
+`isAvailable(signal)`, `start({ movementNeedId, expiresAt }, signal)`, then
+`presentCapture(signal)`. Adapter start returns ready/unavailable; capture returns
+submitted/cancelled/unavailable, never a verification result. The shipped adapter
+always reports unavailable, even if a server receipt exists. Tests inject adapters
+directly; there is no environment toggle for fake success.
+
+The hook refreshes safe backend status after submitted/cancelled interaction,
+then uses the existing single conservative polling loop. Only backend succeeded
+plus own readiness shows "Verified for this movement". Unavailable starts remain
+unavailable until retry/manual refresh; no automatic repeated start requests occur.
+
+Cancel, navigation, backgrounding, expiry and account changes abort the active
+start/adapter signal and invalidate its generation. Cancellation cannot undo a
+server-created attempt; foreground/manual refresh reconciles backend status. A
+late old adapter outcome cannot clear a newer busy guard or update its state.
+Adapters must honor abort by dismissing capture and releasing private SDK handles;
+the controller also aborts the signal when interaction finishes. Status polling
+and SDK presentation never run their own competing loops.
+
+The card links to identity-photo and explains the prepared-photo prerequisite.
+Uniform backend denial does not identify which authorization condition failed,
+so the UI provides this guidance without claiming to diagnose private provenance.
+Payment remains server-authoritative and only current-member state is displayed.
+
+Still provider-specific: native SDK presentation, SDK cancellation, authenticated
+callback integration and a reviewed safe session/challenge handoff. The current
+Edge receipt deliberately has no SDK token or private identifier; a vendor may
+require an additional narrowly scoped handoff at the adapter/service boundary.
+No such contract, secret, SDK, backend change or migration is introduced here.
+Only server-verified callbacks may establish success.
 
 `MovementPhotoPicker` now has an Expo adapter (`expo-image-picker ~57.0.17`). The
 identity-photo screen offers library selection and camera capture. Camera access

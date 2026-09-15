@@ -60,12 +60,15 @@ function attemptTime(value: string | null): number {
   const fraction = /\.(\d+)(?:Z|[+-]\d{2}:\d{2})$/.exec(value)?.[1] ?? '';
   return Date.parse(value) * 1000 + Number(fraction.padEnd(6, '0').slice(3, 6));
 }
-export type MovementEvent = { type: 'start' } | { type: 'unavailable' }
+export type MovementEvent = { type: 'start' } | { type: 'unavailable' } | { type: 'cancel' }
   | { type: 'session'; expiresAt: string } | { type: 'capture_submitted' }
   | { type: 'backend'; row: AlignmentFaceVerificationStatus | null; now: number }
   | { type: 'error'; error: VerificationError } | { type: 'tick'; now: number };
 export function movementTransition(state: MovementState, event: MovementEvent): MovementState {
   switch (event.type) {
+    case 'cancel':
+      return ['starting','provider_session_ready'].includes(state.phase)
+        ? { ...state, phase: 'required', ownReady: false, error: null } : state;
     case 'start':
       if (['starting','provider_session_ready','pending','not_required'].includes(state.phase)) throw new Error('Invalid movement transition');
       return { ...state, phase: 'starting', ownReady: false, error: null, awaitingNewAttempt: true };

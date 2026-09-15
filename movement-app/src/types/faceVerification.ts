@@ -1,6 +1,7 @@
 // Private session, member, media and provider identifiers never belong here.
 export type PhotoSubmissionReceipt = { status: 'pending' | 'ready' };
 export type FaceVerificationReceipt = { status: 'pending'; expiresAt: string };
+export type FaceVerificationStartResult = FaceVerificationReceipt | { status: 'provider_unavailable' };
 export type ProfilePhotoSubmissionStatus = {
   status: 'pending' | 'ready' | 'failed' | 'superseded';
   submittedAt: string;

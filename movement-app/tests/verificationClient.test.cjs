@@ -33,6 +33,11 @@ const copy = load('src/components/verificationCopy.ts');
 const plain = value => JSON.parse(JSON.stringify(value));
 const future = '2099-01-01T00:10:00Z';
 const newer = '2099-01-01T00:20:00Z';
+function movementController(status, provider, now = () => 0) {
+  return controllers.createMovementController('44444444-4444-4444-8444-444444444444', {
+    status, start: async () => ({ status: 'pending', expiresAt: future }),
+  }, provider, now);
+}
 const row = (status, expiresAt = future) => ({ status, expiresAt, completedAt: status === 'succeeded' ? '2099-01-01T00:00:00Z' : null, readyForActivation: status === 'succeeded' });
 const photoRow = (status, verified = false, submittedAt = '2026-01-01T00:00:00Z') => ({ status, currentPhotoVerified: verified, submittedAt, processedAt: null });
 const movement = (previous, data) => state.movementTransition(previous, { type: 'backend', row: data, now: 0 });
@@ -97,19 +102,19 @@ test('state projection drops extra private fields', () => {
 });
 test('default provider cannot start or manufacture results', async () => {
   assert.equal(await unavailableBiometricProvider.isAvailable(),false);
-  await assert.rejects(unavailableBiometricProvider.start('need'));
+  assert.equal(await unavailableBiometricProvider.start({}, new AbortController().signal),'unavailable');
   assert.equal(await unavailableBiometricProvider.presentCapture(),'unavailable');
 });
 test('controller ignores response started before new attempt', async () => {
   const pending = deferred();
-  const c = controllers.createMovementController('need',() => pending.promise,unavailableBiometricProvider);
+  const c = movementController(() => pending.promise,unavailableBiometricProvider);
   const refresh = c.refresh(); await c.start(); assert.equal(c.getSnapshot().phase,'provider_unavailable');
   pending.resolve(row('succeeded')); await refresh; assert.equal(c.getSnapshot().phase,'provider_unavailable');
 });
 test('controller duplicate start calls cannot create duplicate provider sessions', async () => {
   const wait = deferred(); let count = 0;
-  const provider = { isAvailable: async () => true, start: async () => { count++; await wait.promise; return { status:'pending',expiresAt:future }; }, presentCapture: async () => 'submitted' };
-  const c = controllers.createMovementController('need',async () => row('pending'),provider);
+  const provider = { isAvailable: async () => true, start: async () => { count++; await wait.promise; return 'ready'; }, presentCapture: async () => 'submitted' };
+  const c = movementController(async () => row('pending'),provider);
   const first = c.start(); await flush(); await c.start(); assert.equal(count,1);
   wait.resolve(); await first; assert.equal(c.getSnapshot().phase,'pending');
 });
@@ -144,7 +149,7 @@ test('poller coalesces simultaneous refresh requests and cleanup prevents resche
 });
 test('terminal controllers do not request recurring polls', async () => {
   for (const phase of ['succeeded','failed','expired']) {
-    const c = controllers.createMovementController('need',async () => row(phase),unavailableBiometricProvider,() => 0);
+    const c = movementController(async () => row(phase),unavailableBiometricProvider,() => 0);
     await c.refresh(); assert.equal(c.shouldPoll(),false);
   }
 });
@@ -238,8 +243,8 @@ test('backgrounded photo upload becomes refreshable and ignores late receipt', a
 
 test('backgrounded provider session can reconcile safe backend status on resume', async () => {
   const capture = deferred();
-  const owner = controllers.createMovementController('need', async () => row('pending'), {
-    isAvailable: async () => true, start: async () => ({ expiresAt: future }), presentCapture: () => capture.promise,
+  const owner = movementController( async () => row('pending'), {
+    isAvailable: async () => true, start: async () => 'ready', presentCapture: () => capture.promise,
   }, () => 0);
   const work = owner.start(); await flush();
   assert.equal(owner.getSnapshot().phase, 'provider_session_ready');
@@ -255,7 +260,7 @@ for (const kind of ['photo','movement']) test(`${kind}: later refresh wins over 
     const status = (...args) => { signals.push(args.at(-1)); return ++reads === 1 ? old.promise : fresh.promise; };
     const c = kind === 'photo'
       ? controllers.createPhotoController({ status, submit: async () => ({ status:'pending' }) })
-      : controllers.createMovementController('need',status,unavailableBiometricProvider,() => 0);
+      : movementController(status,unavailableBiometricProvider,() => 0);
     const first = c.refresh(); const second = c.refresh(); assert.equal(signals[0].aborted,true);
     fresh.resolve(kind === 'photo' ? photoRow('pending') : row('pending')); await second;
     const snapshot = c.getSnapshot();
@@ -266,7 +271,7 @@ for (const kind of ['photo','movement']) test(`${kind}: later refresh wins over 
 
 test('deactivation aborts reads and late completion cannot notify subscribers', async () => {
   const wait = deferred(); let signal; let notifications = 0;
-  const c = controllers.createMovementController('need',(_need,s) => { signal=s; return wait.promise; },unavailableBiometricProvider);
+  const c = movementController((_need,s) => { signal=s; return wait.promise; },unavailableBiometricProvider);
   c.subscribe(() => notifications++); const work = c.refresh();
   c.deactivate(); c.reset(); const before = notifications;
   assert.equal(signal.aborted,true); wait.resolve(row('succeeded')); await work;
@@ -275,8 +280,8 @@ test('deactivation aborts reads and late completion cannot notify subscribers', 
 
 test('foreground before provider promise settles refreshes afterward without getting stuck', async () => {
   const capture = deferred(); let reads = 0;
-  const c = controllers.createMovementController('need',async () => { reads++; return row('pending'); },{
-    isAvailable:async () => true, start:async () => ({ status:'pending',expiresAt:future }), presentCapture:() => capture.promise,
+  const c = movementController(async () => { reads++; return row('pending'); },{
+    isAvailable:async () => true, start:async () => 'ready', presentCapture:() => capture.promise,
   },() => 0);
   const work = c.start(); await flush(); c.deactivate(); c.activate(); await c.refresh();
   assert.equal(c.shouldPoll(),true); capture.resolve('submitted'); await work;
@@ -299,8 +304,8 @@ test('fresh not-started backend state removes prior readiness', () => {
 });
 
 test('unexpected positive provider result cannot establish success', async () => {
-  const c = controllers.createMovementController('need',async () => row('pending'),{
-    isAvailable:async () => true,start:async () => ({status:'pending',expiresAt:future}),
+  const c = movementController(async () => row('pending'),{
+    isAvailable:async () => true,start:async () => 'ready',
     presentCapture:async () => ({succeeded:true,livenessPassed:true,providerReference:'private'}),
   });
   await c.start(); assert.notEqual(c.getSnapshot().phase,'succeeded'); assert.equal(c.getSnapshot().ownReady,false);
@@ -321,11 +326,11 @@ test('valid movement route passes only the movement need ID', () => {
   let props;
   const need = '44444444-4444-4444-8444-444444444444';
   const screen = loader({
-    'expo-router':{ Stack:{Screen:'Screen'},useLocalSearchParams:() => ({movementNeedId:need,memberId:'private',providerReference:'private'}) },
+    'expo-router':{ Stack:{Screen:'Screen'},useLocalSearchParams:() => ({movementNeedId:need}) },
     'react-native':{ScrollView:'ScrollView',Text:'Text'},
     '../components/VerificationCards':{MovementFaceVerificationCard:p => {props=p; return null;}},
   })('src/app/movement-verification.tsx').default;
-  renderedText(screen()); assert.deepEqual(Object.keys(props),['movementNeedId']); assert.equal(props.movementNeedId,need);
+  renderedText(screen()); assert.deepEqual(Object.keys(props),['movementNeedId','identityPhotoLink']); assert.equal(props.movementNeedId,need);
 });
 
 test('picker double taps coalesce and unmount drops late selection and UI updates', async () => {

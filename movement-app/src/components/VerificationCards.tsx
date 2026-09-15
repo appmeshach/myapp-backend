@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useMovementFaceVerification, useProfilePhotoVerification } from '../hooks/useVerification';
 import type { MovementBiometricProvider, MovementPhotoPicker, PhotoSource, SelectedMovementPhoto } from '../providers/movementBiometricProvider';
-import { safeVerificationError, ownPaymentReadiness } from '../state/verificationState';
+import { safeVerificationError } from '../state/verificationState';
 import type { VerificationError } from '../state/verificationState';
 import { errorCopy, movementCopy, photoCopy } from './verificationCopy';
 
@@ -93,16 +94,20 @@ export function ProfilePhotoVerificationCard({ picker }: { picker?: MovementPhot
     </>}
   </View>;
 }
-export function MovementFaceVerificationCard({ movementNeedId, provider }: { movementNeedId: string; provider?: MovementBiometricProvider }) {
+export function MovementFaceVerificationCard({ movementNeedId, provider, identityPhotoLink }: {
+  movementNeedId: string; provider?: MovementBiometricProvider; identityPhotoLink?: ReactNode;
+}) {
   const model = useMovementFaceVerification(movementNeedId, provider); const text = movementCopy(model.state);
   return <View style={styles.card}>
     <Text style={styles.title}>{text.title}</Text>
     {!model.signedIn ? <Text>Sign in to view your movement check.</Text> : <>
-      <Text accessibilityLiveRegion="polite">{text.body}</Text>
+      <Text accessibilityLiveRegion="polite">{model.state.loaded ? text.body : 'Loading your movement check…'}</Text>
       {model.state.error && <Text accessibilityLiveRegion="polite">{errorCopy[model.state.error]}</Text>}
-      {ownPaymentReadiness(model.state) === 'current_member_ready' && <Text style={styles.label}>Your check is ready</Text>}
-      <Text style={styles.note}>This is your check only. The platform confirms all required checks before payment can begin.</Text>
+      <Text style={styles.note}>This is your check only. Payment remains subject to the platform's activation checks.</Text>
+      <Text style={styles.note}>Your movement identity photo must be prepared before a live face check can start. Check its status if you cannot start.</Text>
+      {identityPhotoLink}
       {text.canStart && <Action title={text.action} onPress={() => { void model.start(); }} disabled={!model.state.loaded} />}
+      {['starting','provider_session_ready'].includes(model.state.phase) && <Action title="Cancel check" onPress={model.cancel} />}
       <Action title="Refresh status" onPress={() => { void model.refresh(); }} disabled={['starting','provider_session_ready'].includes(model.state.phase)} />
     </>}
   </View>;
