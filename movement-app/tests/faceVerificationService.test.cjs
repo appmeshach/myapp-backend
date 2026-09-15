@@ -3,6 +3,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
+const need = '44444444-4444-4444-8444-444444444444';
+const time = '2099-01-01T00:00:00Z';
 
 const source = fs.readFileSync('src/services/faceVerificationService.ts', 'utf8');
 function service(result) {
@@ -16,32 +18,32 @@ function service(result) {
 }
 
 test('submission helper projects only safe fields even if an upstream row contains extras', async () => {
-  const { api, calls } = service({ data: [{ status: 'ready', submitted_at: 'today', processed_at: null,
+  const { api, calls } = service({ data: [{ status: 'ready', submitted_at: time, processed_at: null,
     current_photo_verified: false, member_id: 'private', storage_path: 'private', provider_reference: 'private' }] });
   assert.deepEqual(JSON.parse(JSON.stringify(await api.getMyProfilePhotoSubmissionStatus())), {
-    status: 'ready', submittedAt: 'today', processedAt: null, currentPhotoVerified: false,
+    status: 'ready', submittedAt: time, processedAt: null, currentPhotoVerified: false,
   });
   assert.equal(calls[0][0], 'get_my_profile_photo_submission_status');
   assert.equal(calls[0].length, 1);
 });
 
 test('face status uses only need ID and returns no private identifiers', async () => {
-  const { api, calls } = service({ data: [{ status: 'succeeded', completed_at: 'now', expires_at: 'soon',
+  const { api, calls } = service({ data: [{ status: 'succeeded', completed_at: time, expires_at: time,
     ready_for_activation: true, media_id: 'private', provider_reference: 'private', member_id: 'private' }] });
-  assert.deepEqual(JSON.parse(JSON.stringify(await api.getMyAlignmentFaceVerificationStatus('need'))), {
-    status: 'succeeded', completedAt: 'now', expiresAt: 'soon', readyForActivation: true,
+  assert.deepEqual(JSON.parse(JSON.stringify(await api.getMyAlignmentFaceVerificationStatus(need))), {
+    status: 'succeeded', completedAt: time, expiresAt: time, readyForActivation: true,
   });
-  assert.deepEqual(JSON.parse(JSON.stringify(calls)), [['get_my_alignment_face_verification_status', { p_movement_need_id: 'need' }]]);
+  assert.deepEqual(JSON.parse(JSON.stringify(calls)), [['get_my_alignment_face_verification_status', { p_movement_need_id: need }]]);
 });
 
 for (const name of ['getMyProfilePhotoSubmissionStatus', 'getMyAlignmentFaceVerificationStatus']) {
   test(`${name}: no authorized row returns null`, async () => {
     const { api } = service({ data: [] });
-    assert.equal(await api[name]('need'), null);
+    assert.equal(await api[name](...(name === 'getMyAlignmentFaceVerificationStatus' ? [need] : [])), null);
   });
   test(`${name}: errors do not echo internal upstream details`, async () => {
     const { api } = service({ error: { message: 'secret path/provider/UUID', details: 'sensitive' } });
-    await assert.rejects(api[name]('need'), error => /unavailable/.test(error.message) && !/secret|sensitive/.test(error.message));
+    await assert.rejects(api[name](...(name === 'getMyAlignmentFaceVerificationStatus' ? [need] : [])), error => /unavailable/.test(error.message) && !/secret|sensitive/.test(error.message));
   });
 }
 

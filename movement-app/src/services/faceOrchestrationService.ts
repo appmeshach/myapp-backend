@@ -15,16 +15,20 @@ async function post(endpoint: string, body: BodyInit, contentType: string): Prom
     body, redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(30_000),
   });
   if (r.status === 401) throw new Error('authentication_required');
+  if (endpoint === 'submit-profile-photo' && r.status === 413) throw new Error('photo_too_large');
+  if (endpoint === 'submit-profile-photo' && (r.status === 400 || r.status === 415)) throw new Error('photo_invalid');
   if (!r.ok || r.redirected) throw new Error('request_unavailable');
   const result: unknown = await r.json();
   if (!result || typeof result !== 'object' || Array.isArray(result)) throw new Error('request_unavailable');
   return result as Record<string, unknown>;
   } catch (error) {
-    if (error instanceof Error && error.message === 'authentication_required') throw error;
+    if (error instanceof Error && ['authentication_required','photo_too_large','photo_invalid'].includes(error.message)) throw error;
+    if (error instanceof Error && ['TypeError','TimeoutError','AbortError'].includes(error.name)) throw new Error('network_unavailable');
     throw new Error('request_unavailable');
   }
 }
 export async function submitMovementIdentityPhoto(photo: Blob): Promise<PhotoSubmissionReceipt> {
+  if (photo.size > 5 * 1024 * 1024) throw new Error('photo_too_large');
   if (!['image/jpeg','image/png','image/webp'].includes(photo.type) || photo.size < 1 || photo.size > 5 * 1024 * 1024) {
     throw new Error('invalid_photo');
   }
