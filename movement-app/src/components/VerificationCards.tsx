@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useMovementFaceVerification, useProfilePhotoVerification } from '../hooks/useVerification';
-import type { MovementBiometricProvider, MovementPhotoPicker } from '../providers/movementBiometricProvider';
+import type { MovementBiometricProvider, MovementPhotoPicker, PhotoSource, SelectedMovementPhoto } from '../providers/movementBiometricProvider';
 import { safeVerificationError, ownPaymentReadiness } from '../state/verificationState';
 import type { VerificationError } from '../state/verificationState';
 import { errorCopy, movementCopy, photoCopy } from './verificationCopy';
@@ -13,31 +13,83 @@ function Action({ title, onPress, disabled = false }: { title: string; onPress()
 export function ProfilePhotoVerificationCard({ picker }: { picker?: MovementPhotoPicker }) {
   const model = useProfilePhotoVerification(); const text = photoCopy(model.state);
   const [picking, setPicking] = useState(false); const [selectionError, setSelectionError] = useState<VerificationError | null>(null);
-  const selection = useRef({ alive: true, busy: false });
+  const [draft, setDraft] = useState<SelectedMovementPhoto | null>(null);
+  const [permissionSource, setPermissionSource] = useState<PhotoSource | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const selection = useRef({ alive: true, busy: false, uploading: false,
+    accountGeneration: model.accountGeneration, abort: new AbortController(), draft: null as SelectedMovementPhoto | null });
   useEffect(() => {
-    const lifecycle = { alive: true, busy: false }; selection.current = lifecycle;
-    return () => { lifecycle.alive = false; };
-  }, []);
-  async function select() {
+    const lifecycle = { alive: true, busy: false, uploading: false,
+      accountGeneration: model.accountGeneration, abort: new AbortController(), draft: null as SelectedMovementPhoto | null }; selection.current = lifecycle;
+    setDraft(null); setPicking(false); setUploading(false); setSelectionError(null); setPermissionSource(null);
+    return () => { lifecycle.alive = false; lifecycle.abort.abort();
+      if (!lifecycle.uploading) lifecycle.draft?.release(); };
+  }, [model.accountGeneration]);
+  async function select(source: PhotoSource) {
     const lifecycle = selection.current;
-    if (!picker || lifecycle.busy || !lifecycle.alive) return;
-    lifecycle.busy = true; setPicking(true); setSelectionError(null);
-    try { const photo = await picker.pick(); if (photo && lifecycle.alive) await model.submit(photo); }
+    if (!picker || lifecycle.busy || !lifecycle.alive || lifecycle.accountGeneration !== model.accountGeneration || !model.signedIn || !model.state.loaded) return;
+    lifecycle.abort = new AbortController(); const signal = lifecycle.abort.signal;
+    lifecycle.busy = true; setPicking(true); setSelectionError(null); setPermissionSource(null);
+    try {
+      const result = await picker.pick(source, signal);
+      if (!lifecycle.alive || signal.aborted) { if (result?.kind === 'selected') result.selected.release(); return; }
+      if (result?.kind === 'permission_denied') setPermissionSource(source);
+      if (result?.kind === 'selected') {
+        lifecycle.draft?.release(); lifecycle.draft = result.selected; setDraft(result.selected);
+      }
+    }
     catch (e) { if (lifecycle.alive) setSelectionError(safeVerificationError(e)); }
     finally { lifecycle.busy = false; if (lifecycle.alive) setPicking(false); }
   }
+  function cancelSelection() {
+    const lifecycle = selection.current;
+    if (lifecycle.uploading) return;
+    lifecycle.abort.abort(); lifecycle.draft?.release(); lifecycle.draft = null;
+    setDraft(null); setSelectionError(null); setPermissionSource(null);
+  }
+  async function upload() {
+    const lifecycle = selection.current; const chosen = lifecycle.draft;
+    if (!chosen || !lifecycle.alive || lifecycle.busy || lifecycle.accountGeneration !== model.accountGeneration || !model.signedIn) return;
+    lifecycle.busy = true; lifecycle.uploading = true; setUploading(true); setSelectionError(null);
+    try {
+      const accepted = await model.submit(chosen.photo);
+      if (accepted && lifecycle.alive) {
+        chosen.release(); lifecycle.draft = null;
+        if (lifecycle.alive) setDraft(null);
+      }
+    } catch (e) { if (lifecycle.alive) setSelectionError(safeVerificationError(e)); }
+    finally {
+      lifecycle.busy = false; lifecycle.uploading = false;
+      if (!lifecycle.alive) { chosen.release(); lifecycle.draft = null; }
+      else setUploading(false);
+    }
+  }
   const error = selectionError ?? model.state.error;
+  // Hide the old account's local draft immediately, before effect cleanup runs.
+  const currentDraft = selection.current.accountGeneration === model.accountGeneration ? draft : null;
   return <View style={styles.card}>
     <Text style={styles.title}>{text.title}</Text>
     {!model.signedIn ? <Text>Sign in to manage your photo.</Text> : <>
-      <Text accessibilityLiveRegion="polite">{model.state.loaded || model.state.phase !== 'none' ? text.body : 'Refresh to check your photo status.'}</Text>
-      {text.label && <Text style={styles.label}>{text.label}</Text>}
+      <Text accessibilityLiveRegion="polite">{uploading ? 'Uploading photo…' : currentDraft ? 'Review your selected photo before uploading.'
+        : model.state.loaded || model.state.phase !== 'none' ? text.body : 'Refresh to check your photo status.'}</Text>
+      {!currentDraft && text.label && <Text style={styles.label}>{text.label}</Text>}
       <Text style={styles.note}>A prepared photo is not identity verification. A live face check is required before movement activation.</Text>
       {error && <Text accessibilityLiveRegion="polite">{errorCopy[error]}</Text>}
+      {permissionSource && <Text accessibilityLiveRegion="polite">{permissionSource === 'camera'
+        ? 'Camera permission was not granted. You can allow it in device settings or choose a photo instead.'
+        : 'Photo access was not granted. You can allow it in device settings and try again.'}</Text>}
       {!picker && <Text style={styles.note}>Photo selection is not available in this build yet.</Text>}
-      <Action title={model.state.phase === 'none' ? 'Choose photo' : 'Replace photo'} onPress={() => { void select(); }}
-        disabled={!picker || !model.state.loaded || picking || model.state.phase === 'submitting'} />
-      <Action title="Refresh status" onPress={() => { void model.refresh(); }} disabled={model.state.phase === 'submitting'} />
+      <Action title="Choose photo" onPress={() => { void select('library'); }}
+        disabled={!picker || !model.state.loaded || picking || uploading || model.state.phase === 'submitting'} />
+      <Action title="Take photo" onPress={() => { void select('camera'); }}
+        disabled={!picker || !model.state.loaded || picking || uploading || model.state.phase === 'submitting'} />
+      {currentDraft && <>
+        <Image source={{ uri: currentDraft.previewUri }} accessibilityLabel="Selected photo preview" style={{ width: 220, height: 220, borderRadius: 12 }} />
+        <Text style={styles.note}>Uploading replaces your movement identity photo. A new live face check will be required.</Text>
+        <Action title={model.state.phase === 'verified' ? 'Replace and upload' : 'Upload photo'} onPress={() => { void upload(); }} disabled={uploading || picking} />
+      </>}
+      {(currentDraft || picking) && <Action title="Cancel selection" onPress={cancelSelection} disabled={uploading} />}
+      <Action title="Refresh status" onPress={() => { void model.refresh(); }} disabled={uploading || model.state.phase === 'submitting'} />
     </>}
   </View>;
 }

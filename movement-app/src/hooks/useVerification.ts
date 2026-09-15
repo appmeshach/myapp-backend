@@ -43,8 +43,8 @@ export function useProfilePhotoVerification() {
   const owner = useMemo(() => createPhotoController({ status: getMyProfilePhotoSubmissionStatus, submit: submitMovementIdentityPhoto }), [account.generation]);
   const poller = useStatusOwner(owner, account.signedIn);
   const state = useSyncExternalStore(owner.subscribe, owner.getSnapshot, owner.getSnapshot);
-  return { state, signedIn: account.signedIn, refresh: poller.refresh,
-    async submit(photo: Blob) { if (!account.signedIn) return; await owner.submit(photo); await poller.refresh(); } };
+  return { state, signedIn: account.signedIn, accountGeneration: account.generation, refresh: poller.refresh,
+    async submit(photo: Blob) { if (!account.signedIn) return false; const accepted = await owner.submit(photo); await poller.refresh(); return accepted; } };
 }
 export function useMovementFaceVerification(movementNeedId: string, provider: MovementBiometricProvider = unavailableBiometricProvider) {
   const account = useAccountGeneration();

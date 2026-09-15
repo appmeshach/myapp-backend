@@ -47,9 +47,11 @@ export function createPhotoController(services: { status(signal?: AbortSignal): 
     subscribe(fn: () => void) { listeners.add(fn); return () => { listeners.delete(fn); }; }, refresh,
     shouldPoll: () => busy || state.phase === 'processing' || (!state.loaded && state.error === 'network_unavailable'),
     async submit(photo: Blob) {
-      if (busy || dead) return; busy = true; cancelRead(); const current = ++generation; event({ type: 'submit' });
-      try { const receipt = await services.submit(photo); if (!dead && current === generation) event({ type: 'uploaded', status: receipt.status }); }
-      catch (e) { if (!dead && current === generation) event({ type: 'error', error: safeVerificationError(e) }); }
+      if (busy || dead) return false; busy = true; cancelRead(); const current = ++generation; event({ type: 'submit' });
+      try { const receipt = await services.submit(photo); if (!dead && current === generation) {
+        event({ type: 'uploaded', status: receipt.status }); return true;
+      } return false; }
+      catch (e) { if (!dead && current === generation) event({ type: 'error', error: safeVerificationError(e) }); return false; }
       finally { busy = false; if (!dead && current !== generation) await refresh(); }
     },
     reset() { generation++; cancelRead(); state = { ...initialPhoto }; if (!dead) listeners.forEach(fn => fn()); },

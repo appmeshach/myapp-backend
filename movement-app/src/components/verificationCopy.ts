@@ -1,7 +1,7 @@
 import type { MovementState, PhotoState, VerificationError } from '../state/verificationState';
 export const errorCopy: Record<VerificationError,string> = {
   authentication_required: 'Sign in to continue.', verification_unavailable: 'This check is unavailable right now. Please try again later.',
-  photo_invalid: 'Choose a JPEG, PNG, or WebP photo.', photo_too_large: 'Choose a photo smaller than 5 MiB.',
+  photo_invalid: 'Choose a readable JPEG, PNG, or WebP photo. HEIC and HEIF are not supported.', photo_too_large: 'Choose a photo no larger than 5 MiB.',
   photo_processing_failed: 'We could not prepare this photo. Please try another.',
   verification_expired: 'Your check expired. Please try again.', verification_failed: 'The check could not be completed. Please try again.',
   network_unavailable: 'Connection unavailable. Your last status is shown. Try refreshing.', unknown: 'Unable to refresh right now.',
@@ -9,7 +9,7 @@ export const errorCopy: Record<VerificationError,string> = {
 export function photoCopy(s: PhotoState) {
   const copy = {
     none: 'Add a current photo for movement identification.', submitting: 'Submitting your photo…',
-    processing: 'Photo submitted. Waiting for preparation.', prepared_unverified: 'Photo prepared. A live face check is still required.',
+    processing: 'Preparing photo.', prepared_unverified: 'Ready for live face check.',
     verified: 'Your movement identity photo has passed a live face check.', failed: 'Your photo could not be prepared.',
   };
   return { title: 'Movement identity photo', body: copy[s.phase],
