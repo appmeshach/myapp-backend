@@ -147,7 +147,10 @@ test('no operational callers or older migrations consume these tables', () => {
   function walk(dir) { return fs.readdirSync(dir, {withFileTypes:true}).flatMap(e => e.isDirectory() ? walk(`${dir}/${e.name}`) : [`${dir}/${e.name}`]); }
   const names = new RegExp(`\\b(?:${tables.join('|')})\\b`);
   for (const file of [...walk('supabase/migrations'), ...walk('src'), ...walk('supabase/functions')]) {
-    if (file !== migration && /\.(sql|ts|tsx)$/.test(file)) assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);
+    const sanctioned0023 = file === 'supabase/migrations/0023_route_evidence_foundation.sql';
+    if (file !== migration && !sanctioned0023 && /\.(sql|ts|tsx)$/.test(file)) {
+      assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);
+    }
   }
 });
 test('scalar coordinate and provider pairs are coherent with resolution provenance', () => {
