@@ -145,12 +145,15 @@ test('deferred validator only reads final state, cannot recursively enqueue muta
   assert.doesNotMatch(sql,/CREATE (?:CONSTRAINT )?TRIGGER[\s\S]*?ON public\./);
 });
 
-test('existing migrations and operational callers do not consume the new tables',()=>{
+test('pre-0020 migrations and operational callers do not consume the agreement tables',()=>{
   function walk(dir) {
     return fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(dir+'/'+e.name):[dir+'/'+e.name]);
   }
   for(const file of [...walk('supabase/migrations'),...walk('src'),...walk('supabase/functions')]) {
-    if(file.includes('/0020_') || !/\.(sql|ts|tsx)$/.test(file)) continue;
+    // 0021's private, non-operational proposal validators reference the 0020
+    // tables for linkage integrity. Its separate suite enforces no live hooks.
+    if(file.includes('/0020_') || file==='supabase/migrations/0021_financial_proposal_foundation.sql'
+      || !/\.(sql|ts|tsx)$/.test(file)) continue;
     assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\bfinancial_agreements\b|\bfinancial_components\b/,file);
   }
 });
