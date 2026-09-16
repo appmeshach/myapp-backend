@@ -147,8 +147,11 @@ test('no operational callers or older migrations consume these tables', () => {
   function walk(dir) { return fs.readdirSync(dir, {withFileTypes:true}).flatMap(e => e.isDirectory() ? walk(`${dir}/${e.name}`) : [`${dir}/${e.name}`]); }
   const names = new RegExp(`\\b(?:${tables.join('|')})\\b`);
   for (const file of [...walk('supabase/migrations'), ...walk('src'), ...walk('supabase/functions')]) {
-    const sanctioned0023 = file === 'supabase/migrations/0023_route_evidence_foundation.sql';
-    if (file !== migration && !sanctioned0023 && /\.(sql|ts|tsx)$/.test(file)) {
+    const sanctionedConsumers = new Set([
+      'supabase/migrations/0023_route_evidence_foundation.sql',
+      'supabase/migrations/0024_movement_planning_horizon.sql',
+    ]);
+    if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);
     }
   }

@@ -342,7 +342,7 @@ BEGIN
   PERFORM pg_temp.face_check('0014 server resolver works for newly verified photo',r->>'ok'='true' AND jsonb_array_length(r->'rows')=1);
 
   INSERT INTO public.movement_needs(id,member_id,origin_area,destination_area,earliest_departure_at,people_count)
-    VALUES (need2,requester,'Next A','Next B',now()+interval '2 days',1);
+    VALUES (need2,requester,'Next A','Next B',now()+interval '6 hours',1);
   r:=pg_temp.face_as('authenticated',driver,format('SELECT * FROM public.create_movement_offer(%L,%L,1)',need2,vehicle));
   offer:=(r#>>'{rows,0,movement_offer_id}')::uuid;
   r:=pg_temp.face_as('authenticated',requester,format('SELECT * FROM public.accept_movement_offer(%L)',offer));
@@ -503,7 +503,7 @@ BEGIN
   -- revocation, alongside the already-activated movement evidence above.
   audit_need:=gen_random_uuid();
   INSERT INTO public.movement_needs(id,member_id,origin_area,destination_area,earliest_departure_at,people_count)
-    VALUES (audit_need,requester,'Audit A','Audit B',now()+interval '3 days',1);
+    VALUES (audit_need,requester,'Audit A','Audit B',now()+interval '8 hours',1);
   r:=pg_temp.face_as('authenticated',driver,format('SELECT * FROM public.create_movement_offer(%L,%L,1)',audit_need,vehicle));
   offer:=(r#>>'{rows,0,movement_offer_id}')::uuid;
   r:=pg_temp.face_as('authenticated',requester,format('SELECT * FROM public.accept_movement_offer(%L)',offer));

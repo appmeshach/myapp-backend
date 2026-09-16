@@ -59,7 +59,7 @@ DECLARE result_id uuid;
 BEGIN
   INSERT INTO private.offering_movement_intents(
     offering_member_id,intent_key,version,earliest_departure_at,latest_departure_at,created_at,expires_at,status)
-  VALUES(p_owner,p_key,p_version,now()+interval '1 day',now()+interval '2 days',clock_timestamp(),clock_timestamp()+interval '3 days','current')
+  VALUES(p_owner,p_key,p_version,now()+interval '1 hour',now()+interval '2 hours',clock_timestamp(),clock_timestamp()+interval '3 days','current')
   RETURNING id INTO result_id;
   INSERT INTO private.offering_movement_intent_locations(intent_id,role,location_reference_id)
     VALUES(result_id,'origin',p_origin),(result_id,'destination',p_destination);
