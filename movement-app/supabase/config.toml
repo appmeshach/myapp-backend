@@ -26,3 +26,23 @@ enabled = true
 # The shipped handler has no provider and rejects every callback.
 verify_jwt = false
 entrypoint = "./functions/face-verification-callback/index.ts"
+
+[functions.search-movement-locations]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/search-movement-locations/index.ts"
+
+[functions.select-movement-location]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/select-movement-location/index.ts"
+
+[functions.recover-selected-location]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/recover-selected-location/index.ts"
+
+[functions.resolve-selected-location]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/resolve-selected-location/index.ts"
