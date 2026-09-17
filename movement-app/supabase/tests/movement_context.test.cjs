@@ -152,6 +152,7 @@ test('no operational callers or older migrations consume these tables', () => {
       'supabase/migrations/0024_movement_planning_horizon.sql',
       'supabase/migrations/0025_trusted_route_producer_boundary.sql',
       'supabase/migrations/0026_trusted_location_resolution_boundary.sql',
+      'supabase/migrations/0027_trusted_selected_location_intake.sql',
     ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);
