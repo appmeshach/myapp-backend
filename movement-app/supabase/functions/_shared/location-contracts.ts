@@ -113,6 +113,12 @@ export interface AttestedResolutionRecord {
 }
 
 export interface LocationBackend {
+  consumeProviderQuota(
+    memberId: string,
+    operation: 'location_search' | 'location_resolution',
+    signal: AbortSignal,
+  ): Promise<{ admitted: boolean; retryAfterSeconds: number }>;
+
   authenticate(
     jwt: string,
     signal: AbortSignal,

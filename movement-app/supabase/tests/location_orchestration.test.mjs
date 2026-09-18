@@ -1,5 +1,5 @@
-﻿import { test } from 'node:test';
-import assert from 'node:assert/strict';
+﻿import assert from 'node:assert/strict';
+import { test } from 'node:test';
 
 import {
   LOCATION_PROOF_AUDIENCE,
@@ -54,6 +54,11 @@ function backend(overrides = {}) {
   const calls = [];
 
   const db = {
+    async consumeProviderQuota(id, operation, signal) {
+      signal.throwIfAborted();
+      calls.push(['quota', id, operation]);
+      return { admitted: true, retryAfterSeconds: 0 };
+    },
     async authenticate(jwt) {
       calls.push(['auth', jwt]);
       return jwt === 'user-jwt'
@@ -1084,4 +1089,600 @@ test('expired trusted resolution context fails closed before provider call', asy
   );
 
   assert.equal(r.calls.length, 0);
+});
+
+test('search quota denial returns 429 with Retry-After and skips provider', async () => {
+  let quotaCalls = 0;
+
+  const { db } = backend({
+    async consumeProviderQuota(
+      id,
+      operation,
+      signal,
+    ) {
+      signal.throwIfAborted();
+      quotaCalls += 1;
+
+      assert.equal(id, member);
+      assert.equal(
+        operation,
+        'location_search',
+      );
+
+      return {
+        admitted: false,
+        retryAfterSeconds: 37,
+      };
+    },
+  });
+
+  const p = searchProvider();
+  const s = signer();
+
+  const response =
+    await createLocationSearchHandler(
+      db,
+      p.provider,
+      s.signer,
+      () => now,
+    )(
+      request({ query: 'Olo' }),
+    );
+
+  assert.equal(response.status, 429);
+
+  assert.equal(
+    response.headers.get('Retry-After'),
+    '37',
+  );
+
+  assert.deepEqual(
+    await response.json(),
+    {
+      state: 'location_rate_limited',
+      retryAfterSeconds: 37,
+    },
+  );
+
+  assert.equal(quotaCalls, 1);
+  assert.equal(p.calls.length, 0);
+  assert.equal(s.calls.length, 0);
+});
+
+test('invalid search request consumes zero provider quota', async () => {
+  let quotaCalls = 0;
+
+  const { db } = backend({
+    async consumeProviderQuota() {
+      quotaCalls += 1;
+
+      return {
+        admitted: true,
+        retryAfterSeconds: 0,
+      };
+    },
+  });
+
+  const p = searchProvider();
+  const s = signer();
+
+  const response =
+    await createLocationSearchHandler(
+      db,
+      p.provider,
+      s.signer,
+    )(
+      request({
+        query: 'Olo',
+        latitude: 6.4,
+      }),
+    );
+
+  assert.equal(response.status, 400);
+  assert.equal(quotaCalls, 0);
+  assert.equal(p.calls.length, 0);
+});
+
+test('invalid search authentication consumes zero provider quota', async () => {
+  let quotaCalls = 0;
+
+  const { db } = backend({
+    async consumeProviderQuota() {
+      quotaCalls += 1;
+
+      return {
+        admitted: true,
+        retryAfterSeconds: 0,
+      };
+    },
+  });
+
+  const p = searchProvider();
+  const s = signer();
+
+  const response =
+    await createLocationSearchHandler(
+      db,
+      p.provider,
+      s.signer,
+    )(
+      request(
+        { query: 'Olo' },
+        'Bearer wrong',
+      ),
+    );
+
+  assert.equal(response.status, 401);
+  assert.equal(quotaCalls, 0);
+  assert.equal(p.calls.length, 0);
+});
+
+test('unavailable search provider consumes zero provider quota', async () => {
+  let quotaCalls = 0;
+
+  const { db } = backend({
+    async consumeProviderQuota() {
+      quotaCalls += 1;
+
+      return {
+        admitted: true,
+        retryAfterSeconds: 0,
+      };
+    },
+  });
+
+  const p = searchProvider({
+    isAvailable: () => false,
+  });
+
+  const s = signer();
+
+  const response =
+    await createLocationSearchHandler(
+      db,
+      p.provider,
+      s.signer,
+    )(
+      request({ query: 'Olo' }),
+    );
+
+  assert.equal(response.status, 503);
+  assert.equal(quotaCalls, 0);
+  assert.equal(p.calls.length, 0);
+});
+
+test('unavailable selection signer consumes zero provider quota', async () => {
+  let quotaCalls = 0;
+
+  const { db } = backend({
+    async consumeProviderQuota() {
+      quotaCalls += 1;
+
+      return {
+        admitted: true,
+        retryAfterSeconds: 0,
+      };
+    },
+  });
+
+  const p = searchProvider();
+
+  const s = signer({
+    isAvailable: () => false,
+  });
+
+  const response =
+    await createLocationSearchHandler(
+      db,
+      p.provider,
+      s.signer,
+    )(
+      request({ query: 'Olo' }),
+    );
+
+  assert.equal(response.status, 503);
+  assert.equal(quotaCalls, 0);
+  assert.equal(p.calls.length, 0);
+});
+
+test('admitted search consumes quota once even when provider fails', async () => {
+  let quotaCalls = 0;
+  let providerCalls = 0;
+
+  const { db } = backend({
+    async consumeProviderQuota(
+      id,
+      operation,
+      signal,
+    ) {
+      signal.throwIfAborted();
+      quotaCalls += 1;
+
+      assert.equal(id, member);
+      assert.equal(
+        operation,
+        'location_search',
+      );
+
+      return {
+        admitted: true,
+        retryAfterSeconds: 0,
+      };
+    },
+  });
+
+  const p = searchProvider({
+    async search() {
+      providerCalls += 1;
+      throw new Error(
+        'provider transport failed',
+      );
+    },
+  });
+
+  const s = signer();
+
+  const response =
+    await createLocationSearchHandler(
+      db,
+      p.provider,
+      s.signer,
+    )(
+      request({ query: 'Olo' }),
+    );
+
+  assert.equal(response.status, 503);
+  assert.equal(quotaCalls, 1);
+  assert.equal(providerCalls, 1);
+});
+
+test('existing committed resolution consumes zero provider quota', async () => {
+  let quotaCalls = 0;
+
+  const { db } = backend({
+    async consumeProviderQuota() {
+      quotaCalls += 1;
+
+      return {
+        admitted: true,
+        retryAfterSeconds: 0,
+      };
+    },
+
+    async getResolutionContext() {
+      return {
+        providerNamespace:
+          'test-provider',
+        providerPlaceReference:
+          'opaque-reference',
+        sourceCreatedAt:
+          '2026-09-17T11:00:00.000Z',
+        sourceExpiresAt: null,
+        evidenceId: evidence,
+        resolvedLocationReferenceId:
+          resolved,
+        version: 1,
+        expiresAt: null,
+      };
+    },
+  });
+
+  const r = resolver();
+
+  const response =
+    await createLocationResolutionHandler(
+      db,
+      r.resolver,
+    )(
+      request({
+        sourceLocationReferenceId:
+          source,
+      }),
+    );
+
+  assert.equal(response.status, 200);
+  assert.equal(quotaCalls, 0);
+  assert.equal(r.calls.length, 0);
+});
+
+test('foreign or unattested resolution source consumes zero provider quota', async () => {
+  let quotaCalls = 0;
+
+  const { db } = backend({
+    async consumeProviderQuota() {
+      quotaCalls += 1;
+
+      return {
+        admitted: true,
+        retryAfterSeconds: 0,
+      };
+    },
+
+    async getResolutionContext() {
+      throw new Error(
+        'foreign or unavailable',
+      );
+    },
+  });
+
+  const r = resolver();
+
+  const response =
+    await createLocationResolutionHandler(
+      db,
+      r.resolver,
+    )(
+      request({
+        sourceLocationReferenceId:
+          source,
+      }),
+    );
+
+  assert.equal(response.status, 404);
+  assert.equal(quotaCalls, 0);
+  assert.equal(r.calls.length, 0);
+});
+
+test('unavailable resolver consumes zero provider quota', async () => {
+  let quotaCalls = 0;
+
+  const { db } = backend({
+    async consumeProviderQuota() {
+      quotaCalls += 1;
+
+      return {
+        admitted: true,
+        retryAfterSeconds: 0,
+      };
+    },
+  });
+
+  const r = resolver({
+    isAvailable: () => false,
+  });
+
+  const response =
+    await createLocationResolutionHandler(
+      db,
+      r.resolver,
+    )(
+      request({
+        sourceLocationReferenceId:
+          source,
+      }),
+    );
+
+  assert.equal(response.status, 503);
+  assert.equal(quotaCalls, 0);
+  assert.equal(r.calls.length, 0);
+});
+
+test('resolution quota denial returns 429 and skips resolver', async () => {
+  let quotaCalls = 0;
+
+  const { db } = backend({
+    async consumeProviderQuota(
+      id,
+      operation,
+      signal,
+    ) {
+      signal.throwIfAborted();
+      quotaCalls += 1;
+
+      assert.equal(id, member);
+      assert.equal(
+        operation,
+        'location_resolution',
+      );
+
+      return {
+        admitted: false,
+        retryAfterSeconds: 19,
+      };
+    },
+  });
+
+  const r = resolver();
+
+  const response =
+    await createLocationResolutionHandler(
+      db,
+      r.resolver,
+    )(
+      request({
+        sourceLocationReferenceId:
+          source,
+      }),
+    );
+
+  assert.equal(response.status, 429);
+
+  assert.equal(
+    response.headers.get('Retry-After'),
+    '19',
+  );
+
+  assert.deepEqual(
+    await response.json(),
+    {
+      state: 'location_rate_limited',
+      retryAfterSeconds: 19,
+    },
+  );
+
+  assert.equal(quotaCalls, 1);
+  assert.equal(r.calls.length, 0);
+});
+
+test('ambiguous resolution write recovery does not consume second quota or call provider twice', async () => {
+  let quotaCalls = 0;
+  let contextCalls = 0;
+
+  const { db } = backend({
+    async consumeProviderQuota(
+      id,
+      operation,
+      signal,
+    ) {
+      signal.throwIfAborted();
+      quotaCalls += 1;
+
+      assert.equal(id, member);
+      assert.equal(
+        operation,
+        'location_resolution',
+      );
+
+      return {
+        admitted: true,
+        retryAfterSeconds: 0,
+      };
+    },
+
+    async getResolutionContext() {
+      contextCalls += 1;
+
+      if (contextCalls === 1) {
+        return {
+          providerNamespace:
+            'test-provider',
+          providerPlaceReference:
+            'opaque-reference',
+          sourceCreatedAt:
+            '2026-09-17T11:00:00.000Z',
+          sourceExpiresAt: null,
+          evidenceId: null,
+          resolvedLocationReferenceId:
+            null,
+          version: null,
+          expiresAt: null,
+        };
+      }
+
+      return {
+        providerNamespace:
+          'test-provider',
+        providerPlaceReference:
+          'opaque-reference',
+        sourceCreatedAt:
+          '2026-09-17T11:00:00.000Z',
+        sourceExpiresAt: null,
+        evidenceId: evidence,
+        resolvedLocationReferenceId:
+          resolved,
+        version: 1,
+        expiresAt: null,
+      };
+    },
+
+    async recordAttestedResolution() {
+      throw new Error(
+        'response lost after commit',
+      );
+    },
+  });
+
+  const r = resolver();
+
+  const response =
+    await createLocationResolutionHandler(
+      db,
+      r.resolver,
+    )(
+      request({
+        sourceLocationReferenceId:
+          source,
+      }),
+    );
+
+  assert.equal(response.status, 200);
+  assert.equal(quotaCalls, 1);
+  assert.equal(r.calls.length, 1);
+  assert.equal(contextCalls, 2);
+});
+
+test('expired recovered resolution is rejected without second quota or provider call', async () => {
+  let quotaCalls = 0;
+  let contextCalls = 0;
+
+  const { db } = backend({
+    async consumeProviderQuota() {
+      quotaCalls += 1;
+
+      return {
+        admitted: true,
+        retryAfterSeconds: 0,
+      };
+    },
+
+    async getResolutionContext() {
+      contextCalls += 1;
+
+      if (contextCalls === 1) {
+        return {
+          providerNamespace:
+            'test-provider',
+          providerPlaceReference:
+            'opaque-reference',
+          sourceCreatedAt:
+            '2026-09-17T11:00:00.000Z',
+          sourceExpiresAt: null,
+          evidenceId: null,
+          resolvedLocationReferenceId:
+            null,
+          version: null,
+          expiresAt: null,
+        };
+      }
+
+      return {
+        providerNamespace:
+          'test-provider',
+        providerPlaceReference:
+          'opaque-reference',
+        sourceCreatedAt:
+          '2026-09-17T11:00:00.000Z',
+        sourceExpiresAt: null,
+        evidenceId: evidence,
+        resolvedLocationReferenceId:
+          resolved,
+        version: 1,
+        expiresAt:
+          '2000-01-02T00:00:00.000Z',
+      };
+    },
+
+    async recordAttestedResolution() {
+      throw new Error(
+        'response lost after commit',
+      );
+    },
+  });
+
+  const r = resolver();
+
+  const response =
+    await createLocationResolutionHandler(
+      db,
+      r.resolver,
+    )(
+      request({
+        sourceLocationReferenceId:
+          source,
+      }),
+    );
+
+  assert.equal(response.status, 503);
+
+  assert.deepEqual(
+    await response.json(),
+    {
+      state:
+        'location_resolution_unavailable',
+    },
+  );
+
+  assert.equal(quotaCalls, 1);
+  assert.equal(r.calls.length, 1);
+  assert.equal(contextCalls, 2);
 });

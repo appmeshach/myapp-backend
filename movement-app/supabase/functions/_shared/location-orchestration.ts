@@ -82,6 +82,36 @@ function failure(error: unknown): Response {
   );
 }
 
+async function providerAdmission(
+  backend: LocationBackend,
+  memberId: string,
+  operation: 'location_search' | 'location_resolution',
+  signal: AbortSignal,
+): Promise<Response | null> {
+  signal.throwIfAborted();
+  const quota = await backend.consumeProviderQuota(memberId, operation, signal);
+  signal.throwIfAborted();
+  if (!quota || typeof quota.admitted !== 'boolean'
+    || !Number.isInteger(quota.retryAfterSeconds)
+    || (quota.admitted ? quota.retryAfterSeconds !== 0
+      : quota.retryAfterSeconds < 1 || quota.retryAfterSeconds > 86400)) {
+    throw new Error('Unavailable');
+  }
+  if (quota.admitted) return null;
+  return new Response(JSON.stringify({
+    state: 'location_rate_limited', retryAfterSeconds: quota.retryAfterSeconds,
+  }), { status: 429, headers: { ...headers, 'Retry-After': String(quota.retryAfterSeconds) } });
+}
+
+function requireFreshContext(context: LocationResolutionContext): void {
+  const currentTime = Date.now();
+  for (const expiry of [context.sourceExpiresAt, context.expiresAt]) {
+    if (expiry !== null && (!validIso(expiry) || Date.parse(expiry) <= currentTime)) {
+      throw new Denied(503, 'location_resolution_unavailable');
+    }
+  }
+}
+
 function record(
   value: unknown,
 ): value is Record<string, unknown> {
@@ -463,9 +493,8 @@ export function createLocationSearchHandler(
       if (first) return first;
 
       const signal =
-        AbortSignal.timeout(
-          SEARCH_DEADLINE_MS,
-        );
+        AbortSignal.any([request.signal, AbortSignal.timeout(SEARCH_DEADLINE_MS)]);
+      signal.throwIfAborted();
 
       const memberId =
         await member(
@@ -508,6 +537,9 @@ export function createLocationSearchHandler(
         );
       }
 
+      const denied = await providerAdmission(backend, memberId, 'location_search', signal);
+      if (denied) return denied;
+
       const providerResult =
         await provider.search(
           {
@@ -531,6 +563,8 @@ export function createLocationSearchHandler(
           'provider_response_invalid',
         );
       }
+
+      signal.throwIfAborted();
 
       const attribution =
         normalizeAttribution(
@@ -856,10 +890,9 @@ export function createLocationResolutionHandler(
       const first = early(request);
       if (first) return first;
 
-      const signal =
-        AbortSignal.timeout(
-          DEFAULT_DEADLINE_MS,
-        );
+      const startedAt = performance.now();
+      const signal = AbortSignal.any([request.signal, AbortSignal.timeout(DEFAULT_DEADLINE_MS)]);
+      signal.throwIfAborted();
 
       const memberId =
         await member(
@@ -916,23 +949,8 @@ export function createLocationResolutionHandler(
         );
       }
 
-      const currentTime = Date.now();
-
-      if (
-        (
-          context.sourceExpiresAt !== null
-          && Date.parse(context.sourceExpiresAt) <= currentTime
-        )
-        || (
-          context.expiresAt !== null
-          && Date.parse(context.expiresAt) <= currentTime
-        )
-      ) {
-        throw new Denied(
-          503,
-          'location_resolution_unavailable',
-        );
-      }
+      signal.throwIfAborted();
+      requireFreshContext(context);
 
       const existing =
         existingResolution(context);
@@ -963,6 +981,9 @@ export function createLocationResolutionHandler(
         );
       }
 
+      const denied = await providerAdmission(backend, memberId, 'location_resolution', signal);
+      if (denied) return denied;
+
       const result =
         await resolver.resolve(
           {
@@ -987,6 +1008,12 @@ export function createLocationResolutionHandler(
         );
       }
 
+      signal.throwIfAborted();
+      // Reserve three seconds of the ONE overall deadline for a single lookup.
+      // A write timeout must not exhaust the parent signal used by recovery.
+      const writeBudget = Math.floor(DEFAULT_DEADLINE_MS - (performance.now() - startedAt) - 3000);
+      if (writeBudget <= 0) throw new Error('Unavailable');
+      const writeSignal = AbortSignal.any([signal, AbortSignal.timeout(writeBudget)]);
       let recorded;
 
       try {
@@ -1021,43 +1048,8 @@ export function createLocationResolutionHandler(
                 expiresAt:
                   result.expiresAt,
               },
-              signal,
+              writeSignal,
             );
-      } catch {
-        const recovered =
-          await backend
-            .getResolutionContext(
-              memberId,
-              body
-                .sourceLocationReferenceId,
-              operationId,
-              signal,
-            )
-            .catch(() => null);
-
-        if (!recovered) {
-          throw new Denied(
-            409,
-            'location_unavailable',
-          );
-        }
-
-        const committed =
-          existingResolution(recovered);
-
-        if (!committed) {
-          throw new Denied(
-            409,
-            'location_unavailable',
-          );
-        }
-
-        return response(
-          200,
-          committed,
-        );
-      }
-
       if (
         !recorded
         || !UUID.test(
@@ -1081,6 +1073,46 @@ export function createLocationResolutionHandler(
         throw new Denied(
           409,
           'location_unavailable',
+        );
+      }
+
+        signal.throwIfAborted();
+      } catch {
+        signal.throwIfAborted();
+        const recoverySignal = AbortSignal.any([signal, AbortSignal.timeout(3000)]);
+        const recovered =
+          await backend
+            .getResolutionContext(
+              memberId,
+              body
+                .sourceLocationReferenceId,
+              operationId,
+              recoverySignal,
+            )
+            .catch(() => null);
+
+        if (!recovered) {
+          throw new Denied(
+            409,
+            'location_unavailable',
+          );
+        }
+
+        recoverySignal.throwIfAborted();
+        requireFreshContext(recovered);
+        const committed =
+          existingResolution(recovered);
+
+        if (!committed) {
+          throw new Denied(
+            409,
+            'location_unavailable',
+          );
+        }
+
+        return response(
+          200,
+          committed,
         );
       }
 

@@ -1,5 +1,5 @@
-import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { test } from 'node:test';
 
 import {
   createLocationBackend,
@@ -612,5 +612,280 @@ test('no incoming user JWT can become service Authorization', async () => {
   assert.notEqual(
     calls[1].init.headers.Authorization,
     'Bearer user-jwt-secret',
+  );
+});
+
+test('provider quota maps exactly to 0029 RPC', async () => {
+  let call;
+
+  const db =
+    createLocationBackend(
+      'https://project.invalid',
+      'server-secret',
+      async (url, init) => {
+        call = { url, init };
+
+        return Response.json([
+          {
+            admitted: true,
+            retry_after_seconds: 0,
+          },
+        ]);
+      },
+    );
+
+  const result =
+    await db.consumeProviderQuota(
+      member,
+      'location_search',
+      signal(),
+    );
+
+  assert.deepEqual(
+    result,
+    {
+      admitted: true,
+      retryAfterSeconds: 0,
+    },
+  );
+
+  assert.equal(
+    new URL(call.url).pathname,
+    '/rest/v1/rpc/consume_location_provider_quota_for_server',
+  );
+
+  assert.deepEqual(
+    JSON.parse(call.init.body),
+    {
+      p_verified_member_id:
+        member,
+      p_operation:
+        'location_search',
+    },
+  );
+
+  assert.equal(
+    call.init.headers.Authorization,
+    'Bearer server-secret',
+  );
+});
+
+test('provider quota accepts resolution operation only through narrow operation values', async () => {
+  const calls = [];
+
+  const db =
+    createLocationBackend(
+      'https://project.invalid',
+      'server-secret',
+      async (url, init) => {
+        calls.push({ url, init });
+
+        return Response.json([
+          {
+            admitted: true,
+            retry_after_seconds: 0,
+          },
+        ]);
+      },
+    );
+
+  const result =
+    await db.consumeProviderQuota(
+      member,
+      'location_resolution',
+      signal(),
+    );
+
+  assert.deepEqual(
+    result,
+    {
+      admitted: true,
+      retryAfterSeconds: 0,
+    },
+  );
+
+  assert.equal(
+    calls.length,
+    1,
+  );
+
+  assert.deepEqual(
+    JSON.parse(calls[0].init.body),
+    {
+      p_verified_member_id:
+        member,
+      p_operation:
+        'location_resolution',
+    },
+  );
+});
+
+test('provider quota rejects malformed member or operation before network request', async () => {
+  let calls = 0;
+
+  const db =
+    createLocationBackend(
+      'https://project.invalid',
+      'server-secret',
+      async () => {
+        calls += 1;
+
+        return Response.json([
+          {
+            admitted: true,
+            retry_after_seconds: 0,
+          },
+        ]);
+      },
+    );
+
+  await assert.rejects(
+    db.consumeProviderQuota(
+      'not-a-uuid',
+      'location_search',
+      signal(),
+    ),
+  );
+
+  await assert.rejects(
+    db.consumeProviderQuota(
+      member,
+      'invalid_operation',
+      signal(),
+    ),
+  );
+
+  assert.equal(
+    calls,
+    0,
+  );
+});
+
+test('provider quota rejects malformed RPC response fail closed', async () => {
+  const invalidResponses = [
+    [],
+    [
+      {
+        admitted: true,
+      },
+    ],
+    [
+      {
+        admitted: 'true',
+        retry_after_seconds: 0,
+      },
+    ],
+    [
+      {
+        admitted: true,
+        retry_after_seconds: 1,
+      },
+    ],
+    [
+      {
+        admitted: false,
+        retry_after_seconds: 0,
+      },
+    ],
+    [
+      {
+        admitted: false,
+        retry_after_seconds: 86401,
+      },
+    ],
+    [
+      {
+        admitted: false,
+        retry_after_seconds: 1.5,
+      },
+    ],
+    [
+      {
+        admitted: true,
+        retry_after_seconds: 0,
+        extra: true,
+      },
+    ],
+  ];
+
+  for (const response of invalidResponses) {
+    const db =
+      createLocationBackend(
+        'https://project.invalid',
+        'server-secret',
+        async () =>
+          Response.json(response),
+      );
+
+    await assert.rejects(
+      db.consumeProviderQuota(
+        member,
+        'location_search',
+        signal(),
+      ),
+    );
+  }
+});
+
+test('provider quota parses denied response with bounded retry', async () => {
+  const db =
+    createLocationBackend(
+      'https://project.invalid',
+      'server-secret',
+      async () =>
+        Response.json([
+          {
+            admitted: false,
+            retry_after_seconds: 37,
+          },
+        ]),
+    );
+
+  assert.deepEqual(
+    await db.consumeProviderQuota(
+      member,
+      'location_search',
+      signal(),
+    ),
+    {
+      admitted: false,
+      retryAfterSeconds: 37,
+    },
+  );
+});
+
+test('provider quota uses service authorization and never user JWT', async () => {
+  let call;
+
+  const db =
+    createLocationBackend(
+      'https://project.invalid',
+      'server-secret',
+      async (url, init) => {
+        call = { url, init };
+
+        return Response.json([
+          {
+            admitted: true,
+            retry_after_seconds: 0,
+          },
+        ]);
+      },
+    );
+
+  await db.consumeProviderQuota(
+    member,
+    'location_search',
+    signal(),
+  );
+
+  assert.equal(
+    call.init.headers.Authorization,
+    'Bearer server-secret',
+  );
+
+  assert.notEqual(
+    call.init.headers.Authorization,
+    'Bearer user-jwt',
   );
 });

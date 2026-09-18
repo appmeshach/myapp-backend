@@ -29,6 +29,7 @@ const RPC_RECORD_RESOLUTION =
   'record_attested_location_resolution_for_server';
 
 const ALLOWED_RPCS = new Set([
+  'consume_location_provider_quota_for_server',
   RPC_RECORD_SELECTION,
   RPC_RECOVER_SELECTION,
   RPC_RESOLUTION_CONTEXT,
@@ -240,6 +241,32 @@ export function createLocationBackend(
   }
 
   return {
+    async consumeProviderQuota(memberId, operation, signal) {
+      if (!UUID.test(memberId)
+        || !['location_search', 'location_resolution'].includes(operation)) {
+        throw new Error('Unavailable');
+      }
+      signal.throwIfAborted();
+      const row = exactlyOneRow(await rpc(
+        'consume_location_provider_quota_for_server',
+        { p_verified_member_id: memberId, p_operation: operation },
+        signal,
+      ));
+      if (!row || Object.keys(row).length !== 2
+        || typeof row.admitted !== 'boolean'
+        || !Number.isInteger(row.retry_after_seconds)
+        || (row.admitted
+          ? row.retry_after_seconds !== 0
+          : Number(row.retry_after_seconds) < 1
+            || Number(row.retry_after_seconds) > 86400)) {
+        throw new Error('Unavailable');
+      }
+      return {
+        admitted: row.admitted,
+        retryAfterSeconds: Number(row.retry_after_seconds),
+      };
+    },
+
     async authenticate(
       jwt,
       signal,
