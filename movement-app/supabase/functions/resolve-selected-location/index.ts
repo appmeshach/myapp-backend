@@ -1,6 +1,12 @@
-﻿import {
-  unavailableDurableLocationResolver,
-} from '../_shared/location-contracts.ts';
+﻿declare const Deno: {
+  env: {
+    get(name: string): string | undefined;
+  };
+};
+
+import {
+  createMapboxGeocodingProvider,
+} from '../_shared/mapbox-geocoding-provider.ts';
 
 import {
   createLocationResolutionHandler,
@@ -14,11 +20,16 @@ import {
   serve,
 } from '../_shared/face-runtime.ts';
 
-// No durable geocoding provider is wired yet.
-// Production therefore fails closed before any resolution write.
+const locationResolver =
+  createMapboxGeocodingProvider(
+    Deno.env.get(
+      'MAPBOX_ACCESS_TOKEN',
+    ),
+  );
+
 serve(
   createLocationResolutionHandler(
     runtimeLocationBackend(),
-    unavailableDurableLocationResolver,
+    locationResolver,
   ),
 );

@@ -39,7 +39,7 @@ test('existing callback JWT exception remains unchanged', () => {
   );
 });
 
-test('search production entry point uses unavailable provider and runtime signer', () => {
+test('search production entry point uses Mapbox provider and runtime signer', () => {
   const source =
     fs.readFileSync(
       'supabase/functions/search-movement-locations/index.ts',
@@ -48,7 +48,12 @@ test('search production entry point uses unavailable provider and runtime signer
 
   assert.match(
     source,
-    /unavailableLocationSearchProvider/,
+    /createMapboxGeocodingProvider/,
+  );
+
+  assert.match(
+    source,
+    /Deno\.env\.get\(\s*['"]MAPBOX_ACCESS_TOKEN['"]\s*,?\s*\)/,
   );
 
   assert.match(
@@ -58,11 +63,16 @@ test('search production entry point uses unavailable provider and runtime signer
 
   assert.doesNotMatch(
     source,
-    /test-provider|fake|always.success/i,
+    /unavailableLocationSearchProvider/,
+  );
+
+  assert.doesNotMatch(
+    source,
+    /test-provider|fake|always.success|searchbox/i,
   );
 });
 
-test('resolution production entry point uses unavailable resolver', () => {
+test('resolution production entry point uses Mapbox durable resolver', () => {
   const source =
     fs.readFileSync(
       'supabase/functions/resolve-selected-location/index.ts',
@@ -71,12 +81,22 @@ test('resolution production entry point uses unavailable resolver', () => {
 
   assert.match(
     source,
+    /createMapboxGeocodingProvider/,
+  );
+
+  assert.match(
+    source,
+    /Deno\.env\.get\(\s*['"]MAPBOX_ACCESS_TOKEN['"]\s*,?\s*\)/,
+  );
+
+  assert.doesNotMatch(
+    source,
     /unavailableDurableLocationResolver/,
   );
 
   assert.doesNotMatch(
     source,
-    /test-provider|fake|always.success/i,
+    /test-provider|fake|always.success|searchbox/i,
   );
 });
 
