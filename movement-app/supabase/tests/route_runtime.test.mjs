@@ -20,6 +20,9 @@ const destination =
 const evidence =
   '55555555-5555-4555-8555-555555555555';
 
+const claimToken =
+  '66666666-6666-4666-8666-666666666666';
+
 function signal() {
   return new AbortController().signal;
 }
@@ -971,6 +974,725 @@ test(
       calls[1].init.headers.Authorization,
       'Bearer user-jwt-secret',
     );
+  },
+);
+
+test(
+  'route generation claim maps existing state exactly to 0033 RPC',
+  async () => {
+    let call;
+
+    const db =
+      createRouteBackend(
+        'https://project.invalid',
+        'server-secret',
+        async (url, init) => {
+          call = { url, init };
+
+          return Response.json([
+            {
+              generation_state:
+                'existing',
+              generation_claim_token:
+                null,
+              retry_after_seconds:
+                0,
+
+              route_evidence_id:
+                evidence,
+              route_evidence_version:
+                3,
+              route_evidence_status:
+                'current',
+              route_evidence_expires_at:
+                null,
+
+              origin_location_reference_id:
+                null,
+              origin_latitude:
+                null,
+              origin_longitude:
+                null,
+
+              destination_location_reference_id:
+                null,
+              destination_latitude:
+                null,
+              destination_longitude:
+                null,
+            },
+          ]);
+        },
+      );
+
+    const result =
+      await db.claimRouteGeneration(
+        intent,
+        member,
+        signal(),
+      );
+
+    assert.deepEqual(
+      result,
+      {
+        state: 'existing',
+
+        routeEvidence: {
+          routeEvidenceId:
+            evidence,
+          routeEvidenceVersion:
+            3,
+          routeEvidenceStatus:
+            'current',
+          routeEvidenceExpiresAt:
+            null,
+        },
+      },
+    );
+
+    assert.equal(
+      new URL(call.url).pathname,
+      '/rest/v1/rpc/claim_offering_route_generation_for_server',
+    );
+
+    assert.deepEqual(
+      JSON.parse(call.init.body),
+      {
+        p_offering_movement_intent_id:
+          intent,
+        p_offering_member_id:
+          member,
+      },
+    );
+  },
+);
+
+test(
+  'route generation claim parses busy state with bounded retry',
+  async () => {
+    const db =
+      createRouteBackend(
+        'https://project.invalid',
+        'server-secret',
+        async () =>
+          Response.json([
+            {
+              generation_state:
+                'busy',
+              generation_claim_token:
+                null,
+              retry_after_seconds:
+                17,
+
+              route_evidence_id:
+                null,
+              route_evidence_version:
+                null,
+              route_evidence_status:
+                null,
+              route_evidence_expires_at:
+                null,
+
+              origin_location_reference_id:
+                null,
+              origin_latitude:
+                null,
+              origin_longitude:
+                null,
+
+              destination_location_reference_id:
+                null,
+              destination_latitude:
+                null,
+              destination_longitude:
+                null,
+            },
+          ]),
+      );
+
+    assert.deepEqual(
+      await db.claimRouteGeneration(
+        intent,
+        member,
+        signal(),
+      ),
+      {
+        state: 'busy',
+        retryAfterSeconds: 17,
+      },
+    );
+  },
+);
+
+test(
+  'route generation claim parses claimed state with trusted endpoints',
+  async () => {
+    const db =
+      createRouteBackend(
+        'https://project.invalid',
+        'server-secret',
+        async () =>
+          Response.json([
+            {
+              generation_state:
+                'claimed',
+              generation_claim_token:
+                claimToken,
+              retry_after_seconds:
+                0,
+
+              route_evidence_id:
+                null,
+              route_evidence_version:
+                null,
+              route_evidence_status:
+                null,
+              route_evidence_expires_at:
+                null,
+
+              origin_location_reference_id:
+                origin,
+              origin_latitude:
+                6.431,
+              origin_longitude:
+                3.482,
+
+              destination_location_reference_id:
+                destination,
+              destination_latitude:
+                6.455,
+              destination_longitude:
+                3.421,
+            },
+          ]),
+      );
+
+    assert.deepEqual(
+      await db.claimRouteGeneration(
+        intent,
+        member,
+        signal(),
+      ),
+      {
+        state: 'claimed',
+
+        claimToken,
+
+        context: {
+          offeringMovementIntentId:
+            intent,
+          offeringMemberId:
+            member,
+
+          originLocationReferenceId:
+            origin,
+
+          origin: {
+            latitude: 6.431,
+            longitude: 3.482,
+          },
+
+          destinationLocationReferenceId:
+            destination,
+
+          destination: {
+            latitude: 6.455,
+            longitude: 3.421,
+          },
+        },
+      },
+    );
+  },
+);
+
+test(
+  'route generation claim rejects malformed identifiers before network request',
+  async () => {
+    let calls = 0;
+
+    const db =
+      createRouteBackend(
+        'https://project.invalid',
+        'server-secret',
+        async () => {
+          calls += 1;
+
+          return Response.json([]);
+        },
+      );
+
+    await assert.rejects(
+      db.claimRouteGeneration(
+        'not-a-uuid',
+        member,
+        signal(),
+      ),
+    );
+
+    await assert.rejects(
+      db.claimRouteGeneration(
+        intent,
+        'not-a-uuid',
+        signal(),
+      ),
+    );
+
+    assert.equal(
+      calls,
+      0,
+    );
+  },
+);
+
+test(
+  'route generation claim rejects malformed RPC states fail closed',
+  async () => {
+    const invalidResponses = [
+      [],
+      [
+        {
+          generation_state:
+            'unknown',
+        },
+      ],
+      [
+        {
+          generation_state:
+            'busy',
+          generation_claim_token:
+            null,
+          retry_after_seconds:
+            0,
+
+          route_evidence_id:
+            null,
+          route_evidence_version:
+            null,
+          route_evidence_status:
+            null,
+          route_evidence_expires_at:
+            null,
+
+          origin_location_reference_id:
+            null,
+          origin_latitude:
+            null,
+          origin_longitude:
+            null,
+
+          destination_location_reference_id:
+            null,
+          destination_latitude:
+            null,
+          destination_longitude:
+            null,
+        },
+      ],
+      [
+        {
+          generation_state:
+            'claimed',
+          generation_claim_token:
+            'not-a-uuid',
+          retry_after_seconds:
+            0,
+
+          route_evidence_id:
+            null,
+          route_evidence_version:
+            null,
+          route_evidence_status:
+            null,
+          route_evidence_expires_at:
+            null,
+
+          origin_location_reference_id:
+            origin,
+          origin_latitude:
+            6.431,
+          origin_longitude:
+            3.482,
+
+          destination_location_reference_id:
+            destination,
+          destination_latitude:
+            6.455,
+          destination_longitude:
+            3.421,
+        },
+      ],
+      [
+        {
+          generation_state:
+            'existing',
+          generation_claim_token:
+            null,
+          retry_after_seconds:
+            0,
+
+          route_evidence_id:
+            evidence,
+          route_evidence_version:
+            0,
+          route_evidence_status:
+            'current',
+          route_evidence_expires_at:
+            null,
+
+          origin_location_reference_id:
+            null,
+          origin_latitude:
+            null,
+          origin_longitude:
+            null,
+
+          destination_location_reference_id:
+            null,
+          destination_latitude:
+            null,
+          destination_longitude:
+            null,
+        },
+      ],
+    ];
+
+    for (
+      const response
+      of invalidResponses
+    ) {
+      const db =
+        createRouteBackend(
+          'https://project.invalid',
+          'server-secret',
+          async () =>
+            Response.json(response),
+        );
+
+      assert.equal(
+        await db.claimRouteGeneration(
+          intent,
+          member,
+          signal(),
+        ),
+        null,
+      );
+    }
+  },
+);
+
+test(
+  'claimed route evidence maps exactly to 0033 writer RPC',
+  async () => {
+    let call;
+
+    const db =
+      createRouteBackend(
+        'https://project.invalid',
+        'server-secret',
+        async (url, init) => {
+          call = { url, init };
+
+          return Response.json([
+            {
+              route_evidence_id:
+                evidence,
+              route_evidence_version:
+                1,
+              route_evidence_status:
+                'current',
+              route_evidence_expires_at:
+                null,
+            },
+          ]);
+        },
+      );
+
+    const routeShape = {
+      type: 'LineString',
+      coordinates: [
+        [3.482, 6.431],
+        [3.421, 6.455],
+      ],
+    };
+
+    const result =
+      await db.recordClaimedRouteEvidence(
+        {
+          offeringMovementIntentId:
+            intent,
+          offeringMemberId:
+            member,
+          generationClaimToken:
+            claimToken,
+
+          providerNamespace:
+            'mapbox-directions-v5',
+          providerProduct:
+            'mapbox-directions',
+          providerVersion:
+            'v5-driving-geojson-full-v1',
+          providerRouteReference:
+            'provider-response:0',
+
+          routeShape,
+
+          routeDistanceMeters:
+            8421,
+          routeDurationSeconds:
+            1197,
+
+          generatedAt:
+            '2026-09-19T03:00:00.000Z',
+          expiresAt:
+            null,
+        },
+        signal(),
+      );
+
+    assert.deepEqual(
+      result,
+      {
+        routeEvidenceId:
+          evidence,
+        routeEvidenceVersion:
+          1,
+        routeEvidenceStatus:
+          'current',
+        routeEvidenceExpiresAt:
+          null,
+      },
+    );
+
+    assert.equal(
+      new URL(call.url).pathname,
+      '/rest/v1/rpc/record_claimed_offering_route_evidence_for_server',
+    );
+
+    assert.deepEqual(
+      JSON.parse(call.init.body),
+      {
+        p_offering_movement_intent_id:
+          intent,
+        p_offering_member_id:
+          member,
+        p_generation_claim_token:
+          claimToken,
+
+        p_provider_namespace:
+          'mapbox-directions-v5',
+        p_provider_product:
+          'mapbox-directions',
+        p_provider_version:
+          'v5-driving-geojson-full-v1',
+        p_provider_route_reference:
+          'provider-response:0',
+
+        p_route_shape:
+          routeShape,
+
+        p_route_distance_meters:
+          8421,
+        p_route_duration_seconds:
+          1197,
+
+        p_generated_at:
+          '2026-09-19T03:00:00.000Z',
+        p_expires_at:
+          null,
+      },
+    );
+  },
+);
+
+test(
+  'claimed route evidence rejects malformed claim identity before network request',
+  async () => {
+    let calls = 0;
+
+    const db =
+      createRouteBackend(
+        'https://project.invalid',
+        'server-secret',
+        async () => {
+          calls += 1;
+
+          return Response.json([]);
+        },
+      );
+
+    const baseInput = {
+      offeringMovementIntentId:
+        intent,
+      offeringMemberId:
+        member,
+      generationClaimToken:
+        claimToken,
+
+      providerNamespace:
+        'test-provider',
+      providerProduct:
+        'test-product',
+      providerVersion:
+        'v1',
+      providerRouteReference:
+        'route-ref',
+
+      routeShape: {
+        type: 'LineString',
+        coordinates: [
+          [3.4, 6.4],
+          [3.5, 6.5],
+        ],
+      },
+
+      routeDistanceMeters:
+        1000,
+      routeDurationSeconds:
+        300,
+
+      generatedAt:
+        '2026-09-19T03:00:00.000Z',
+      expiresAt:
+        null,
+    };
+
+    await assert.rejects(
+      db.recordClaimedRouteEvidence(
+        {
+          ...baseInput,
+          offeringMovementIntentId:
+            'not-a-uuid',
+        },
+        signal(),
+      ),
+    );
+
+    await assert.rejects(
+      db.recordClaimedRouteEvidence(
+        {
+          ...baseInput,
+          offeringMemberId:
+            'not-a-uuid',
+        },
+        signal(),
+      ),
+    );
+
+    await assert.rejects(
+      db.recordClaimedRouteEvidence(
+        {
+          ...baseInput,
+          generationClaimToken:
+            'not-a-uuid',
+        },
+        signal(),
+      ),
+    );
+
+    assert.equal(
+      calls,
+      0,
+    );
+  },
+);
+
+test(
+  'claimed route evidence rejects malformed writer response',
+  async () => {
+    const invalidResponses = [
+      [],
+      [
+        {
+          route_evidence_id:
+            evidence,
+          route_evidence_version:
+            0,
+          route_evidence_status:
+            'current',
+          route_evidence_expires_at:
+            null,
+        },
+      ],
+      [
+        {
+          route_evidence_id:
+            evidence,
+          route_evidence_version:
+            1,
+          route_evidence_status:
+            'superseded',
+          route_evidence_expires_at:
+            null,
+        },
+      ],
+      [
+        {
+          route_evidence_id:
+            'not-a-uuid',
+          route_evidence_version:
+            1,
+          route_evidence_status:
+            'current',
+          route_evidence_expires_at:
+            null,
+        },
+      ],
+    ];
+
+    for (
+      const response
+      of invalidResponses
+    ) {
+      const db =
+        createRouteBackend(
+          'https://project.invalid',
+          'server-secret',
+          async () =>
+            Response.json(response),
+        );
+
+      assert.equal(
+        await db.recordClaimedRouteEvidence(
+          {
+            offeringMovementIntentId:
+              intent,
+            offeringMemberId:
+              member,
+            generationClaimToken:
+              claimToken,
+
+            providerNamespace:
+              'test-provider',
+            providerProduct:
+              'test-product',
+            providerVersion:
+              'v1',
+            providerRouteReference:
+              'route-ref',
+
+            routeShape: {
+              type: 'LineString',
+              coordinates: [
+                [3.4, 6.4],
+                [3.5, 6.5],
+              ],
+            },
+
+            routeDistanceMeters:
+              1000,
+            routeDurationSeconds:
+              300,
+
+            generatedAt:
+              '2026-09-19T03:00:00.000Z',
+            expiresAt:
+              null,
+          },
+          signal(),
+        ),
+        null,
+      );
+    }
   },
 );
 

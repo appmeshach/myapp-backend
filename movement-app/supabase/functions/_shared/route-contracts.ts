@@ -60,6 +60,26 @@ export interface RouteProviderQuotaResult {
   retryAfterSeconds: number;
 }
 
+export type RouteGenerationClaim =
+  | {
+      state: 'existing';
+
+      routeEvidence:
+        RecordedRouteEvidence;
+    }
+  | {
+      state: 'busy';
+
+      retryAfterSeconds: number;
+    }
+  | {
+      state: 'claimed';
+
+      claimToken: string;
+
+      context: RouteGenerationContext;
+    };
+
 export interface RouteBackend {
   authenticate(
     jwt: string,
@@ -71,16 +91,47 @@ export interface RouteBackend {
     signal: AbortSignal,
   ): Promise<boolean>;
 
-  consumeRouteProviderQuota(
+    consumeRouteProviderQuota(
     memberId: string,
     signal: AbortSignal,
   ): Promise<RouteProviderQuotaResult>;
+
+  claimRouteGeneration(
+    offeringMovementIntentId: string,
+    offeringMemberId: string,
+    signal: AbortSignal,
+  ): Promise<RouteGenerationClaim | null>;
 
   getRouteGenerationContext(
     offeringMovementIntentId: string,
     offeringMemberId: string,
     signal: AbortSignal,
   ): Promise<RouteGenerationContext | null>;
+
+    recordClaimedRouteEvidence(
+    input: {
+      offeringMovementIntentId: string;
+      offeringMemberId: string;
+      generationClaimToken: string;
+
+      providerNamespace: string;
+      providerProduct: string;
+      providerVersion: string;
+      providerRouteReference: string;
+
+      routeShape: {
+        type: 'LineString';
+        coordinates: number[][];
+      };
+
+      routeDistanceMeters: number;
+      routeDurationSeconds: number;
+
+      generatedAt: string;
+      expiresAt: string | null;
+    },
+    signal: AbortSignal,
+  ): Promise<RecordedRouteEvidence | null>;
 
   recordRouteEvidence(
     input: {

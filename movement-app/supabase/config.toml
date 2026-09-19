@@ -46,3 +46,8 @@ entrypoint = "./functions/recover-selected-location/index.ts"
 enabled = true
 verify_jwt = true
 entrypoint = "./functions/resolve-selected-location/index.ts"
+
+[functions.generate-offering-route]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/generate-offering-route/index.ts"

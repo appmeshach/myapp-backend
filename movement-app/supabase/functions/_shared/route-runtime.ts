@@ -3,6 +3,7 @@ import { readBounded } from './face-orchestration.ts';
 import type {
     RecordedRouteEvidence,
     RouteBackend,
+    RouteGenerationClaim,
     RouteGenerationContext,
     RouteProviderQuotaResult,
 } from './route-contracts.ts';
@@ -19,16 +20,24 @@ const UUID =
 const RPC_ROUTE_CONTEXT =
   'get_offering_route_generation_context_for_server';
 
+const RPC_ROUTE_CLAIM =
+  'claim_offering_route_generation_for_server';
+
 const RPC_ROUTE_QUOTA =
   'consume_route_provider_quota_for_server';
 
 const RPC_RECORD_ROUTE =
   'record_offering_route_evidence_for_server';
 
+const RPC_RECORD_CLAIMED_ROUTE =
+  'record_claimed_offering_route_evidence_for_server';
+
 const ALLOWED_RPCS = new Set([
   RPC_ROUTE_CONTEXT,
+  RPC_ROUTE_CLAIM,
   RPC_ROUTE_QUOTA,
   RPC_RECORD_ROUTE,
+  RPC_RECORD_CLAIMED_ROUTE,
 ]);
 
 function serverSecret(): string {
@@ -436,6 +445,287 @@ export function createRouteBackend(
       };
     },
 
+        async claimRouteGeneration(
+      offeringMovementIntentId,
+      offeringMemberId,
+      signal,
+    ): Promise<RouteGenerationClaim | null> {
+      if (
+        !UUID.test(
+          offeringMovementIntentId,
+        )
+        || !UUID.test(
+          offeringMemberId,
+        )
+      ) {
+        throw new Error('Unavailable');
+      }
+
+      signal.throwIfAborted();
+
+      const body =
+        await rpc(
+          RPC_ROUTE_CLAIM,
+          {
+            p_offering_movement_intent_id:
+              offeringMovementIntentId,
+
+            p_offering_member_id:
+              offeringMemberId,
+          },
+          signal,
+        );
+
+      const row =
+        exactlyOneRow(body);
+
+      if (!row) {
+        return null;
+      }
+
+      if (
+        row.generation_state ===
+          'existing'
+      ) {
+        const expiresAt =
+          nullableIso(
+            row
+              .route_evidence_expires_at,
+          );
+
+        if (
+          row.generation_claim_token
+            !== null
+          || row.retry_after_seconds
+            !== 0
+          || typeof row
+            .route_evidence_id
+            !== 'string'
+          || !UUID.test(
+            row.route_evidence_id,
+          )
+          || !Number.isInteger(
+            row.route_evidence_version,
+          )
+          || Number(
+            row.route_evidence_version,
+          ) < 1
+          || row.route_evidence_status
+            !== 'current'
+          || expiresAt === undefined
+          || row
+            .origin_location_reference_id
+            !== null
+          || row.origin_latitude
+            !== null
+          || row.origin_longitude
+            !== null
+          || row
+            .destination_location_reference_id
+            !== null
+          || row.destination_latitude
+            !== null
+          || row.destination_longitude
+            !== null
+        ) {
+          return null;
+        }
+
+        return {
+          state: 'existing',
+
+          routeEvidence: {
+            routeEvidenceId:
+              row.route_evidence_id,
+
+            routeEvidenceVersion:
+              Number(
+                row.route_evidence_version,
+              ),
+
+            routeEvidenceStatus:
+              row.route_evidence_status,
+
+            routeEvidenceExpiresAt:
+              expiresAt,
+          },
+        };
+      }
+
+      if (
+        row.generation_state ===
+          'busy'
+      ) {
+        if (
+          row.generation_claim_token
+            !== null
+          || !Number.isInteger(
+            row.retry_after_seconds,
+          )
+          || Number(
+            row.retry_after_seconds,
+          ) < 1
+          || Number(
+            row.retry_after_seconds,
+          ) > 30
+          || row.route_evidence_id
+            !== null
+          || row.route_evidence_version
+            !== null
+          || row.route_evidence_status
+            !== null
+          || row
+            .route_evidence_expires_at
+            !== null
+          || row
+            .origin_location_reference_id
+            !== null
+          || row.origin_latitude
+            !== null
+          || row.origin_longitude
+            !== null
+          || row
+            .destination_location_reference_id
+            !== null
+          || row.destination_latitude
+            !== null
+          || row.destination_longitude
+            !== null
+        ) {
+          return null;
+        }
+
+        return {
+          state: 'busy',
+
+          retryAfterSeconds:
+            Number(
+              row.retry_after_seconds,
+            ),
+        };
+      }
+
+      if (
+        row.generation_state !==
+          'claimed'
+      ) {
+        return null;
+      }
+
+      if (
+        typeof row
+          .generation_claim_token
+          !== 'string'
+        || !UUID.test(
+          row.generation_claim_token,
+        )
+        || row.retry_after_seconds
+          !== 0
+        || row.route_evidence_id
+          !== null
+        || row.route_evidence_version
+          !== null
+        || row.route_evidence_status
+          !== null
+        || row
+          .route_evidence_expires_at
+          !== null
+        || typeof row
+          .origin_location_reference_id
+          !== 'string'
+        || !UUID.test(
+          row
+            .origin_location_reference_id,
+        )
+        || typeof row
+          .destination_location_reference_id
+          !== 'string'
+        || !UUID.test(
+          row
+            .destination_location_reference_id,
+        )
+        || row
+            .origin_location_reference_id
+          === row
+            .destination_location_reference_id
+      ) {
+        return null;
+      }
+
+      const originLatitude =
+        finiteCoordinate(
+          row.origin_latitude,
+          -90,
+          90,
+        );
+
+      const originLongitude =
+        finiteCoordinate(
+          row.origin_longitude,
+          -180,
+          180,
+        );
+
+      const destinationLatitude =
+        finiteCoordinate(
+          row.destination_latitude,
+          -90,
+          90,
+        );
+
+      const destinationLongitude =
+        finiteCoordinate(
+          row.destination_longitude,
+          -180,
+          180,
+        );
+
+      if (
+        originLatitude === null
+        || originLongitude === null
+        || destinationLatitude
+          === null
+        || destinationLongitude
+          === null
+      ) {
+        return null;
+      }
+
+      return {
+        state: 'claimed',
+
+        claimToken:
+          row.generation_claim_token,
+
+        context: {
+          offeringMovementIntentId,
+          offeringMemberId,
+
+          originLocationReferenceId:
+            row
+              .origin_location_reference_id,
+
+          origin: {
+            latitude:
+              originLatitude,
+            longitude:
+              originLongitude,
+          },
+
+          destinationLocationReferenceId:
+            row
+              .destination_location_reference_id,
+
+          destination: {
+            latitude:
+              destinationLatitude,
+            longitude:
+              destinationLongitude,
+          },
+        },
+      };
+    },
+
 
     async getRouteGenerationContext(
       offeringMovementIntentId,
@@ -580,6 +870,124 @@ export function createRouteBackend(
           longitude:
             destinationLongitude,
         },
+      };
+    },
+
+        async recordClaimedRouteEvidence(
+      input,
+      signal,
+    ): Promise<
+      RecordedRouteEvidence | null
+    > {
+      if (
+        !UUID.test(
+          input
+            .offeringMovementIntentId,
+        )
+        || !UUID.test(
+          input.offeringMemberId,
+        )
+        || !UUID.test(
+          input.generationClaimToken,
+        )
+      ) {
+        throw new Error('Unavailable');
+      }
+
+      signal.throwIfAborted();
+
+      const body =
+        await rpc(
+          RPC_RECORD_CLAIMED_ROUTE,
+          {
+            p_offering_movement_intent_id:
+              input
+                .offeringMovementIntentId,
+
+            p_offering_member_id:
+              input.offeringMemberId,
+
+            p_generation_claim_token:
+              input.generationClaimToken,
+
+            p_provider_namespace:
+              input.providerNamespace,
+
+            p_provider_product:
+              input.providerProduct,
+
+            p_provider_version:
+              input.providerVersion,
+
+            p_provider_route_reference:
+              input
+                .providerRouteReference,
+
+            p_route_shape:
+              input.routeShape,
+
+            p_route_distance_meters:
+              input.routeDistanceMeters,
+
+            p_route_duration_seconds:
+              input.routeDurationSeconds,
+
+            p_generated_at:
+              input.generatedAt,
+
+            p_expires_at:
+              input.expiresAt,
+          },
+          signal,
+        );
+
+      const row =
+        exactlyOneRow(body);
+
+      if (!row) {
+        return null;
+      }
+
+      const expiresAt =
+        nullableIso(
+          row
+            .route_evidence_expires_at,
+        );
+
+      if (
+        typeof row
+          .route_evidence_id
+          !== 'string'
+        || !UUID.test(
+          row.route_evidence_id,
+        )
+        || !Number.isInteger(
+          row.route_evidence_version,
+        )
+        || Number(
+          row.route_evidence_version,
+        ) < 1
+        || row.route_evidence_status
+          !== 'current'
+        || expiresAt === undefined
+      ) {
+        return null;
+      }
+
+      return {
+        routeEvidenceId:
+          row.route_evidence_id,
+
+        routeEvidenceVersion:
+          Number(
+            row.route_evidence_version,
+          ),
+
+        routeEvidenceStatus:
+          row.route_evidence_status,
+
+        routeEvidenceExpiresAt:
+          expiresAt,
       };
     },
 
