@@ -1,25 +1,29 @@
 import * as Crypto from 'expo-crypto';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 
+import { Redirect } from 'expo-router';
+
+import { getCurrentSession } from '../services/authService';
+
 import {
-    recoverSelectedLocation,
-    resolveSelectedLocation,
-    searchMovementLocations,
-    selectMovementLocation,
-    type MovementLocationSuggestion,
+  recoverSelectedLocation,
+  resolveSelectedLocation,
+  searchMovementLocations,
+  selectMovementLocation,
+  type MovementLocationSuggestion,
 } from '../services/locationService';
 
 import {
-    createOfferingMovementIntent,
-    generateOfferingRoute,
+  createOfferingMovementIntent,
+  generateOfferingRoute,
 } from '../services/offeringMovementService';
 
 type TrustedLocation = {
@@ -28,6 +32,38 @@ type TrustedLocation = {
 };
 
 export default function OfferMovementScreen() {
+  const [sessionChecked, setSessionChecked] =
+    useState(false);
+
+  const [signedIn, setSignedIn] =
+    useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    void getCurrentSession()
+      .then(session => {
+        if (!active) {
+          return;
+        }
+
+        setSignedIn(!!session);
+        setSessionChecked(true);
+      })
+      .catch(() => {
+        if (!active) {
+          return;
+        }
+
+        setSignedIn(false);
+        setSessionChecked(true);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const [originQuery, setOriginQuery] = useState('');
   const [destinationQuery, setDestinationQuery] = useState('');
 
@@ -246,6 +282,18 @@ export default function OfferMovementScreen() {
     } finally {
       setBusy(false);
     }
+  }
+
+    if (!sessionChecked) {
+    return (
+      <View style={styles.guard}>
+        <Text>Checking sign in...</Text>
+      </View>
+    );
+  }
+
+  if (!signedIn) {
+    return <Redirect href="/" />;
   }
 
   return (
@@ -489,7 +537,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  message: {
+    message: {
     fontSize: 15,
+  },
+
+  guard: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
