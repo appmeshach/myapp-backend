@@ -426,23 +426,26 @@ async function fetchProviderJson(
     }
 
     const contentType =
-      response.headers
-        .get('content-type')
-        ?.toLowerCase()
-      ?? '';
+  response.headers
+    .get('content-type')
+    ?.toLowerCase()
+  ?? '';
 
-    if (
-      !contentType.includes(
-        'application/json',
-      )
-      && !contentType.includes(
-        'application/geo+json',
-      )
-    ) {
-      throw new MapboxGeocodingProviderError(
-        'invalid_response',
-      );
-    }
+if (
+  !contentType.includes(
+    'application/json',
+  )
+  && !contentType.includes(
+    'application/geo+json',
+  )
+  && !contentType.includes(
+    'application/vnd.geo+json',
+  )
+) {
+  throw new MapboxGeocodingProviderError(
+    'invalid_response',
+  );
+}
 
     const text =
       await readBoundedBody(response);
@@ -692,6 +695,45 @@ function requireNigeria(
   }
 }
 
+function requireNigeriaIfPresent(
+  properties: Record<string, unknown>,
+): void {
+  const context =
+    properties.context;
+
+  if (!isPlainObject(context)) {
+    return;
+  }
+
+  const country =
+    context.country;
+
+  if (country === undefined) {
+    return;
+  }
+
+  if (!isPlainObject(country)) {
+    throw new MapboxGeocodingProviderError(
+      'invalid_response',
+    );
+  }
+
+  const countryCode =
+    nonblankString(
+      country.country_code,
+    );
+
+  if (
+    countryCode === null
+    || countryCode.toUpperCase()
+      !== NIGERIA_COUNTRY_CODE
+  ) {
+    throw new MapboxGeocodingProviderError(
+      'invalid_response',
+    );
+  }
+}
+
 function canonicalLabel(
   properties: Record<string, unknown>,
 ): string {
@@ -756,8 +798,8 @@ function searchSuggestion(
     featureIdentity(feature);
 
   requireNigeria(
-    identity.properties,
-  );
+  identity.properties,
+);
 
   return {
     declaredLabel:
@@ -1025,9 +1067,9 @@ export function createMapboxGeocodingProvider(
         );
       }
 
-      requireNigeria(
-        identity.properties,
-      );
+      requireNigeriaIfPresent(
+  identity.properties,
+);
 
       const coordinates =
         resolutionCoordinates(

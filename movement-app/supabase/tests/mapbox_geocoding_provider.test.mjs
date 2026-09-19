@@ -1,5 +1,5 @@
-﻿import { test } from 'node:test';
-import assert from 'node:assert/strict';
+﻿import assert from 'node:assert/strict';
+import { test } from 'node:test';
 
 import {
   MAPBOX_GEOCODING_NAMESPACE,
@@ -41,23 +41,27 @@ function feature({
     'Lekki, Lagos, Nigeria',
   fullAddress,
   countryCode = 'NG',
+  includeCountryContext = true,
   longitude = 3.501,
   latitude = 6.437,
 } = {}) {
   const properties = {
-    mapbox_id: id,
-    feature_type: featureType,
-    name,
-    place_formatted:
-      placeFormatted,
-    context: {
-      country: {
-        country_code:
-          countryCode,
-        name: 'Nigeria',
-      },
+  mapbox_id: id,
+  feature_type: featureType,
+  name,
+  place_formatted:
+    placeFormatted,
+};
+
+if (includeCountryContext) {
+  properties.context = {
+    country: {
+      country_code:
+        countryCode,
+      name: 'Nigeria',
     },
   };
+}
 
   if (fullAddress !== undefined) {
     properties.full_address =
@@ -924,6 +928,41 @@ test(
 );
 
 test(
+  'search requires Nigeria context even when country context is absent',
+  async () => {
+    const provider =
+      createMapboxGeocodingProvider(
+        TOKEN,
+        {
+          async fetchImpl() {
+            return jsonResponse(
+              collection([
+                feature({
+                  includeCountryContext:
+                    false,
+                }),
+              ]),
+            );
+          },
+        },
+      );
+
+    await assert.rejects(
+      provider.search(
+        searchInput(),
+        signal(),
+      ),
+      error =>
+        error
+          instanceof
+            MapboxGeocodingProviderError
+        && error.code
+          === 'invalid_response',
+    );
+  },
+);
+
+test(
   'overlong canonical label fails closed',
   async () => {
     const provider =
@@ -1231,6 +1270,55 @@ test(
 );
 
 test(
+  'resolution accepts exact trusted Mapbox ID when country context is absent',
+  async () => {
+    const provider =
+      createMapboxGeocodingProvider(
+        TOKEN,
+        {
+          async fetchImpl() {
+            return jsonResponse(
+              collection([
+                feature({
+                  id: 'expected-id',
+                  includeCountryContext:
+                    false,
+                }),
+              ]),
+            );
+          },
+        },
+      );
+
+    const result =
+      await provider.resolve(
+        {
+          providerNamespace:
+            MAPBOX_GEOCODING_NAMESPACE,
+          providerPlaceReference:
+            'expected-id',
+        },
+        signal(),
+      );
+
+    assert.equal(
+      result.providerPlaceReference,
+      'expected-id',
+    );
+
+    assert.equal(
+      result.providerNamespace,
+      MAPBOX_GEOCODING_NAMESPACE,
+    );
+
+    assert.equal(
+      result.durableStorageAllowed,
+      true,
+    );
+  },
+);
+
+test(
   'resolution rejects unsupported type and non-Nigeria feature',
   async () => {
     const cases = [
@@ -1425,6 +1513,44 @@ test(
     }
   },
 );
+
+test(
+  'Mapbox vendor GeoJSON media type is accepted',
+  async () => {
+    const provider =
+      createMapboxGeocodingProvider(
+        TOKEN,
+        {
+          async fetchImpl() {
+            return new Response(
+              JSON.stringify(
+                collection(),
+              ),
+              {
+                status: 200,
+                headers: {
+                  'content-type':
+                    'application/vnd.geo+json; charset=utf-8',
+                },
+              },
+            );
+          },
+        },
+      );
+
+    const result =
+      await provider.search(
+        searchInput(),
+        signal(),
+      );
+
+    assert.equal(
+      result.suggestions.length,
+      1,
+    );
+  },
+);
+
 
 test(
   'invalid media type fails closed',
