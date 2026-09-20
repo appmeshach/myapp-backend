@@ -186,10 +186,14 @@ export default function Index() {
             {signedIn && (
         <>
           <Link href="./offer-movement">
-            Offer movement I am already making
-          </Link>
+  Offer movement I am already making
+</Link>
 
-          <Link href="./identity-photo">
+<Link href="./request-movement">
+  Request movement I need
+</Link>
+
+<Link href="./identity-photo">
             Manage movement identity photo
           </Link>
 

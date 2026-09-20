@@ -1,14 +1,31 @@
 import { supabase } from '../lib/supabase';
 import {
-    AcceptedAlignment,
-    AlignmentStatusSummary,
-    CreatedMovementOffer,
-    CreateMovementOfferInput,
-    MaskedMovementNeed,
-    MaskedMovementOffer,
-    PostActivationPerson,
-    PostActivationVehicle,
+  AcceptedAlignment,
+  AlignmentStatusSummary,
+  CreatedMovementOffer,
+  CreateMovementOfferInput,
+  MaskedMovementNeed,
+  MaskedMovementOffer,
+  PostActivationPerson,
+  PostActivationVehicle,
 } from '../types/movement';
+
+export interface CreateMovementNeedInput {
+  requestId: string;
+  originLocationReferenceId: string;
+  destinationLocationReferenceId: string;
+  earliestDepartureAt: string;
+  latestDepartureAt?: string | null;
+  peopleCount?: number;
+}
+
+export interface CreatedMovementNeed {
+  movementNeedId: string;
+}
+
+interface CreatedMovementNeedRpcRow {
+  movement_need_id: string;
+}
 
 interface MaskedMovementNeedRpcRow {
   movement_need_id: string;
@@ -85,6 +102,35 @@ interface PostActivationPersonRpcRow {
 interface PostActivationVehicleRpcRow {
   vehicle_display_name: string;
   plate_number: string;
+}
+
+export async function createMovementNeed(
+  input: CreateMovementNeedInput
+): Promise<CreatedMovementNeed> {
+  const { data, error } = await supabase.rpc('create_movement_need', {
+    p_request_id: input.requestId,
+    p_origin_location_reference_id: input.originLocationReferenceId,
+    p_destination_location_reference_id: input.destinationLocationReferenceId,
+    p_earliest_departure_at: input.earliestDepartureAt,
+    p_latest_departure_at: input.latestDepartureAt ?? null,
+    p_people_count: input.peopleCount ?? 1,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  const row = (data as CreatedMovementNeedRpcRow[] | null)?.[0] ?? null;
+
+  if (!row) {
+    throw new Error(
+      'No movement need data returned from create_movement_need'
+    );
+  }
+
+  return {
+    movementNeedId: row.movement_need_id,
+  };
 }
 
 export async function discoverMaskedMovementNeeds(
