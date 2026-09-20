@@ -90,7 +90,7 @@ test('behavioral harness covers requester and offerer boundaries and lifecycle n
     'requester past earliest rejected',
     'requester earliest beyond 24h rejected',
     'requester latest beyond 24h rejected',
-    'authenticated requester cannot bypass horizon',
+    'authenticated requester cannot bypass trusted movement-need intake',
     'status-only need update remains allowed',
     'departure edit into invalid horizon rejected',
     'offering valid near-term intent accepted',

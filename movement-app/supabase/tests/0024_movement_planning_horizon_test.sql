@@ -108,8 +108,13 @@ BEGIN
 
   result:=pg_temp.planning_as_authenticated(requester,format(
     'INSERT INTO public.movement_needs(member_id,origin_area,destination_area,earliest_departure_at) VALUES(%L,''A'',''B'',statement_timestamp()+interval ''25 hours'')',requester));
-  PERFORM pg_temp.planning_check('authenticated requester cannot bypass horizon',
-    result->>'ok'='false' AND result->>'state'='23514' AND result->>'message'='Earliest departure must be within the next 24 hours',result::text);
+  PERFORM pg_temp.planning_check(
+    'authenticated requester cannot bypass trusted movement-need intake',
+    result->>'ok'='false'
+    AND result->>'state'='42501'
+    AND result->>'message'='permission denied for table movement_needs',
+    result::text
+  );
 
   -- A lifecycle update must not become impossible after its departure passes.
   INSERT INTO public.movement_needs(id,member_id,origin_area,destination_area,earliest_departure_at,status)
