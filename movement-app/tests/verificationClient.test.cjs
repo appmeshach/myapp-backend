@@ -315,19 +315,23 @@ test('unexpected positive provider result cannot establish success', async () =>
 for (const input of [undefined,'','bad-id',['44444444-4444-4444-8444-444444444444'],'../private']) test(`movement route rejects ${JSON.stringify(input)}`, () => {
   let cards = 0;
   const screen = loader({
-    'expo-router':{ Stack:{Screen:'Screen'},useLocalSearchParams:() => ({movementNeedId:input}) },
-    'react-native':{ScrollView:'ScrollView',Text:'Text'},
+    react:{useState:()=>[true,()=>{}],useEffect:()=>{}},
+    'expo-router':{Link:'Link',Redirect:'Redirect',Stack:{Screen:'Screen'},router:{push:()=>{}},useLocalSearchParams:() => ({movementNeedId:input})},
+    'react-native':{ScrollView:'ScrollView',Text:'Text',View:'View'},
+    '../services/authService':{getCurrentSession:async()=>({user:{id:'test-user'}})},
     '../components/ActivationPaymentCard':{ActivationPaymentCard:()=>null}, '../components/VerificationCards':{MovementFaceVerificationCard:() => {cards++; return null;}},
   })('src/app/movement-verification.tsx').default;
   assert.match(renderedText(screen()),/Open a movement/); assert.equal(cards,0);
 });
 
-test('valid movement route passes only the movement need ID', () => {
+test('valid movement route passes only the movement need ID',() => {
   let props;
   const need = '44444444-4444-4444-8444-444444444444';
   const screen = loader({
-    'expo-router':{ Stack:{Screen:'Screen'},useLocalSearchParams:() => ({movementNeedId:need}) },
-    'react-native':{ScrollView:'ScrollView',Text:'Text'},
+    react:{useState:()=>[true,()=>{}],useEffect:()=>{}},
+    'expo-router':{Link:'Link',Redirect:'Redirect',Stack:{Screen:'Screen'},router:{push:()=>{}},useLocalSearchParams:() => ({movementNeedId:need})},
+    'react-native':{ScrollView:'ScrollView',Text:'Text',View:'View'},
+    '../services/authService':{getCurrentSession:async()=>({user:{id:'test-user'}})},
     '../components/ActivationPaymentCard':{ActivationPaymentCard:()=>null}, '../components/VerificationCards':{MovementFaceVerificationCard:p => {props=p; return null;}},
   })('src/app/movement-verification.tsx').default;
   renderedText(screen()); assert.deepEqual(Object.keys(props),['movementNeedId','identityPhotoLink']); assert.equal(props.movementNeedId,need);

@@ -130,7 +130,7 @@ test('invalid public IDs are rejected before status or start requests',async()=>
     const {api, calls:network}=serviceHarness();await assert.rejects(api.startMyMovementFaceVerification(value));assert.equal(network.length,0);}
 });
 for(const extra of ['alignmentId','memberId','mediaId','providerReference','sessionId']) test(`route refuses ${extra} even beside a valid need`,()=>{
-  let mounted=0;const screen=loader({'expo-router':{Stack:{Screen:'Screen'},useLocalSearchParams:()=>({movementNeedId:need,[extra]:'secret'})},'react-native':{ScrollView:'ScrollView',Text:'Text'},'../components/ActivationPaymentCard':{ActivationPaymentCard:()=>null}, '../components/VerificationCards':{MovementFaceVerificationCard:()=>{mounted++;return null;}}})('src/app/movement-verification.tsx').default;
+  let mounted=0;const screen=loader({react:{useState:()=>[true,()=>{}],useEffect:()=>{}},'expo-router':{Link:'Link',Redirect:'Redirect',Stack:{Screen:'Screen'},router:{push:()=>{}},useLocalSearchParams:()=>({movementNeedId:need,[extra]:'secret'})},'react-native':{ScrollView:'ScrollView',Text:'Text',View:'View'},'../services/authService':{getCurrentSession:async()=>({user:{id:'test-user'}})},'../components/ActivationPaymentCard':{ActivationPaymentCard:()=>null}, '../components/VerificationCards':{MovementFaceVerificationCard:()=>{mounted++;return null;}}})('src/app/movement-verification.tsx').default;
   assert.match(text(screen()),/Open a movement/);assert.equal(mounted,0);
 });
 test('navigation cancellation aborts the actual Edge fetch signal and drops late receipt',async()=>{
