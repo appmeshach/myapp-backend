@@ -396,6 +396,8 @@ test('attested resolution maps all 0028 arguments exactly', async () => {
           'opaque-ref',
         resolutionVersion:
           'normalization-v1',
+        discoveryAreaLabel:
+          'Ologolo, Lagos',
         latitude: 6.45,
         longitude: 3.47,
         resolvedAt:
@@ -440,6 +442,8 @@ test('attested resolution maps all 0028 arguments exactly', async () => {
         'opaque-ref',
       p_resolution_version:
         'normalization-v1',
+      p_discovery_area_label:
+        'Ologolo, Lagos',
       p_latitude: 6.45,
       p_longitude: 3.47,
       p_resolved_at:

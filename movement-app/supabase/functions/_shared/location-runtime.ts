@@ -652,6 +652,9 @@ export function createLocationBackend(
             p_resolution_version:
               input.resolutionVersion,
 
+            p_discovery_area_label:
+              input.discoveryAreaLabel,
+
             p_latitude:
               input.latitude,
 

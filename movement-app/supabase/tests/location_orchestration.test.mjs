@@ -245,6 +245,8 @@ function resolver(overrides = {}) {
           'opaque-reference',
         resolutionVersion:
           'normalization-v1',
+        discoveryAreaLabel:
+          'Ologolo, Lagos',
         latitude: 6.45,
         longitude: 3.47,
         resolvedAt:
@@ -733,6 +735,12 @@ test('resolution uses stored provider identity only', async () => {
     write[1]
       .providerPlaceReference,
     'opaque-reference',
+  );
+
+  assert.equal(
+    write[1]
+      .discoveryAreaLabel,
+    'Ologolo, Lagos',
   );
 
   const body = await response.json();

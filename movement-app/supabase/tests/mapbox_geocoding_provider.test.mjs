@@ -42,26 +42,51 @@ function feature({
   fullAddress,
   countryCode = 'NG',
   includeCountryContext = true,
+  neighborhoodName,
+  localityName,
+  placeName,
   longitude = 3.501,
   latitude = 6.437,
 } = {}) {
   const properties = {
-  mapbox_id: id,
-  feature_type: featureType,
-  name,
-  place_formatted:
-    placeFormatted,
-};
+    mapbox_id: id,
+    feature_type: featureType,
+    name,
+    place_formatted:
+      placeFormatted,
+  };
 
-if (includeCountryContext) {
-  properties.context = {
-    country: {
+  const context = {};
+
+  if (includeCountryContext) {
+    context.country = {
       country_code:
         countryCode,
       name: 'Nigeria',
-    },
-  };
-}
+    };
+  }
+
+  if (neighborhoodName !== undefined) {
+    context.neighborhood = {
+      name: neighborhoodName,
+    };
+  }
+
+  if (localityName !== undefined) {
+    context.locality = {
+      name: localityName,
+    };
+  }
+
+  if (placeName !== undefined) {
+    context.place = {
+      name: placeName,
+    };
+  }
+
+  if (Object.keys(context).length > 0) {
+    properties.context = context;
+  }
 
   if (fullAddress !== undefined) {
     properties.full_address =
@@ -1084,6 +1109,9 @@ test(
         resolutionVersion:
           MAPBOX_GEOCODING_RESOLUTION_VERSION,
 
+        discoveryAreaLabel:
+          'Ologolo',
+
         latitude: 6.437,
         longitude: 3.501,
 
@@ -1095,6 +1123,303 @@ test(
         durableStorageAllowed:
           true,
       },
+    );
+  },
+);
+
+test(
+  'address resolution exposes broad neighborhood and containing place only',
+  async () => {
+    const provider =
+      createMapboxGeocodingProvider(
+        TOKEN,
+        {
+          async fetchImpl() {
+            return jsonResponse(
+              collection([
+                feature({
+                  id: 'address-id',
+                  featureType: 'address',
+                  name: '12 Example Road',
+                  fullAddress:
+                    '12 Example Road, Ologolo, Lekki, Lagos, Nigeria',
+                  neighborhoodName:
+                    'Ologolo',
+                  placeName:
+                    'Lagos',
+                }),
+              ]),
+            );
+          },
+        },
+      );
+
+    const result =
+      await provider.resolve(
+        {
+          providerNamespace:
+            MAPBOX_GEOCODING_NAMESPACE,
+
+          providerPlaceReference:
+            'address-id',
+        },
+        signal(),
+      );
+
+    assert.equal(
+      result.discoveryAreaLabel,
+      'Ologolo, Lagos',
+    );
+  },
+);
+
+test(
+  'address resolution falls back from neighborhood to locality',
+  async () => {
+    const provider =
+      createMapboxGeocodingProvider(
+        TOKEN,
+        {
+          async fetchImpl() {
+            return jsonResponse(
+              collection([
+                feature({
+                  id: 'locality-fallback-id',
+                  featureType: 'address',
+                  name: '12 Example Road',
+                  localityName:
+                    'Lekki',
+                  placeName:
+                    'Lagos',
+                }),
+              ]),
+            );
+          },
+        },
+      );
+
+    const result =
+      await provider.resolve(
+        {
+          providerNamespace:
+            MAPBOX_GEOCODING_NAMESPACE,
+
+          providerPlaceReference:
+            'locality-fallback-id',
+        },
+        signal(),
+      );
+
+    assert.equal(
+      result.discoveryAreaLabel,
+      'Lekki, Lagos',
+    );
+  },
+);
+
+test(
+  'address resolution falls back to containing place',
+  async () => {
+    const provider =
+      createMapboxGeocodingProvider(
+        TOKEN,
+        {
+          async fetchImpl() {
+            return jsonResponse(
+              collection([
+                feature({
+                  id: 'place-fallback-id',
+                  featureType: 'street',
+                  name: 'Example Street',
+                  placeName:
+                    'Lagos',
+                }),
+              ]),
+            );
+          },
+        },
+      );
+
+    const result =
+      await provider.resolve(
+        {
+          providerNamespace:
+            MAPBOX_GEOCODING_NAMESPACE,
+
+          providerPlaceReference:
+            'place-fallback-id',
+        },
+        signal(),
+      );
+
+    assert.equal(
+      result.discoveryAreaLabel,
+      'Lagos',
+    );
+  },
+);
+
+test(
+  'neighborhood and locality resolutions include containing place when different',
+  async () => {
+    const cases = [
+      {
+        returned: feature({
+          id: 'neighborhood-id',
+          featureType:
+            'neighborhood',
+          name: 'Ologolo',
+          placeName:
+            'Lagos',
+        }),
+        expected:
+          'Ologolo, Lagos',
+      },
+      {
+        returned: feature({
+          id: 'locality-id',
+          featureType:
+            'locality',
+          name: 'Lekki',
+          placeName:
+            'Lagos',
+        }),
+        expected:
+          'Lekki, Lagos',
+      },
+    ];
+
+    for (const {
+      returned,
+      expected,
+    } of cases) {
+      const provider =
+        createMapboxGeocodingProvider(
+          TOKEN,
+          {
+            async fetchImpl() {
+              return jsonResponse(
+                collection([
+                  returned,
+                ]),
+              );
+            },
+          },
+        );
+
+      const result =
+        await provider.resolve(
+          {
+            providerNamespace:
+              MAPBOX_GEOCODING_NAMESPACE,
+
+            providerPlaceReference:
+              returned.id,
+          },
+          signal(),
+        );
+
+      assert.equal(
+        result.discoveryAreaLabel,
+        expected,
+      );
+    }
+  },
+);
+
+test(
+  'address and street resolution fail closed without broad area context',
+  async () => {
+    const cases = [
+      feature({
+        id: 'address-no-area',
+        featureType:
+          'address',
+        name: '12 Example Road',
+      }),
+      feature({
+        id: 'street-no-area',
+        featureType:
+          'street',
+        name: 'Example Street',
+      }),
+    ];
+
+    for (const returned of cases) {
+      const provider =
+        createMapboxGeocodingProvider(
+          TOKEN,
+          {
+            async fetchImpl() {
+              return jsonResponse(
+                collection([
+                  returned,
+                ]),
+              );
+            },
+          },
+        );
+
+      await assert.rejects(
+        provider.resolve(
+          {
+            providerNamespace:
+              MAPBOX_GEOCODING_NAMESPACE,
+
+            providerPlaceReference:
+              returned.id,
+          },
+          signal(),
+        ),
+      );
+    }
+  },
+);
+
+test(
+  'resolution rejects malformed broad area context',
+  async () => {
+    const returned =
+      feature({
+        id: 'malformed-area-id',
+        featureType:
+          'address',
+        neighborhoodName:
+          'Ologolo',
+        placeName:
+          'Lagos',
+      });
+
+    returned.properties.context
+      .neighborhood = {
+        name: '   ',
+      };
+
+    const provider =
+      createMapboxGeocodingProvider(
+        TOKEN,
+        {
+          async fetchImpl() {
+            return jsonResponse(
+              collection([
+                returned,
+              ]),
+            );
+          },
+        },
+      );
+
+    await assert.rejects(
+      provider.resolve(
+        {
+          providerNamespace:
+            MAPBOX_GEOCODING_NAMESPACE,
+
+          providerPlaceReference:
+            'malformed-area-id',
+        },
+        signal(),
+      ),
     );
   },
 );

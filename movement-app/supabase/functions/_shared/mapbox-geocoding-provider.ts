@@ -791,6 +791,117 @@ function canonicalLabel(
   return label;
 }
 
+function contextAreaName(
+  properties: Record<string, unknown>,
+  key: 'neighborhood' | 'locality' | 'place',
+): string | null {
+  const context =
+    properties.context;
+
+  if (!isPlainObject(context)) {
+    return null;
+  }
+
+  const area =
+    context[key];
+
+  if (area === undefined) {
+    return null;
+  }
+
+  if (!isPlainObject(area)) {
+    throw new MapboxGeocodingProviderError(
+      'invalid_response',
+    );
+  }
+
+  const name =
+    nonblankString(
+      area.name,
+    );
+
+  if (name === null) {
+    throw new MapboxGeocodingProviderError(
+      'invalid_response',
+    );
+  }
+
+  return name;
+}
+
+function discoveryAreaLabel(
+  properties: Record<string, unknown>,
+  featureType: string,
+): string {
+  const ownName =
+    nonblankString(
+      properties.name_preferred,
+    )
+    ?? nonblankString(
+      properties.name,
+    );
+
+  let areaName: string | null = null;
+
+  if (
+    featureType === 'address'
+    || featureType === 'street'
+  ) {
+    areaName =
+      contextAreaName(
+        properties,
+        'neighborhood',
+      )
+      ?? contextAreaName(
+        properties,
+        'locality',
+      )
+      ?? contextAreaName(
+        properties,
+        'place',
+      );
+  } else if (
+    featureType === 'neighborhood'
+    || featureType === 'locality'
+    || featureType === 'place'
+  ) {
+    areaName = ownName;
+  }
+
+  if (areaName === null) {
+    throw new MapboxGeocodingProviderError(
+      'invalid_response',
+    );
+  }
+
+  const containingPlace =
+    contextAreaName(
+      properties,
+      'place',
+    );
+
+  const label =
+    containingPlace !== null
+      && containingPlace.localeCompare(
+        areaName,
+        undefined,
+        { sensitivity: 'base' },
+      ) !== 0
+      ? `${areaName}, ${containingPlace}`
+      : areaName;
+
+  if (
+    codePointLength(label)
+      > MAX_LOCATION_LABEL_LENGTH
+  ) {
+    throw new MapboxGeocodingProviderError(
+      'invalid_response',
+    );
+  }
+
+  return label;
+}
+
 function searchSuggestion(
   feature: unknown,
 ): ProviderSearchSuggestion {
@@ -1105,6 +1216,12 @@ export function createMapboxGeocodingProvider(
 
         resolutionVersion:
           MAPBOX_GEOCODING_RESOLUTION_VERSION,
+
+        discoveryAreaLabel:
+          discoveryAreaLabel(
+            identity.properties,
+            identity.featureType,
+          ),
 
         latitude:
           coordinates.latitude,

@@ -62,6 +62,7 @@ BEGIN
  (SELECT count(*) FROM private.movement_location_selection_receipts),
  (SELECT count(*) FROM private.movement_location_selection_attestations),
  (SELECT count(*) FROM private.movement_location_resolution_evidence),
+ (SELECT count(*) FROM private.trusted_location_discovery_areas),
  (SELECT count(*) FROM private.offering_movement_intents),
  (SELECT count(*) FROM private.offering_movement_intent_locations),
  (SELECT count(*) FROM private.offering_route_evidence)) INTO counts_before;
@@ -89,9 +90,47 @@ BEGIN
  PERFORM pg_temp.check_verified('context anon execute ACL',NOT has_function_privilege('anon','public.get_selected_location_resolution_context_for_server(uuid,uuid,uuid)','EXECUTE'));
  PERFORM pg_temp.check_verified('context authenticated execute ACL',NOT has_function_privilege('authenticated','public.get_selected_location_resolution_context_for_server(uuid,uuid,uuid)','EXECUTE'));
  PERFORM pg_temp.check_verified('context service_role execute ACL',has_function_privilege('service_role','public.get_selected_location_resolution_context_for_server(uuid,uuid,uuid)','EXECUTE'));
- PERFORM pg_temp.check_verified('resolution anon execute ACL',NOT has_function_privilege('anon','public.record_attested_location_resolution_for_server(uuid,uuid,uuid,text,text,text,text,text,numeric,numeric,timestamptz,timestamptz)','EXECUTE'));
- PERFORM pg_temp.check_verified('resolution authenticated execute ACL',NOT has_function_privilege('authenticated','public.record_attested_location_resolution_for_server(uuid,uuid,uuid,text,text,text,text,text,numeric,numeric,timestamptz,timestamptz)','EXECUTE'));
- PERFORM pg_temp.check_verified('resolution service_role execute ACL',has_function_privilege('service_role','public.record_attested_location_resolution_for_server(uuid,uuid,uuid,text,text,text,text,text,numeric,numeric,timestamptz,timestamptz)','EXECUTE'));
+PERFORM pg_temp.check_verified(
+  'resolution anon execute ACL',
+  NOT has_function_privilege(
+    'anon',
+    'public.record_attested_location_resolution_for_server(uuid,uuid,uuid,text,text,text,text,text,numeric,numeric,timestamptz,timestamptz)',
+    'EXECUTE'
+  )
+  AND NOT has_function_privilege(
+    'anon',
+    'public.record_attested_location_resolution_for_server(uuid,uuid,uuid,text,text,text,text,text,text,numeric,numeric,timestamptz,timestamptz)',
+    'EXECUTE'
+  )
+);
+
+PERFORM pg_temp.check_verified(
+  'resolution authenticated execute ACL',
+  NOT has_function_privilege(
+    'authenticated',
+    'public.record_attested_location_resolution_for_server(uuid,uuid,uuid,text,text,text,text,text,numeric,numeric,timestamptz,timestamptz)',
+    'EXECUTE'
+  )
+  AND NOT has_function_privilege(
+    'authenticated',
+    'public.record_attested_location_resolution_for_server(uuid,uuid,uuid,text,text,text,text,text,text,numeric,numeric,timestamptz,timestamptz)',
+    'EXECUTE'
+  )
+);
+
+PERFORM pg_temp.check_verified(
+  'resolution service_role execute ACL',
+  NOT has_function_privilege(
+    'service_role',
+    'public.record_attested_location_resolution_for_server(uuid,uuid,uuid,text,text,text,text,text,numeric,numeric,timestamptz,timestamptz)',
+    'EXECUTE'
+  )
+  AND has_function_privilege(
+    'service_role',
+    'public.record_attested_location_resolution_for_server(uuid,uuid,uuid,text,text,text,text,text,text,numeric,numeric,timestamptz,timestamptz)',
+    'EXECUTE'
+  )
+);
  result:=pg_temp.try_verified('authenticated',format('SELECT * FROM public.record_selected_location_for_member(%L,%L,%L,%L)',gen_random_uuid(),'Valid selection','test_provider','valid-place'));
  PERFORM pg_temp.check_verified('old 0027 authenticated actual denial',result->>'state'='42501' AND result->>'message' LIKE 'permission denied for function %');
  result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_selected_location_for_member(%L,%L,%L,%L)',gen_random_uuid(),'Valid selection','test_provider','valid-place'));
@@ -265,25 +304,25 @@ BEGIN
  resolved_time:=clock_timestamp();
  result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,6.5,3.4,%L,NULL)',source_id,gen_random_uuid(),'test_provider','geocode','test_v1','place-1','resolution_v1',resolved_time));
  PERFORM pg_temp.check_verified('old 0026 service actual denial',result->>'state'='42501' AND result->>'message' LIKE 'permission denied for function %');
- resolution:=format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,6.5,3.4,%L,NULL)',m,source_id,operation,'test_provider','geocode','test_v1','place-1','resolution_v1',resolved_time);
- result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,source_id,operation,'wrong_provider','geocode','test_v1','place-1','resolution_v1',6.5,3.4,resolved_time,NULL));
+ resolution:=format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,6.5,3.4,%L,NULL)',m,source_id,operation,'test_provider','geocode','test_v1','place-1','resolution_v1','Ologolo, Lagos',resolved_time);
+ result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,source_id,operation,'wrong_provider','geocode','test_v1','place-1','resolution_v1','Ologolo, Lagos',6.5,3.4,resolved_time,NULL));
  PERFORM pg_temp.check_verified('resolution namespace binding',result->>'state'='23514');
- result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,source_id,operation,'test_provider','geocode','test_v1','wrong_place','resolution_v1',6.5,3.4,resolved_time,NULL));
+ result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,source_id,operation,'test_provider','geocode','test_v1','wrong_place','resolution_v1','Ologolo, Lagos',6.5,3.4,resolved_time,NULL));
  PERFORM pg_temp.check_verified('resolution place binding',result->>'state'='23514');
- result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,source_id,operation,'test_provider','geocode','test_v1','place-1','resolution_v1','NaN'::numeric,3.4,resolved_time,NULL));
+ result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,source_id,operation,'test_provider','geocode','test_v1','place-1','resolution_v1','Ologolo, Lagos','NaN'::numeric,3.4,resolved_time,NULL));
  PERFORM pg_temp.check_verified('0026 NaN preserved',result->>'state'='23514');
- result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,source_id,operation,'test_provider','geocode','test_v1','place-1','resolution_v1','Infinity'::numeric,3.4,resolved_time,NULL));
+ result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,source_id,operation,'test_provider','geocode','test_v1','place-1','resolution_v1','Ologolo, Lagos','Infinity'::numeric,3.4,resolved_time,NULL));
  PERFORM pg_temp.check_verified('0026 infinity preserved',result->>'state'='23514');
- result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,source_id,operation,'test_provider','geocode','test_v1','place-1','resolution_v1',91,3.4,resolved_time,NULL));
+ result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,source_id,operation,'test_provider','geocode','test_v1','place-1','resolution_v1','Ologolo, Lagos',91,3.4,resolved_time,NULL));
  PERFORM pg_temp.check_verified('0026 latitude range preserved',result->>'state'='23514');
- result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,source_id,operation,'test_provider','geocode','test_v1','place-1','resolution_v1',6.5,181,resolved_time,NULL));
+ result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,source_id,operation,'test_provider','geocode','test_v1','place-1','resolution_v1','Ologolo, Lagos',6.5,181,resolved_time,NULL));
  PERFORM pg_temp.check_verified('0026 longitude range preserved',result->>'state'='23514');
- result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,source_id,operation,'test_provider','geocode','','place-1','resolution_v1',6.5,3.4,resolved_time,NULL));
+ result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,source_id,operation,'test_provider','geocode','','place-1','resolution_v1','Ologolo, Lagos',6.5,3.4,resolved_time,NULL));
  PERFORM pg_temp.check_verified('0026 empty provenance preserved',result->>'state'='23514');
- result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,legacy_id,operation,'test_provider','geocode','test_v1','place-1','resolution_v1',6.5,3.4,resolved_time,NULL));
+ result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,legacy_id,operation,'test_provider','geocode','test_v1','place-1','resolution_v1','Ologolo, Lagos',6.5,3.4,resolved_time,NULL));
  PERFORM pg_temp.check_verified('unattested resolution rejected',result->>'state'='23514');
- saved:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',other_m,source_id,operation,'test_provider','geocode','test_v1','place-1','resolution_v1',6.5,3.4,resolved_time,NULL));
- replay:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,gen_random_uuid(),operation,'test_provider','geocode','test_v1','place-1','resolution_v1',6.5,3.4,resolved_time,NULL));
+ saved:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',other_m,source_id,operation,'test_provider','geocode','test_v1','place-1','resolution_v1','Ologolo, Lagos',6.5,3.4,resolved_time,NULL));
+ replay:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,gen_random_uuid(),operation,'test_provider','geocode','test_v1','place-1','resolution_v1','Ologolo, Lagos',6.5,3.4,resolved_time,NULL));
  PERFORM pg_temp.check_verified('resolution foreign and missing equivalent',saved=replay AND saved->>'state'='23514');
  result:=pg_temp.try_verified('anon',resolution);
  PERFORM pg_temp.check_verified('resolution actual anon denied',result->>'state'='42501');
@@ -294,7 +333,7 @@ BEGIN
  replay:=pg_temp.try_verified('service_role',resolution);
  PERFORM pg_temp.check_verified('attested resolution succeeds',result->>'ok'='true' AND resolved_id IS NOT NULL);
  PERFORM pg_temp.check_verified('exact resolution replay',result=replay);
- result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,source_id,operation,'test_provider','geocode','test_v1','place-1','resolution_v1',6.6,3.4,resolved_time,NULL));
+ result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L,%L)',m,source_id,operation,'test_provider','geocode','test_v1','place-1','resolution_v1','Ologolo, Lagos',6.6,3.4,resolved_time,NULL));
  PERFORM pg_temp.check_verified('changed resolution replay rejected',result->>'state'='23514');
  result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.get_selected_location_resolution_context_for_server(%L,%L,%L)',m,source_id,operation));
  PERFORM pg_temp.check_verified('context returns committed operation result',result->>'ok'='true' AND result->'row'->>'resolved_location_reference_id'=resolved_id::text);
@@ -302,7 +341,7 @@ BEGIN
  PERFORM pg_temp.check_verified('context refuses unrelated operation',result->>'state'='23514');
  PERFORM pg_temp.check_verified('single evidence and target after failed resolution',(SELECT count(*)=1 FROM private.movement_location_resolution_evidence WHERE source_location_reference_id=source_id) AND (SELECT count(*)=1 FROM private.movement_location_references WHERE owner_member_id=m AND source_kind='provider_resolved'));
  -- Versions are immutable history, not a superseded/current lifecycle.
- result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,6.6,3.4,%L,NULL)',m,source_id,later_operation,'test_provider','geocode','test_v1','place-1','resolution_v1',resolved_time));
+ result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,6.6,3.4,%L,NULL)',m,source_id,later_operation,'test_provider','geocode','test_v1','place-1','resolution_v1','Ologolo, Lagos',resolved_time));
  PERFORM pg_temp.check_verified('later resolution creates version two',result->>'ok'='true' AND result->'row'->>'version'='2');
  result:=pg_temp.try_verified('service_role',resolution);
  PERFORM pg_temp.check_verified('older exact retry remains version one',result->>'ok'='true' AND result->'row'->>'version'='1' AND result->'row'->>'resolved_location_reference_id'=resolved_id::text);
@@ -310,10 +349,10 @@ BEGIN
  PERFORM pg_temp.check_verified('context preserves requested older operation',result->>'ok'='true' AND result->'row'->>'version'='1' AND result->'row'->>'resolved_location_reference_id'=resolved_id::text);
  -- Use real elapsed database time, without backdating evidence or disabling guards.
  evidence_deadline:=clock_timestamp()+interval '2 seconds';
- result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,6.7,3.4,%L,%L)',m,source_id,expiry_operation,'test_provider','geocode','test_v1','place-1','resolution_v1',resolved_time,evidence_deadline));
+ result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,6.7,3.4,%L,%L)',m,source_id,expiry_operation,'test_provider','geocode','test_v1','place-1','resolution_v1','Ologolo, Lagos',resolved_time,evidence_deadline));
  PERFORM pg_temp.check_verified('finite expiry resolution accepted while eligible',result->>'ok'='true' AND result->'row'->>'version'='3');
  PERFORM pg_sleep(greatest(0,extract(epoch FROM evidence_deadline-clock_timestamp()))+0.02);
- result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,6.7,3.4,%L,%L)',m,source_id,expiry_operation,'test_provider','geocode','test_v1','place-1','resolution_v1',resolved_time,evidence_deadline));
+ result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.record_attested_location_resolution_for_server(%L,%L,%L,%L,%L,%L,%L,%L,%L,6.7,3.4,%L,%L)',m,source_id,expiry_operation,'test_provider','geocode','test_v1','place-1','resolution_v1','Ologolo, Lagos',resolved_time,evidence_deadline));
  PERFORM pg_temp.check_verified('expired evidence exact retry rejected',result->>'state'='23514');
  result:=pg_temp.try_verified('service_role',format('SELECT * FROM public.get_selected_location_resolution_context_for_server(%L,%L,%L)',m,source_id,expiry_operation));
  PERFORM pg_temp.check_verified('context rejects expired evidence',result->>'state'='23514');
@@ -331,6 +370,7 @@ BEGIN
  (SELECT count(*) FROM private.movement_location_selection_receipts),
  (SELECT count(*) FROM private.movement_location_selection_attestations),
  (SELECT count(*) FROM private.movement_location_resolution_evidence),
+ (SELECT count(*) FROM private.trusted_location_discovery_areas),
  (SELECT count(*) FROM private.offering_movement_intents),
  (SELECT count(*) FROM private.offering_movement_intent_locations),
  (SELECT count(*) FROM private.offering_route_evidence)) INTO counts_after;

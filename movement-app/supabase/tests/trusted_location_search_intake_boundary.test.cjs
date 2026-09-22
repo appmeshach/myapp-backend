@@ -242,10 +242,29 @@ test('no old function replaced or unrelated product/network path introduced', ()
   assert.doesNotMatch(compact, /(?:UPDATE|DELETE FROM) private\.movement_location_(?:references|selection_receipts)/i);
 });
 test('behavioral checks are uniquely named and cover expected 134 cases', () => {
-  const names = [...live.matchAll(/PERFORM pg_temp.check_verified\('([^']+)'/g)].map(x => x[1]);
-  assert.equal(names.length, 134); assert.equal(new Set(names).size, 134);
-  assert.match(live,/count\(\*\) FROM pg_temp.verified_selection_results\)<>134 THEN RAISE EXCEPTION/);
-  for (const category of ['old 0026 service actual denial','accepted expired proof recovery','legacy replay cannot upgrade','attestation owner no-op update rejected','resolution foreign and missing equivalent','exact resolution replay']) assert.ok(names.includes(category));
+  const names = [
+    ...live.matchAll(
+      /PERFORM\s+pg_temp\.check_verified\(\s*'([^']+)'/g,
+    ),
+  ].map(x => x[1]);
+
+  assert.equal(names.length, 134);
+  assert.equal(new Set(names).size, 134);
+  assert.match(
+    live,
+    /count\(\*\) FROM pg_temp.verified_selection_results\)<>134 THEN RAISE EXCEPTION/,
+  );
+
+  for (const category of [
+    'old 0026 service actual denial',
+    'accepted expired proof recovery',
+    'legacy replay cannot upgrade',
+    'attestation owner no-op update rejected',
+    'resolution foreign and missing equivalent',
+    'exact resolution replay',
+  ]) {
+    assert.ok(names.includes(category));
+  }
 });
 test('behavioral fixture subtransaction rolls back and checks all counts', () => {
   assert.match(live, /SET CONSTRAINTS ALL IMMEDIATE/);

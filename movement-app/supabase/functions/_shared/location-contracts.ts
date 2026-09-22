@@ -45,6 +45,7 @@ export interface DurableLocationResolution {
   providerVersion: string;
   providerPlaceReference: string;
   resolutionVersion: string;
+  discoveryAreaLabel: string;
   latitude: number;
   longitude: number;
   resolvedAt: string;
@@ -166,6 +167,7 @@ export interface LocationBackend {
       providerVersion: string;
       providerPlaceReference: string;
       resolutionVersion: string;
+      discoveryAreaLabel: string;
       latitude: number;
       longitude: number;
       resolvedAt: string;

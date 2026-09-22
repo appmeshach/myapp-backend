@@ -455,6 +455,10 @@ function validResolution(
       result.resolutionVersion,
       100,
     )
+    || !trimmed(
+      result.discoveryAreaLabel,
+      MAX_LOCATION_LABEL_LENGTH,
+    )
     || !Number.isFinite(result.latitude)
     || !Number.isFinite(result.longitude)
     || result.latitude < -90
@@ -1039,6 +1043,8 @@ export function createLocationResolutionHandler(
                     .providerPlaceReference,
                 resolutionVersion:
                   result.resolutionVersion,
+                discoveryAreaLabel:
+                  result.discoveryAreaLabel,
                 latitude:
                   result.latitude,
                 longitude:
