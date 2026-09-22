@@ -1876,3 +1876,748 @@ test(
     );
   },
 );
+test(
+  'authorized trusted matching context maps exactly to 0039 RPC',
+  async () => {
+    const verifiedMemberId =
+      '11111111-1111-4111-8111-111111111111';
+
+    const movementNeedId =
+      '22222222-2222-4222-8222-222222222222';
+
+    const offeringMovementIntentId =
+      '33333333-3333-4333-8333-333333333333';
+
+    const requestingMemberId =
+      '44444444-4444-4444-8444-444444444444';
+
+    const offeringMemberId =
+      '55555555-5555-4555-8555-555555555555';
+
+    const requesterOriginId =
+      '66666666-6666-4666-8666-666666666666';
+
+    const requesterDestinationId =
+      '77777777-7777-4777-8777-777777777777';
+
+    const routeEvidenceId =
+      '88888888-8888-4888-8888-888888888888';
+
+    let call;
+
+    const db =
+      createRouteBackend(
+        'https://project.invalid',
+        'server-secret',
+        async (url, init) => {
+          call = { url, init };
+
+          return Response.json([
+            {
+              movement_need_id:
+                movementNeedId,
+
+              requesting_member_id:
+                requestingMemberId,
+
+              requester_origin_location_reference_id:
+                requesterOriginId,
+
+              requester_origin_latitude:
+                6.4300,
+
+              requester_origin_longitude:
+                3.5200,
+
+              requester_destination_location_reference_id:
+                requesterDestinationId,
+
+              requester_destination_latitude:
+                6.6018,
+
+              requester_destination_longitude:
+                3.3515,
+
+              requester_earliest_departure_at:
+                '2026-09-21T18:00:00.000Z',
+
+              requester_latest_departure_at:
+                '2026-09-21T19:00:00.000Z',
+
+              offering_movement_intent_id:
+                offeringMovementIntentId,
+
+              offering_member_id:
+                offeringMemberId,
+
+              offering_intent_version:
+                1,
+
+              offering_earliest_departure_at:
+                '2026-09-21T18:15:00.000Z',
+
+              offering_latest_departure_at:
+                null,
+
+              route_evidence_id:
+                routeEvidenceId,
+
+              route_evidence_version:
+                2,
+
+              route_shape_format:
+                'geojson_linestring_v1',
+
+              route_shape: {
+                type: 'LineString',
+                coordinates: [
+                  [3.5200, 6.4300],
+                  [3.4900, 6.4320],
+                  [3.4430, 6.4310],
+                ],
+              },
+
+              route_distance_meters:
+                18000,
+
+              route_duration_seconds:
+                2400,
+
+              route_generated_at:
+                '2026-09-21T17:45:00.000Z',
+
+              route_expires_at:
+                '2026-09-21T20:45:00.000Z',
+            },
+          ]);
+        },
+      );
+
+    const result =
+      await db
+        .getAuthorizedTrustedMatchingContext(
+          verifiedMemberId,
+          movementNeedId,
+          offeringMovementIntentId,
+          signal(),
+        );
+
+    assert.equal(
+      call.url,
+      'https://project.invalid/rest/v1/rpc/get_authorized_trusted_matching_context_for_server',
+    );
+
+    assert.equal(
+      call.init.method,
+      'POST',
+    );
+
+    assert.equal(
+      call.init.headers.Authorization,
+      'Bearer server-secret',
+    );
+
+    assert.deepEqual(
+      JSON.parse(call.init.body),
+      {
+        p_verified_member_id:
+          verifiedMemberId,
+
+        p_movement_need_id:
+          movementNeedId,
+
+        p_offering_movement_intent_id:
+          offeringMovementIntentId,
+      },
+    );
+
+    assert.deepEqual(
+      result,
+      {
+        movementNeedId,
+        requestingMemberId,
+
+        requesterOriginLocationReferenceId:
+          requesterOriginId,
+
+        requesterOrigin: {
+          latitude: 6.4300,
+          longitude: 3.5200,
+        },
+
+        requesterDestinationLocationReferenceId:
+          requesterDestinationId,
+
+        requesterDestination: {
+          latitude: 6.6018,
+          longitude: 3.3515,
+        },
+
+        requesterEarliestDepartureAt:
+          '2026-09-21T18:00:00.000Z',
+
+        requesterLatestDepartureAt:
+          '2026-09-21T19:00:00.000Z',
+
+        offeringMovementIntentId,
+        offeringMemberId,
+
+        offeringIntentVersion: 1,
+
+        offeringEarliestDepartureAt:
+          '2026-09-21T18:15:00.000Z',
+
+        offeringLatestDepartureAt:
+          null,
+
+        routeEvidenceId,
+        routeEvidenceVersion: 2,
+
+        routeShapeFormat:
+          'geojson_linestring_v1',
+
+        routeShape: {
+          type: 'LineString',
+          coordinates: [
+            [3.5200, 6.4300],
+            [3.4900, 6.4320],
+            [3.4430, 6.4310],
+          ],
+        },
+
+        routeDistanceMeters: 18000,
+        routeDurationSeconds: 2400,
+
+        routeGeneratedAt:
+          '2026-09-21T17:45:00.000Z',
+
+        routeExpiresAt:
+          '2026-09-21T20:45:00.000Z',
+      },
+    );
+  },
+);
+
+test(
+  'authorized trusted matching context rejects malformed identifiers before network request',
+  async () => {
+    let calls = 0;
+
+    const verifiedMemberId =
+      '11111111-1111-4111-8111-111111111111';
+
+    const movementNeedId =
+      '22222222-2222-4222-8222-222222222222';
+
+    const offeringMovementIntentId =
+      '33333333-3333-4333-8333-333333333333';
+
+    const db =
+      createRouteBackend(
+        'https://project.invalid',
+        'server-secret',
+        async () => {
+          calls += 1;
+          return Response.json([]);
+        },
+      );
+
+    await assert.rejects(
+      db.getAuthorizedTrustedMatchingContext(
+        'not-a-uuid',
+        movementNeedId,
+        offeringMovementIntentId,
+        signal(),
+      ),
+    );
+
+    await assert.rejects(
+      db.getAuthorizedTrustedMatchingContext(
+        verifiedMemberId,
+        'not-a-uuid',
+        offeringMovementIntentId,
+        signal(),
+      ),
+    );
+
+    await assert.rejects(
+      db.getAuthorizedTrustedMatchingContext(
+        verifiedMemberId,
+        movementNeedId,
+        'not-a-uuid',
+        signal(),
+      ),
+    );
+
+    assert.equal(
+      calls,
+      0,
+    );
+  },
+);
+
+test(
+  'authorized trusted matching context rejects malformed private context response',
+  async () => {
+    const verifiedMemberId =
+      '11111111-1111-4111-8111-111111111111';
+
+    const movementNeedId =
+      '22222222-2222-4222-8222-222222222222';
+
+    const offeringMovementIntentId =
+      '33333333-3333-4333-8333-333333333333';
+
+    const db =
+      createRouteBackend(
+        'https://project.invalid',
+        'server-secret',
+        async () =>
+          Response.json([
+            {
+              movement_need_id:
+                movementNeedId,
+
+              requesting_member_id:
+                '44444444-4444-4444-8444-444444444444',
+
+              requester_origin_location_reference_id:
+                '66666666-6666-4666-8666-666666666666',
+
+              requester_origin_latitude:
+                6.4300,
+
+              requester_origin_longitude:
+                3.5200,
+
+              requester_destination_location_reference_id:
+                '77777777-7777-4777-8777-777777777777',
+
+              requester_destination_latitude:
+                6.6018,
+
+              requester_destination_longitude:
+                3.3515,
+
+              requester_earliest_departure_at:
+                '2026-09-21T18:00:00.000Z',
+
+              requester_latest_departure_at:
+                null,
+
+              offering_movement_intent_id:
+                offeringMovementIntentId,
+
+              offering_member_id:
+                '55555555-5555-4555-8555-555555555555',
+
+              offering_intent_version:
+                1,
+
+              offering_earliest_departure_at:
+                '2026-09-21T18:15:00.000Z',
+
+              offering_latest_departure_at:
+                null,
+
+              route_evidence_id:
+                '88888888-8888-4888-8888-888888888888',
+
+              route_evidence_version:
+                1,
+
+              route_shape_format:
+                'geojson_linestring_v1',
+
+              route_shape: {
+                type: 'LineString',
+                coordinates: [
+                  [3.5200, 6.4300],
+                ],
+              },
+
+              route_distance_meters:
+                18000,
+
+              route_duration_seconds:
+                2400,
+
+              route_generated_at:
+                '2026-09-21T17:45:00.000Z',
+
+              route_expires_at:
+                null,
+            },
+          ]),
+      );
+
+    assert.equal(
+      await db
+        .getAuthorizedTrustedMatchingContext(
+          verifiedMemberId,
+          movementNeedId,
+          offeringMovementIntentId,
+          signal(),
+        ),
+      null,
+    );
+  },
+);
+
+test(
+  'trusted route-match evidence maps exactly to 0038 writer RPC',
+  async () => {
+    const movementNeedId =
+      '11111111-1111-4111-8111-111111111111';
+
+    const offeringMovementIntentId =
+      '22222222-2222-4222-8222-222222222222';
+
+    const routeEvidenceId =
+      '33333333-3333-4333-8333-333333333333';
+
+    const routeMatchEvidenceId =
+      '44444444-4444-4444-8444-444444444444';
+
+    let call;
+
+    const db =
+      createRouteBackend(
+        'https://project.invalid',
+        'server-secret',
+        async (url, init) => {
+          call = { url, init };
+
+          return Response.json([
+            {
+              route_match_evidence_id:
+                routeMatchEvidenceId,
+
+              route_match_evidence_version:
+                3,
+
+              route_match_evidence_status:
+                'current',
+
+              route_match_evidence_expires_at:
+                '2026-09-21T20:30:00.000Z',
+            },
+          ]);
+        },
+      );
+
+    const result =
+      await db.recordTrustedRouteMatchEvidence(
+        {
+          movementNeedId,
+          offeringMovementIntentId,
+
+          expectedRouteEvidenceId:
+            routeEvidenceId,
+
+          expectedRouteEvidenceVersion:
+            2,
+
+          requesterOriginDistanceToRouteMeters:
+            4250,
+
+          requesterDestinationDistanceToRouteMeters:
+            12800,
+
+          calculatedRouteShapeLengthMeters:
+            18000,
+
+          requesterOriginPositionAlongRouteMeters:
+            3100,
+
+          requesterDestinationPositionAlongRouteMeters:
+            14500,
+
+          requesterOriginClosestRoute: {
+            latitude: 6.431,
+            longitude: 3.482,
+          },
+
+          requesterDestinationClosestRoute: {
+            latitude: 6.455,
+            longitude: 3.421,
+          },
+
+          calculatedAt:
+            '2026-09-21T18:10:00.000Z',
+
+          expiresAt:
+            '2026-09-21T20:30:00.000Z',
+        },
+        signal(),
+      );
+
+    assert.equal(
+      call.url,
+      'https://project.invalid/rest/v1/rpc/record_trusted_route_match_evidence_for_server',
+    );
+
+    assert.equal(
+      call.init.method,
+      'POST',
+    );
+
+    assert.equal(
+      call.init.headers.Authorization,
+      'Bearer server-secret',
+    );
+
+    assert.deepEqual(
+      JSON.parse(call.init.body),
+      {
+        p_movement_need_id:
+          movementNeedId,
+
+        p_offering_movement_intent_id:
+          offeringMovementIntentId,
+
+        p_expected_route_evidence_id:
+          routeEvidenceId,
+
+        p_expected_route_evidence_version:
+          2,
+
+        p_requester_origin_distance_to_route_meters:
+          4250,
+
+        p_requester_destination_distance_to_route_meters:
+          12800,
+
+        p_calculated_route_shape_length_meters:
+          18000,
+
+        p_requester_origin_position_along_route_meters:
+          3100,
+
+        p_requester_destination_position_along_route_meters:
+          14500,
+
+        p_requester_origin_closest_route_latitude:
+          6.431,
+
+        p_requester_origin_closest_route_longitude:
+          3.482,
+
+        p_requester_destination_closest_route_latitude:
+          6.455,
+
+        p_requester_destination_closest_route_longitude:
+          3.421,
+
+        p_calculated_at:
+          '2026-09-21T18:10:00.000Z',
+
+        p_expires_at:
+          '2026-09-21T20:30:00.000Z',
+      },
+    );
+
+    assert.deepEqual(
+      result,
+      {
+        routeMatchEvidenceId,
+        routeMatchEvidenceVersion: 3,
+        routeMatchEvidenceStatus:
+          'current',
+        routeMatchEvidenceExpiresAt:
+          '2026-09-21T20:30:00.000Z',
+      },
+    );
+  },
+);
+
+test(
+  'trusted route-match evidence rejects malformed input before network request',
+  async () => {
+    let calls = 0;
+
+    const baseInput = {
+      movementNeedId:
+        '11111111-1111-4111-8111-111111111111',
+
+      offeringMovementIntentId:
+        '22222222-2222-4222-8222-222222222222',
+
+      expectedRouteEvidenceId:
+        '33333333-3333-4333-8333-333333333333',
+
+      expectedRouteEvidenceVersion:
+        2,
+
+      requesterOriginDistanceToRouteMeters:
+        4250,
+
+      requesterDestinationDistanceToRouteMeters:
+        12800,
+
+      calculatedRouteShapeLengthMeters:
+        18000,
+
+      requesterOriginPositionAlongRouteMeters:
+        3100,
+
+      requesterDestinationPositionAlongRouteMeters:
+        14500,
+
+      requesterOriginClosestRoute: {
+        latitude: 6.431,
+        longitude: 3.482,
+      },
+
+      requesterDestinationClosestRoute: {
+        latitude: 6.455,
+        longitude: 3.421,
+      },
+
+      calculatedAt:
+        '2026-09-21T18:10:00.000Z',
+
+      expiresAt:
+        null,
+    };
+
+    const db =
+      createRouteBackend(
+        'https://project.invalid',
+        'server-secret',
+        async () => {
+          calls += 1;
+          return Response.json([]);
+        },
+      );
+
+    await assert.rejects(
+      db.recordTrustedRouteMatchEvidence(
+        {
+          ...baseInput,
+          movementNeedId:
+            'not-a-uuid',
+        },
+        signal(),
+      ),
+    );
+
+    await assert.rejects(
+      db.recordTrustedRouteMatchEvidence(
+        {
+          ...baseInput,
+          requesterOriginDistanceToRouteMeters:
+            -1,
+        },
+        signal(),
+      ),
+    );
+
+    await assert.rejects(
+      db.recordTrustedRouteMatchEvidence(
+        {
+          ...baseInput,
+          requesterDestinationPositionAlongRouteMeters:
+            19000,
+        },
+        signal(),
+      ),
+    );
+
+    await assert.rejects(
+      db.recordTrustedRouteMatchEvidence(
+        {
+          ...baseInput,
+          requesterOriginClosestRoute: {
+            latitude: 91,
+            longitude: 3.482,
+          },
+        },
+        signal(),
+      ),
+    );
+
+    assert.equal(
+      calls,
+      0,
+    );
+  },
+);
+
+test(
+  'trusted route-match evidence rejects malformed writer response',
+  async () => {
+    const db =
+      createRouteBackend(
+        'https://project.invalid',
+        'server-secret',
+        async () =>
+          Response.json([
+            {
+              route_match_evidence_id:
+                '44444444-4444-4444-8444-444444444444',
+
+              route_match_evidence_version:
+                0,
+
+              route_match_evidence_status:
+                'current',
+
+              route_match_evidence_expires_at:
+                null,
+            },
+          ]),
+      );
+
+    assert.equal(
+      await db.recordTrustedRouteMatchEvidence(
+        {
+          movementNeedId:
+            '11111111-1111-4111-8111-111111111111',
+
+          offeringMovementIntentId:
+            '22222222-2222-4222-8222-222222222222',
+
+          expectedRouteEvidenceId:
+            '33333333-3333-4333-8333-333333333333',
+
+          expectedRouteEvidenceVersion:
+            2,
+
+          requesterOriginDistanceToRouteMeters:
+            4250,
+
+          requesterDestinationDistanceToRouteMeters:
+            12800,
+
+          calculatedRouteShapeLengthMeters:
+            18000,
+
+          requesterOriginPositionAlongRouteMeters:
+            3100,
+
+          requesterDestinationPositionAlongRouteMeters:
+            14500,
+
+          requesterOriginClosestRoute: {
+            latitude: 6.431,
+            longitude: 3.482,
+          },
+
+          requesterDestinationClosestRoute: {
+            latitude: 6.455,
+            longitude: 3.421,
+          },
+
+          calculatedAt:
+            '2026-09-21T18:10:00.000Z',
+
+          expiresAt:
+            null,
+        },
+        signal(),
+      ),
+      null,
+    );
+  },
+);

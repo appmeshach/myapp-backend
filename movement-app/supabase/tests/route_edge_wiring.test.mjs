@@ -15,6 +15,13 @@ test('route generation Edge function is configured with JWT verification', () =>
   );
 });
 
+test('route match Edge function is configured with JWT verification', () => {
+  assert.match(
+    config,
+    /\[functions\.calculate-route-match\][\s\S]*?verify_jwt\s*=\s*true[\s\S]*?entrypoint\s*=\s*"\.\/functions\/calculate-route-match\/index\.ts"/,
+  );
+});
+
 test('route production entry point uses Mapbox directions provider', () => {
   const source =
     fs.readFileSync(
@@ -78,5 +85,48 @@ test('route production entry point uses only shared runtime orchestration and pr
   assert.match(
     source,
     /'\.\.\/_shared\/face-runtime\.ts'/,
+  );
+});
+
+test('route match production entry point uses only shared matching runtime modules', () => {
+  const source =
+    fs.readFileSync(
+      'supabase/functions/calculate-route-match/index.ts',
+      'utf8',
+    );
+
+  assert.match(
+    source,
+    /createRouteMatchHandler/,
+  );
+
+  assert.match(
+    source,
+    /runtimeRouteBackend\(\)/,
+  );
+
+  assert.match(
+    source,
+    /'\.\.\/_shared\/route-match-orchestration\.ts'/,
+  );
+
+  assert.match(
+    source,
+    /'\.\.\/_shared\/route-runtime\.ts'/,
+  );
+
+  assert.match(
+    source,
+    /'\.\.\/_shared\/face-runtime\.ts'/,
+  );
+
+  assert.doesNotMatch(
+    source,
+    /Mapbox|createMapboxDirectionsProvider|MAPBOX_ACCESS_TOKEN/,
+  );
+
+  assert.doesNotMatch(
+    source,
+    /unavailableRouteProvider|test-provider|fake|always.success/i,
   );
 });

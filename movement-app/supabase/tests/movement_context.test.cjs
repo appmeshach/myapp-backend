@@ -161,6 +161,7 @@ test('no operational callers or older migrations consume these tables', () => {
   'supabase/migrations/0036_trusted_matching_context.sql',
   'supabase/migrations/0037_trusted_route_match_evidence_foundation.sql',
   'supabase/migrations/0038_trusted_route_match_evidence_writer.sql',
+  'supabase/migrations/0039_authorized_trusted_matching_context.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);

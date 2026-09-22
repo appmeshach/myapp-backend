@@ -14,6 +14,44 @@ export interface RouteGenerationContext {
   destination: TrustedRouteCoordinate;
 }
 
+export interface TrustedMatchingContext {
+  movementNeedId: string;
+  requestingMemberId: string;
+
+  requesterOriginLocationReferenceId: string;
+  requesterOrigin: TrustedRouteCoordinate;
+
+  requesterDestinationLocationReferenceId: string;
+  requesterDestination: TrustedRouteCoordinate;
+
+  requesterEarliestDepartureAt: string;
+  requesterLatestDepartureAt: string | null;
+
+  offeringMovementIntentId: string;
+  offeringMemberId: string;
+  offeringIntentVersion: number;
+
+  offeringEarliestDepartureAt: string;
+  offeringLatestDepartureAt: string | null;
+
+  routeEvidenceId: string;
+  routeEvidenceVersion: number;
+
+  routeShapeFormat:
+    'geojson_linestring_v1';
+
+  routeShape: {
+    type: 'LineString';
+    coordinates: number[][];
+  };
+
+  routeDistanceMeters: number;
+  routeDurationSeconds: number;
+
+  routeGeneratedAt: string;
+  routeExpiresAt: string | null;
+}
+
 export interface RouteProviderResult {
   providerNamespace: string;
   providerProduct: string;
@@ -53,6 +91,13 @@ export interface RecordedRouteEvidence {
   routeEvidenceVersion: number;
   routeEvidenceStatus: string;
   routeEvidenceExpiresAt: string | null;
+}
+
+export interface RecordedRouteMatchEvidence {
+  routeMatchEvidenceId: string;
+  routeMatchEvidenceVersion: number;
+  routeMatchEvidenceStatus: string;
+  routeMatchEvidenceExpiresAt: string | null;
 }
 
 export interface RouteProviderQuotaResult {
@@ -108,7 +153,39 @@ export interface RouteBackend {
     signal: AbortSignal,
   ): Promise<RouteGenerationContext | null>;
 
-    recordClaimedRouteEvidence(
+  getAuthorizedTrustedMatchingContext(
+    verifiedMemberId: string,
+    movementNeedId: string,
+    offeringMovementIntentId: string,
+    signal: AbortSignal,
+  ): Promise<TrustedMatchingContext | null>;
+
+  recordTrustedRouteMatchEvidence(
+    input: {
+      movementNeedId: string;
+      offeringMovementIntentId: string;
+
+      expectedRouteEvidenceId: string;
+      expectedRouteEvidenceVersion: number;
+
+      requesterOriginDistanceToRouteMeters: number;
+      requesterDestinationDistanceToRouteMeters: number;
+
+      calculatedRouteShapeLengthMeters: number;
+
+      requesterOriginPositionAlongRouteMeters: number;
+      requesterDestinationPositionAlongRouteMeters: number;
+
+      requesterOriginClosestRoute: TrustedRouteCoordinate;
+      requesterDestinationClosestRoute: TrustedRouteCoordinate;
+
+      calculatedAt: string;
+      expiresAt: string | null;
+    },
+    signal: AbortSignal,
+  ): Promise<RecordedRouteMatchEvidence | null>;
+
+  recordClaimedRouteEvidence(
     input: {
       offeringMovementIntentId: string;
       offeringMemberId: string;
