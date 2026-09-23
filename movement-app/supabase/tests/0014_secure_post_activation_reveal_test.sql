@@ -1,6 +1,8 @@
 BEGIN;
 
--- Run this WHOLE file as the database administrator after migrations 0001-0014.
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+-- Run this WHOLE file as the database administrator after migrations 0001-0042.
 -- No real users, Storage objects, external providers, or network calls are used.
 -- All fixtures, temporary helpers, role/JWT settings and results roll back.
 -- This file does not replace functions, disable triggers/RLS, or grant app rights.
@@ -86,6 +88,90 @@ REVOKE ALL ON FUNCTION pg_temp.reveal_check(text, boolean) FROM PUBLIC;
 REVOKE ALL ON FUNCTION pg_temp.reveal_as(text, uuid, text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION pg_temp.reveal_denied(text, text, uuid, text, text, text) FROM PUBLIC;
 
+-- Trusted setup adapted from 0042. Only resolved locations are admin fixtures;
+-- needs, independent driver intents, routes and matches use the real RPCs.
+-- Separate intents keep all three offers' route evidence current independently.
+CREATE FUNCTION pg_temp.reveal_trusted_need(
+  p_requester uuid, p_driver uuid, p_label text, p_people_count integer
+)
+RETURNS TABLE (need_id uuid, match_id uuid)
+LANGUAGE plpgsql SECURITY INVOKER AS $$
+DECLARE
+  requester_origin uuid := gen_random_uuid();
+  requester_destination uuid := gen_random_uuid();
+  driver_origin uuid := gen_random_uuid();
+  driver_destination uuid := gen_random_uuid();
+  intent_id uuid;
+  route_id uuid;
+  r jsonb;
+  t timestamptz := clock_timestamp();
+  departure_earliest timestamptz := statement_timestamp() + interval '1 hour';
+  departure_latest timestamptz := statement_timestamp() + interval '2 hours';
+BEGIN
+  INSERT INTO private.movement_location_references(
+    id, owner_member_id, declared_label, source_kind, resolution_status,
+    latitude, longitude, provider_namespace, provider_place_reference,
+    resolution_version, created_at, resolved_at, expires_at)
+  SELECT id, member_id, area, 'provider_resolved', 'resolved', lat, lon,
+    'test-provider', '0014-' || id::text, 'test-resolution-v1', t, t, t + interval '4 hours'
+  FROM (VALUES
+    (requester_origin, p_requester, p_label || ' origin', 6.4300, 3.5200),
+    (requester_destination, p_requester, p_label || ' destination', 6.4310, 3.4430),
+    (driver_origin, p_driver, 'Ajah, Lagos', 6.4698, 3.5852),
+    (driver_destination, p_driver, 'Victoria Island, Lagos', 6.4281, 3.4219)
+  ) locations(id, member_id, area, lat, lon);
+
+  r := pg_temp.reveal_as('authenticated', p_requester, format(
+    'SELECT * FROM public.create_movement_need(%L::uuid,%L::uuid,%L::uuid,
+      %L::timestamptz,%L::timestamptz,%L::integer)',
+    gen_random_uuid(), requester_origin, requester_destination,
+    departure_earliest, departure_latest, p_people_count));
+  need_id := (r#>>'{rows,0,movement_need_id}')::uuid;
+  IF r->>'ok' IS DISTINCT FROM 'true' OR need_id IS NULL THEN
+    RAISE EXCEPTION '0014 % trusted need setup failed: %', p_label, r;
+  END IF;
+
+  r := pg_temp.reveal_as('authenticated', p_driver, format(
+    'SELECT * FROM public.create_offering_movement_intent(%L::uuid,%L::uuid,%L::uuid,
+      %L::timestamptz,%L::timestamptz)',
+    gen_random_uuid(), driver_origin, driver_destination, departure_earliest, departure_latest));
+  intent_id := (r#>>'{rows,0,offering_movement_intent_id}')::uuid;
+  IF r->>'ok' IS DISTINCT FROM 'true' OR intent_id IS NULL THEN
+    RAISE EXCEPTION '0014 % trusted driver intent setup failed: %', p_label, r;
+  END IF;
+
+  t := clock_timestamp();
+  r := pg_temp.reveal_as('service_role', NULL, format(
+    'SELECT * FROM public.record_offering_route_evidence_for_server(
+      %L::uuid,''test-router'',''directions'',''v1'',%L,%L::jsonb,
+      18000,2400,%L::timestamptz,%L::timestamptz)',
+    intent_id, '0014-' || intent_id::text,
+    '{"type":"LineString","coordinates":[[3.5852,6.4698],[3.5200,6.4300],[3.4900,6.4320],[3.4430,6.4310],[3.4219,6.4281]]}',
+    t, t + interval '3 hours'));
+  route_id := (r#>>'{rows,0,route_evidence_id}')::uuid;
+  IF r->>'ok' IS DISTINCT FROM 'true' OR route_id IS NULL
+    OR r#>>'{rows,0,route_evidence_version}' IS DISTINCT FROM '1'
+    OR r#>>'{rows,0,route_evidence_status}' IS DISTINCT FROM 'current' THEN
+    RAISE EXCEPTION '0014 % trusted route setup failed: %', p_label, r;
+  END IF;
+
+  -- Large objective distances follow 0042; no maximum-detour rule is imposed.
+  t := clock_timestamp();
+  r := pg_temp.reveal_as('service_role', NULL, format(
+    'SELECT * FROM public.record_trusted_route_match_evidence_for_server(
+      %L::uuid,%L::uuid,%L::uuid,1,250000,400000,18000,1000,12000,
+      6.4300,3.5200,6.4310,3.4430,%L::timestamptz,%L::timestamptz)',
+    need_id, intent_id, route_id, t, t + interval '2 hours'));
+  match_id := (r#>>'{rows,0,route_match_evidence_id}')::uuid;
+  IF r->>'ok' IS DISTINCT FROM 'true' OR match_id IS NULL
+    OR r#>>'{rows,0,route_match_evidence_status}' IS DISTINCT FROM 'current' THEN
+    RAISE EXCEPTION '0014 % trusted route-match setup failed: %', p_label, r;
+  END IF;
+  RETURN NEXT;
+END;
+$$;
+REVOKE ALL ON FUNCTION pg_temp.reveal_trusted_need(uuid,uuid,text,integer) FROM PUBLIC;
+
 DO $test$
 DECLARE
   driver uuid := gen_random_uuid();
@@ -95,9 +181,12 @@ DECLARE
   declined uuid := gen_random_uuid();
   removed uuid := gen_random_uuid();
   pending uuid := gen_random_uuid();
-  group_need uuid := gen_random_uuid();
-  legacy_need uuid := gen_random_uuid();
-  model_less_need uuid := gen_random_uuid();
+  group_need uuid;
+  legacy_need uuid;
+  model_less_need uuid;
+  group_match uuid;
+  legacy_match uuid;
+  model_less_match uuid;
   legacy_vehicle uuid := gen_random_uuid();
   vehicle uuid;
   model_less_vehicle uuid;
@@ -112,6 +201,9 @@ DECLARE
   invitation uuid;
   pending_invitation uuid := gen_random_uuid();
   driver_photo uuid := gen_random_uuid();
+  requester_photo uuid;
+  traveller_face_photo uuid := gen_random_uuid();
+  face_fixture_time timestamptz;
   replacement_photo uuid := gen_random_uuid();
   share_token text;
   outsider_share text;
@@ -155,7 +247,7 @@ BEGIN
   VALUES
     (driver_photo, driver, 'photo', 'test-0014/' || driver::text || '/current.jpg', true, true, now()),
     (gen_random_uuid(), driver, 'photo', 'test-0014/old.jpg', true, false, now() - interval '1 day'),
-    (gen_random_uuid(), driver, 'photo', 'test-0014/unverified.jpg', false, true, now() + interval '1 day'),
+    (gen_random_uuid(), driver, 'photo', 'test-0014/unverified.jpg', false, false, now() + interval '1 day'),
     (gen_random_uuid(), driver, 'video', 'test-0014/video.mp4', true, true, now() + interval '1 day'),
     (gen_random_uuid(), requester, 'photo', 'test-0014/requester.jpg', true, true, now());
 
@@ -216,14 +308,15 @@ BEGIN
   INSERT INTO public.vehicles(id, make, model, color, seat_capacity)
   VALUES (legacy_vehicle, 'Lexus', NULL, 'Blue', 4);
   INSERT INTO public.member_vehicle_access(member_id, vehicle_id) VALUES (driver, legacy_vehicle);
-  INSERT INTO public.movement_needs(id, member_id, origin_area, destination_area,
-    earliest_departure_at, people_count)
-  VALUES (group_need, requester, 'Test origin', 'Test destination', now() + interval '1 day', 2),
-    (legacy_need, requester, 'Legacy origin', 'Legacy destination', now() + interval '1 day', 1),
-    (model_less_need, requester, 'Model-less origin', 'Model-less destination', now() + interval '1 day', 1);
+  SELECT need_id, match_id INTO STRICT group_need, group_match
+  FROM pg_temp.reveal_trusted_need(requester, driver, 'Test', 2);
+  SELECT need_id, match_id INTO STRICT legacy_need, legacy_match
+  FROM pg_temp.reveal_trusted_need(requester, driver, 'Legacy', 1);
+  SELECT need_id, match_id INTO STRICT model_less_need, model_less_match
+  FROM pg_temp.reveal_trusted_need(requester, driver, 'Model-less', 1);
 
   r := pg_temp.reveal_as('authenticated', driver, format(
-    'SELECT * FROM public.create_movement_offer(%L::uuid, %L::uuid, 1)', legacy_need, legacy_vehicle));
+    'SELECT * FROM public.create_movement_offer(%L::uuid, %L::uuid, %L::uuid, 1)', legacy_need, legacy_match, legacy_vehicle));
   legacy_offer := (r#>>'{rows,0,movement_offer_id}')::uuid;
   PERFORM pg_temp.reveal_check('14 legacy plate-less pending offer fixture is valid',
     r->>'ok' = 'true' AND legacy_offer IS NOT NULL);
@@ -239,14 +332,14 @@ BEGIN
   PERFORM pg_temp.reveal_denied('17 0013 raw UUID invitation remains disabled', 'authenticated', requester,
     format('SELECT * FROM public.invite_movement_participant(%L::uuid, %L::uuid)', group_need, traveller));
   PERFORM pg_temp.reveal_denied('18 0013 rejects offers below declared group size', 'authenticated', driver,
-    format('SELECT * FROM public.create_movement_offer(%L::uuid, %L::uuid, 1)', group_need, vehicle),
+    format('SELECT * FROM public.create_movement_offer(%L::uuid, %L::uuid, %L::uuid, 1)', group_need, group_match, vehicle),
     'P0001', 'Seats offered are fewer than the travellers declared for this movement');
   PERFORM pg_temp.reveal_denied('19 0013 rejects offers above vehicle capacity', 'authenticated', driver,
-    format('SELECT * FROM public.create_movement_offer(%L::uuid, %L::uuid, 5)', group_need, vehicle),
+    format('SELECT * FROM public.create_movement_offer(%L::uuid, %L::uuid, %L::uuid, 5)', group_need, group_match, vehicle),
     'P0001', 'Seats offered cannot exceed the vehicle seat capacity');
 
   r := pg_temp.reveal_as('authenticated', driver, format(
-    'SELECT * FROM public.create_movement_offer(%L::uuid, %L::uuid, 2)', group_need, vehicle));
+    'SELECT * FROM public.create_movement_offer(%L::uuid, %L::uuid, %L::uuid, 2)', group_need, group_match, vehicle));
   offer := (r#>>'{rows,0,movement_offer_id}')::uuid;
   PERFORM pg_temp.reveal_check('20 recorded-plate vehicle follows normal offer creation',
     r->>'ok' = 'true' AND offer IS NOT NULL);
@@ -350,6 +443,34 @@ BEGIN
   END LOOP;
   PERFORM pg_temp.reveal_check('37 no participant receives vehicle before activation', all_ok);
 
+  -- Rollback-only administrator fixtures satisfy the 0016 activation gate.
+  -- Bind submissions to the original photos so driver token assertions still
+  -- resolve driver_photo and its original storage path. No production worker,
+  -- trigger, permission or verification rule is changed by this fixture.
+  SELECT id INTO STRICT requester_photo FROM public.member_media
+  WHERE member_id = requester AND media_type = 'photo' AND is_current
+    AND verified AND storage_path = 'test-0014/requester.jpg';
+  face_fixture_time := clock_timestamp();
+  INSERT INTO public.member_media(id, member_id, media_type, storage_path, verified, is_current, created_at)
+  VALUES (traveller_face_photo, traveller, 'photo',
+    'test-0014/' || traveller::text || '/activation-only.jpg', true, true, face_fixture_time);
+  INSERT INTO private.profile_photo_submissions(
+    member_id, submission_storage_path, submitted_mime_type, submitted_size_bytes,
+    status, media_id, created_at, processed_at)
+  SELECT member_id, 'test-0014/' || member_id::text || '/activation-submission.jpg',
+    'image/jpeg', 1024, 'ready', media_id, face_fixture_time, face_fixture_time
+  FROM (VALUES (driver, driver_photo), (requester, requester_photo),
+    (traveller, traveller_face_photo)) photos(member_id, media_id);
+  UPDATE public.members SET profile_media_verified = true WHERE id = requester;
+  INSERT INTO private.alignment_face_verifications(
+    alignment_id, member_id, media_id, purpose, status, provider, provider_reference,
+    liveness_passed, face_match_passed, started_at, completed_at, expires_at)
+  SELECT alignment, member_id, media_id, 'movement_activation', 'succeeded',
+    'test-0014', alignment::text || '/' || member_id::text,
+    true, true, face_fixture_time, face_fixture_time, face_fixture_time + interval '10 minutes'
+  FROM (VALUES (driver, driver_photo), (requester, requester_photo),
+    (traveller, traveller_face_photo)) photos(member_id, media_id);
+
   -- A privileged fixture simulates an inconsistent activation without payment.
   -- No trigger is disabled: the normal journey trigger also runs.
   UPDATE public.alignments SET status = 'activated', activated_at = now() WHERE id = alignment;
@@ -374,6 +495,17 @@ BEGIN
   PERFORM pg_temp.reveal_check('41 trusted payment RPC activates the alignment successfully',
     r->>'ok' = 'true' AND r#>>'{rows,0,alignment_status}' = 'activated'
     AND EXISTS (SELECT 1 FROM private.alignment_activation_payments WHERE id = payment AND status = 'succeeded'));
+
+  -- Restore the original reveal fixtures before any people results are read.
+  -- Delete referencing temporary rows first; keep the driver's original photo
+  -- and its ready submission intact for assertions 56-67.
+  UPDATE public.members SET profile_media_verified = false WHERE id = requester;
+  DELETE FROM private.alignment_face_verifications
+  WHERE alignment_id = alignment AND member_id = traveller AND media_id = traveller_face_photo;
+  DELETE FROM private.profile_photo_submissions
+  WHERE member_id = traveller AND media_id = traveller_face_photo;
+  DELETE FROM public.member_media WHERE id = traveller_face_photo AND member_id = traveller;
+  UPDATE public.members SET profile_media_verified = true WHERE id = traveller;
   SELECT id INTO journey FROM public.journeys WHERE alignment_id = alignment;
 
   r := pg_temp.reveal_as('authenticated', driver,
@@ -416,16 +548,24 @@ BEGIN
     all_ok := all_ok AND r->>'ok' = 'true' AND r->'rows' = '[]'::jsonb;
   END LOOP;
   PERFORM pg_temp.reveal_check('47 declined and removed members receive neither reveal', all_ok);
-  -- Defensive current-schema fixture: invited is not confirmed, even after activation.
-  UPDATE public.movement_participants SET status = 'invited' WHERE id = pending_invitation;
-  r := pg_temp.reveal_as('authenticated', pending,
-    format('SELECT * FROM public.get_post_activation_people(%L::uuid)', group_need));
-  all_ok := r->>'ok' = 'true' AND r->'rows' = '[]'::jsonb;
-  r := pg_temp.reveal_as('authenticated', pending,
-    format('SELECT * FROM public.get_post_activation_vehicle(%L::uuid)', group_need));
-  PERFORM pg_temp.reveal_check('48 merely invited member receives neither reveal',
-    all_ok AND r->>'ok' = 'true' AND r->'rows' = '[]'::jsonb);
-  UPDATE public.movement_participants SET status = 'removed' WHERE id = pending_invitation;
+
+  BEGIN
+    UPDATE public.movement_participants
+    SET status = 'invited'
+    WHERE id = pending_invitation;
+
+    PERFORM pg_temp.reveal_check(
+      '48 accepted movement roster cannot restore removed participant to invited',
+      false
+    );
+  EXCEPTION
+    WHEN OTHERS THEN
+      PERFORM pg_temp.reveal_check(
+        '48 accepted movement roster cannot restore removed participant to invited',
+        SQLSTATE = 'P0001'
+        AND SQLERRM = 'Accepted movement roster is frozen'
+      );
+  END;
 
   PERFORM pg_temp.reveal_check('49 every person JSON result has exactly the safe field allowlist',
     jsonb_array_length(people) = 2 AND jsonb_array_length(requester_people) = 1
@@ -517,7 +657,9 @@ BEGIN
     'SELECT * FROM public.resolve_post_activation_photo_for_server(%L, %L::uuid)', photo_token, traveller));
   PERFORM pg_temp.reveal_check('65 noncurrent photo cannot be resolved',
     r->>'ok' = 'true' AND r->'rows' = '[]'::jsonb);
-  UPDATE public.member_media SET is_current = true WHERE id = driver_photo;
+    UPDATE public.member_media SET is_current = true WHERE id =driver_photo;
+  UPDATE public.member_media SET is_current = false
+  WHERE member_id = driver AND media_type = 'photo' AND is_current;
   INSERT INTO public.member_media(id, member_id, media_type, storage_path, verified, is_current, created_at)
   VALUES (replacement_photo, driver, 'photo', 'test-0014/replacement.jpg', true, true, now() + interval '2 days');
   r := pg_temp.reveal_as('service_role', NULL, format(
@@ -525,12 +667,40 @@ BEGIN
   PERFORM pg_temp.reveal_check('66 replacing current verified photo invalidates older token',
     r->>'ok' = 'true' AND r->'rows' = '[]'::jsonb);
   DELETE FROM public.member_media WHERE id = replacement_photo;
-  UPDATE public.movement_participants SET status = 'removed' WHERE id = invitation;
+
+  UPDATE public.member_media
+  SET verified = true, is_current = true
+  WHERE id = driver_photo;
+
+  INSERT INTO private.post_activation_photo_tokens(
+    viewer_member_id,
+    alignment_id,
+    subject_member_id,
+    media_id,
+    token,
+    expires_at
+  )
+  VALUES (
+    removed,
+    alignment,
+    driver,
+    driver_photo,
+    '0014-removed-viewer-' || gen_random_uuid()::text,
+    statement_timestamp() + interval '5 minutes'
+  );
+
+  SELECT token
+  INTO photo_token
+  FROM private.post_activation_photo_tokens
+  WHERE viewer_member_id = removed
+    AND alignment_id = alignment
+    AND subject_member_id = driver;
+
   r := pg_temp.reveal_as('service_role', NULL, format(
-    'SELECT * FROM public.resolve_post_activation_photo_for_server(%L, %L::uuid)', photo_token, traveller));
+    'SELECT * FROM public.resolve_post_activation_photo_for_server(%L, %L::uuid)', photo_token, removed));
+
   PERFORM pg_temp.reveal_check('67 photo resolver rechecks confirmed viewer participation',
     r->>'ok' = 'true' AND r->'rows' = '[]'::jsonb);
-  UPDATE public.movement_participants SET status = 'confirmed' WHERE id = invitation;
 
   SELECT activated_at INTO activated_time FROM public.alignments WHERE id = alignment;
   UPDATE public.alignments SET activated_at = NULL WHERE id = alignment;
@@ -557,35 +727,229 @@ BEGIN
   all_ok := r->>'ok' = 'true' AND r->'rows' = '[]'::jsonb;
   r := pg_temp.reveal_as('authenticated', requester,
     format('SELECT * FROM public.get_post_activation_vehicle(%L::uuid)', group_need));
-  PERFORM pg_temp.reveal_check('70 cancelled alignment blocks both reveals',
+  PERFORM pg_temp.reveal_check('70 cancelled alignment blocksboth reveals',
     all_ok AND r->>'ok' = 'true' AND r->'rows' = '[]'::jsonb);
+
+  UPDATE public.alignments
+  SET status = 'awaiting_activation_payment'
+  WHERE id = alignment;
+
+  face_fixture_time := clock_timestamp();
+
+  INSERT INTO public.member_media(
+    id,
+    member_id,
+    media_type,
+    storage_path,
+    verified,
+    is_current,
+    created_at
+  )
+  VALUES (
+    traveller_face_photo,
+    traveller,
+    'photo',
+    'test-0014/' || traveller::text || '/activation-only.jpg',
+    true,
+    true,
+    face_fixture_time
+  );
+
+  INSERT INTO private.profile_photo_submissions(
+    member_id,
+    submission_storage_path,
+    submitted_mime_type,
+    submitted_size_bytes,
+    status,
+    media_id,
+    created_at,
+    processed_at
+  )
+  VALUES (
+    traveller,
+    'test-0014/' || traveller::text || '/activation-submission.jpg',
+    'image/jpeg',
+    1024,
+    'ready',
+    traveller_face_photo,
+    face_fixture_time,
+    face_fixture_time
+  );
+
+  UPDATE public.members
+  SET profile_media_verified = true
+  WHERE id = requester;
+
+  INSERT INTO private.alignment_face_verifications(
+    alignment_id,
+    member_id,
+    media_id,
+    purpose,
+    status,
+    provider,
+    provider_reference,
+    liveness_passed,
+    face_match_passed,
+    started_at,
+    completed_at,
+    expires_at
+  )
+  SELECT
+    alignment,
+    member_id,
+    media_id,
+    'movement_activation',
+    'succeeded',
+    'test-0014',
+    alignment::text || '/' || member_id::text || '/reactivation',
+    true,
+    true,
+    face_fixture_time,
+    face_fixture_time,
+    face_fixture_time + interval '10 minutes'
+  FROM (
+    VALUES
+      (driver, driver_photo),
+      (requester, requester_photo),
+      (traveller, traveller_face_photo)
+  ) photos(member_id, media_id);
+
+  UPDATE public.alignments
+  SET status = 'activated'
+  WHERE id = alignment;
+
+  UPDATE public.members
+  SET profile_media_verified = false
+  WHERE id = requester;
+
+  DELETE FROM private.alignment_face_verifications
+  WHERE alignment_id = alignment
+    AND member_id = traveller
+    AND media_id = traveller_face_photo;
+
+  DELETE FROM private.profile_photo_submissions
+  WHERE member_id = traveller
+    AND media_id = traveller_face_photo;
+
+  DELETE FROM public.member_media
+  WHERE id = traveller_face_photo
+    AND member_id = traveller;
+
+  UPDATE public.members
+  SET profile_media_verified = true
+  WHERE id = traveller;
   UPDATE public.alignments SET status = 'activated' WHERE id = alignment;
 
   -- Second normal alignment uses the model-less vehicle and tests the recheck
   -- between acceptance and activation (no trigger/function bypass required).
   r := pg_temp.reveal_as('authenticated', driver, format(
-    'SELECT * FROM public.create_movement_offer(%L::uuid, %L::uuid, 1)', model_less_need, model_less_vehicle));
+    'SELECT * FROM public.create_movement_offer(%L::uuid, %L::uuid, %L::uuid, 1)', model_less_need, model_less_match, model_less_vehicle));
   model_less_offer := (r#>>'{rows,0,movement_offer_id}')::uuid;
   r := pg_temp.reveal_as('authenticated', requester,
     format('SELECT * FROM public.accept_movement_offer(%L::uuid)', model_less_offer));
   model_less_alignment := (r#>>'{rows,0,alignment_id}')::uuid;
+
+  -- Current schema requires fresh face readiness for this second alignment too.
+  -- Driver and requester already have prepared current photos from the earlier fixture.
+  face_fixture_time := clock_timestamp();
+
+  UPDATE public.members
+  SET profile_media_verified = true
+  WHERE id = requester;
+
+  INSERT INTO private.alignment_face_verifications(
+    alignment_id,
+    member_id,
+    media_id,
+    purpose,
+    status,
+    provider,
+    provider_reference,
+    liveness_passed,
+    face_match_passed,
+    started_at,
+    completed_at,
+    expires_at
+  )
+  SELECT
+    model_less_alignment,
+    member_id,
+    media_id,
+    'movement_activation',
+    'succeeded',
+    'test-0014',
+    model_less_alignment::text || '/' || member_id::text,
+    true,
+    true,
+    face_fixture_time,
+    face_fixture_time,
+    face_fixture_time + interval '10 minutes'
+  FROM (
+    VALUES
+      (driver, driver_photo),
+      (requester, requester_photo)
+  ) photos(member_id, media_id);
+
   r := pg_temp.reveal_as('service_role', NULL, format(
-    $$SELECT * FROM public.create_alignment_activation_payment(%L::uuid, 100, 'NGN', 'test-only')$$, model_less_alignment));
+    $$SELECT * FROM public.create_alignment_activation_payment(%L::uuid, 100, 'NGN', 'test-only')$$,
+    model_less_alignment));
   model_less_payment := (r#>>'{rows,0,payment_id}')::uuid;
-  UPDATE public.vehicles SET plate_number = NULL WHERE id = model_less_vehicle;
-  PERFORM pg_temp.reveal_denied('71 plate removed after acceptance prevents activation', 'service_role', NULL,
-    format('SELECT * FROM public.mark_alignment_activation_payment_succeeded(%L::uuid)', model_less_payment),
-    'P0001', 'A vehicle plate must be recorded before alignment or activation');
-  PERFORM pg_temp.reveal_check('72 failed plate recheck rolls back payment success and journey creation',
-    EXISTS (SELECT 1 FROM private.alignment_activation_payments WHERE id = model_less_payment
-      AND status = 'pending' AND succeeded_at IS NULL)
-    AND EXISTS (SELECT 1 FROM public.alignments WHERE id = model_less_alignment
-      AND status = 'awaiting_activation_payment' AND activated_at IS NULL)
-    AND NOT EXISTS (SELECT 1 FROM public.journeys WHERE alignment_id = model_less_alignment));
-  UPDATE public.vehicles SET plate_number = 'TST-0014-NOMODEL' WHERE id = model_less_vehicle;
+
+  UPDATE public.vehicles
+  SET plate_number = NULL
+  WHERE id = model_less_vehicle;
+
+  PERFORM pg_temp.reveal_denied(
+    '71 plate removed after acceptance prevents activation',
+    'service_role',
+    NULL,
+    format(
+      'SELECT * FROM public.mark_alignment_activation_payment_succeeded(%L::uuid)',
+      model_less_payment
+    ),
+    'P0001',
+    'A vehicle plate must be recorded before alignment or activation'
+  );
+
+  PERFORM pg_temp.reveal_check(
+    '72 failed plate recheck rolls back payment success and journey creation',
+    EXISTS (
+      SELECT 1
+      FROM private.alignment_activation_payments
+      WHERE id = model_less_payment
+        AND status = 'pending'
+        AND succeeded_at IS NULL
+    )
+    AND EXISTS (
+      SELECT 1
+      FROM public.alignments
+      WHERE id = model_less_alignment
+        AND status = 'awaiting_activation_payment'
+        AND activated_at IS NULL
+    )
+    AND NOT EXISTS (
+      SELECT 1
+      FROM public.journeys
+      WHERE alignment_id = model_less_alignment
+    )
+  );
+
+  UPDATE public.vehicles
+  SET plate_number = 'TST-0014-NOMODEL'
+  WHERE id = model_less_vehicle;
+
   r := pg_temp.reveal_as('service_role', NULL,
-    format('SELECT * FROM public.mark_alignment_activation_payment_succeeded(%L::uuid)', model_less_payment));
-  all_ok := r->>'ok' = 'true' AND r#>>'{rows,0,alignment_status}' = 'activated';
+    format(
+      'SELECT * FROM public.mark_alignment_activation_payment_succeeded(%L::uuid)',
+      model_less_payment
+    ));
+
+  all_ok := r->>'ok' = 'true'
+    AND r#>>'{rows,0,alignment_status}' = 'activated';
+
+  UPDATE public.members
+  SET profile_media_verified = false
+  WHERE id = requester;
   r := pg_temp.reveal_as('authenticated', requester,
     format('SELECT * FROM public.get_post_activation_vehicle(%L::uuid)', model_less_need));
   PERFORM pg_temp.reveal_check('73 absent model displays Blue Lexus with full plate after activation',
@@ -603,14 +967,52 @@ BEGIN
     AND NOT has_function_privilege('anon','public.invite_movement_participant(uuid,uuid)','EXECUTE')
     AND NOT has_function_privilege('authenticated','public.request_journey_completion(uuid)','EXECUTE')
     AND NOT has_function_privilege('authenticated','public.confirm_journey_completion(uuid)','EXECUTE'));
+
+  -- Current 0019 semantics treat mutual ending of a never-started journey as
+  -- mutual no-travel cancellation. Start this journey through the current 0018
+  -- coordination flow so assertions 78-82 continue testing actual movement completion.
+  r := pg_temp.reveal_as('authenticated', driver, format(
+    'SELECT * FROM public.set_my_movement_meeting_point(%L::uuid, %L, NULL::bigint)',
+    group_need, 'Test meeting point'));
+
+  IF r->>'ok' IS DISTINCT FROM 'true' THEN
+    RAISE EXCEPTION '0014 meeting-point setup failed: %', r;
+  END IF;
+
+  r := pg_temp.reveal_as('authenticated', driver, format(
+    'SELECT * FROM public.request_my_movement_start(%L::uuid)', group_need));
+
+  IF r->>'ok' IS DISTINCT FROM 'true' THEN
+    RAISE EXCEPTION '0014 movement-start request failed: %', r;
+  END IF;
+
+  r := pg_temp.reveal_as('authenticated', requester, format(
+    'SELECT * FROM public.confirm_my_movement_start(%L::uuid)', group_need));
+
+  IF r->>'ok' IS DISTINCT FROM 'true'
+    OR r#>>'{rows,0,journey_state}' IS DISTINCT FROM 'in_progress' THEN
+    RAISE EXCEPTION '0014 movement-start confirmation failed: %', r;
+  END IF;
+
   PERFORM pg_temp.reveal_denied('78 invited traveller cannot end the whole movement', 'authenticated', traveller,
     format('SELECT * FROM public.request_movement_end(%L::uuid)', journey), 'P0001',
     'Only principal movement members may end the movement');
   r := pg_temp.reveal_as('authenticated', driver,
     format('SELECT * FROM public.request_movement_end(%L::uuid)', journey));
   PERFORM pg_temp.reveal_check('79 first principal end request does not complete movement',
-    r->>'ok' = 'true' AND r#>>'{rows,0,end_status}' = 'awaiting_other_member'
-    AND EXISTS (SELECT 1 FROM public.alignments WHERE id = alignment AND status = 'activated'));
+    r->>'ok' = 'true'
+    AND r#>>'{rows,0,end_status}' = 'awaiting_other_member'
+    AND r#>>'{rows,0,journey_status}' = 'in_progress'
+    AND r#>>'{rows,0,alignment_status}' = 'in_progress'
+    AND EXISTS (
+      SELECT 1
+      FROM public.alignments a
+      JOIN public.journeys j ON j.alignment_id = a.id
+      WHERE a.id = alignment
+        AND a.status = 'in_progress'
+        AND j.id = journey
+        AND j.status = 'in_progress'
+    ));
   PERFORM pg_temp.reveal_denied('80 principal cannot confirm own movement end request', 'authenticated', driver,
     format('SELECT * FROM public.confirm_movement_end(%L::uuid)', journey), 'P0001',
     'You cannot confirm your own end request');

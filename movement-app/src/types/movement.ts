@@ -106,6 +106,7 @@ export type MaskedMovementNeed = {
 
 export type CreateMovementOfferInput = {
   movementNeedId: string;
+  routeMatchEvidenceId: string;
   vehicleId: string;
   seatsOffered: number;
   proposedPickupArea?: string | null;

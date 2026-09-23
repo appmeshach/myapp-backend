@@ -113,14 +113,195 @@ END;
 $$;
 REVOKE ALL ON FUNCTION pg_temp.face_write_as(text,uuid,text) FROM PUBLIC;
 
+-- Current 0042 offer authorization requires the offerer's own trusted movement
+-- intent, trusted route and trusted route-match evidence before an offer exists.
+-- Only resolved location rows below are administrator fixtures; movement intake,
+-- offering intent, route evidence and route-match evidence use the real RPCs.
+CREATE FUNCTION pg_temp.face_trusted_need(
+  p_requester uuid,
+  p_driver uuid,
+  p_label text,
+  p_people_count integer
+)
+RETURNS TABLE (
+  need_id uuid,
+  match_id uuid
+)
+LANGUAGE plpgsql
+SECURITY INVOKER
+AS $$
+DECLARE
+  requester_origin uuid := gen_random_uuid();
+  requester_destination uuid := gen_random_uuid();
+  driver_origin uuid := gen_random_uuid();
+  driver_destination uuid := gen_random_uuid();
+  intent_id uuid;
+  route_id uuid;
+  r jsonb;
+  t timestamptz := clock_timestamp();
+  departure_earliest timestamptz := statement_timestamp() + interval '1 hour';
+  departure_latest timestamptz := statement_timestamp() + interval '2 hours';
+BEGIN
+  INSERT INTO private.movement_location_references(
+    id,
+    owner_member_id,
+    declared_label,
+    source_kind,
+    resolution_status,
+    latitude,
+    longitude,
+    provider_namespace,
+    provider_place_reference,
+    resolution_version,
+    created_at,
+    resolved_at,
+    expires_at
+  )
+  SELECT
+    id,
+    member_id,
+    area,
+    'provider_resolved',
+    'resolved',
+    lat,
+    lon,
+    'test-provider',
+    '0016-' || id::text,
+    'test-resolution-v1',
+    t,
+    t,
+    t + interval '4 hours'
+  FROM (
+    VALUES
+      (requester_origin, p_requester, p_label || ' origin', 6.4300, 3.5200),
+      (requester_destination, p_requester, p_label || ' destination', 6.4310, 3.4430),
+      (driver_origin, p_driver, 'Ajah, Lagos', 6.4698, 3.5852),
+      (driver_destination, p_driver, 'Victoria Island, Lagos', 6.4281, 3.4219)
+  ) locations(id, member_id, area, lat, lon);
+
+  r := pg_temp.face_as('authenticated', p_requester, format(
+    'SELECT * FROM public.create_movement_need(
+      %L::uuid,
+      %L::uuid,
+      %L::uuid,
+      %L::timestamptz,
+      %L::timestamptz,
+      %L::integer
+    )',
+    gen_random_uuid(),
+    requester_origin,
+    requester_destination,
+    departure_earliest,
+    departure_latest,
+    p_people_count
+  ));
+
+  need_id := (r#>>'{rows,0,movement_need_id}')::uuid;
+
+  IF r->>'ok' IS DISTINCT FROM 'true' OR need_id IS NULL THEN
+    RAISE EXCEPTION '0016 % trusted need setup failed: %', p_label, r;
+  END IF;
+
+  r := pg_temp.face_as('authenticated', p_driver, format(
+    'SELECT * FROM public.create_offering_movement_intent(
+      %L::uuid,
+      %L::uuid,
+      %L::uuid,
+      %L::timestamptz,
+      %L::timestamptz
+    )',
+    gen_random_uuid(),
+    driver_origin,
+    driver_destination,
+    departure_earliest,
+    departure_latest
+  ));
+
+  intent_id := (r#>>'{rows,0,offering_movement_intent_id}')::uuid;
+
+  IF r->>'ok' IS DISTINCT FROM 'true' OR intent_id IS NULL THEN
+    RAISE EXCEPTION '0016 % trusted driver intent setup failed: %', p_label, r;
+  END IF;
+
+  t := clock_timestamp();
+
+  r := pg_temp.face_as('service_role', NULL, format(
+    'SELECT * FROM public.record_offering_route_evidence_for_server(
+      %L::uuid,
+      ''test-router'',
+      ''directions'',
+      ''v1'',
+      %L,
+      %L::jsonb,
+      18000,
+      2400,
+      %L::timestamptz,
+      %L::timestamptz
+    )',
+    intent_id,
+    '0016-' || intent_id::text,
+    '{"type":"LineString","coordinates":[[3.5852,6.4698],[3.5200,6.4300],[3.4900,6.4320],[3.4430,6.4310],[3.4219,6.4281]]}',
+    t,
+    t + interval '3 hours'
+  ));
+
+  route_id := (r#>>'{rows,0,route_evidence_id}')::uuid;
+
+  IF r->>'ok' IS DISTINCT FROM 'true'
+    OR route_id IS NULL
+    OR r#>>'{rows,0,route_evidence_status}' IS DISTINCT FROM 'current' THEN
+    RAISE EXCEPTION '0016 % trusted route setup failed: %', p_label, r;
+  END IF;
+
+  t := clock_timestamp();
+
+  r := pg_temp.face_as('service_role', NULL, format(
+    'SELECT * FROM public.record_trusted_route_match_evidence_for_server(
+      %L::uuid,
+      %L::uuid,
+      %L::uuid,
+      1,
+      250000,
+      400000,
+      18000,
+      1000,
+      12000,
+      6.4300,
+      3.5200,
+      6.4310,
+      3.4430,
+      %L::timestamptz,
+      %L::timestamptz
+    )',
+    need_id,
+    intent_id,
+    route_id,
+    t,
+    t + interval '2 hours'
+  ));
+
+  match_id := (r#>>'{rows,0,route_match_evidence_id}')::uuid;
+
+  IF r->>'ok' IS DISTINCT FROM 'true'
+    OR match_id IS NULL
+    OR r#>>'{rows,0,route_match_evidence_status}' IS DISTINCT FROM 'current' THEN
+    RAISE EXCEPTION '0016 % trusted route-match setup failed: %', p_label, r;
+  END IF;
+
+  RETURN NEXT;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION pg_temp.face_trusted_need(uuid,uuid,text,integer) FROM PUBLIC;
+
 DO $test$
 DECLARE
   driver uuid:=gen_random_uuid(); requester uuid:=gen_random_uuid(); traveller uuid:=gen_random_uuid();
   outsider uuid:=gen_random_uuid(); declined uuid:=gen_random_uuid(); removed uuid:=gen_random_uuid(); pending uuid:=gen_random_uuid();
-  need uuid:=gen_random_uuid(); need2 uuid:=gen_random_uuid(); vehicle uuid; offer uuid; alignment uuid; alignment2 uuid;
+  need uuid; need2 uuid; need_match uuid; need2_match uuid; vehicle uuid; offer uuid; alignment uuid; alignment2 uuid;
   payment uuid; payment2 uuid; submission uuid; session_id uuid; driver_session uuid;
   actor uuid; media uuid; driver_media uuid; requester_media uuid; replacement uuid; token text;
-  audit_before jsonb; audit_after jsonb; audit_session uuid; audit_need uuid; audit_alignment uuid;
+  audit_before jsonb; audit_after jsonb; audit_session uuid; audit_need uuid; audit_match uuid; audit_alignment uuid;
   expiry_shift interval; attempt_order uuid[];
   r jsonb; s jsonb; role_name text; signature text; cols text[]; expected_message text:='Fresh face verification required for every movement participant';
 BEGIN
@@ -135,18 +316,33 @@ BEGIN
     'SELECT * FROM public.register_vehicle_with_plate(''Lexus'',''RX350'',2025,''Blue'',4,''TEST-0016'')');
   vehicle:=(r#>>'{rows,0,vehicle_id}')::uuid;
   IF vehicle IS NULL THEN RAISE EXCEPTION 'Vehicle fixture failed: %',r; END IF;
-  INSERT INTO public.movement_needs(id,member_id,origin_area,destination_area,earliest_departure_at,people_count)
-    VALUES (need,requester,'Test A','Test B',now()+interval '1 day',2);
+  SELECT need_id, match_id
+  INTO STRICT need, need_match
+  FROM pg_temp.face_trusted_need(requester, driver, 'Test', 2);
+
   INSERT INTO public.movement_participants(movement_need_id,member_id,role,status)
     VALUES (need,traveller,'invited_participant','confirmed'),(need,declined,'invited_participant','declined'),
       (need,removed,'invited_participant','removed'),(need,pending,'invited_participant','invited');
+
   PERFORM pg_temp.face_denied('0013 excessive vehicle capacity remains blocked','authenticated',driver,
-    format('SELECT * FROM public.create_movement_offer(%L,%L,5)',need,vehicle),'P0001',
+    format(
+      'SELECT * FROM public.create_movement_offer(%L::uuid,%L::uuid,%L::uuid,5)',
+      need,need_match,vehicle
+    ),
+    'P0001',
     'Seats offered cannot exceed the vehicle seat capacity');
+
   PERFORM pg_temp.face_denied('0013 undersized group offer remains blocked','authenticated',driver,
-    format('SELECT * FROM public.create_movement_offer(%L,%L,1)',need,vehicle),'P0001',
+    format(
+      'SELECT * FROM public.create_movement_offer(%L::uuid,%L::uuid,%L::uuid,1)',
+      need,need_match,vehicle
+    ),
+    'P0001',
     'Seats offered are fewer than the travellers declared for this movement');
-  r:=pg_temp.face_as('authenticated',driver,format('SELECT * FROM public.create_movement_offer(%L,%L,2)',need,vehicle));
+
+  r:=pg_temp.face_as('authenticated',driver,format(
+    'SELECT * FROM public.create_movement_offer(%L::uuid,%L::uuid,%L::uuid,2)',
+    need,need_match,vehicle));
   offer:=(r#>>'{rows,0,movement_offer_id}')::uuid;
   IF offer IS NULL THEN RAISE EXCEPTION 'Offer fixture failed: %',r; END IF;
   PERFORM pg_temp.face_denied('0013 pending invitation still blocks acceptance','authenticated',requester,
@@ -341,13 +537,28 @@ BEGIN
   r:=pg_temp.face_as('service_role',NULL,format('SELECT * FROM public.resolve_post_activation_photo_for_server(%L,%L)',token,requester));
   PERFORM pg_temp.face_check('0014 server resolver works for newly verified photo',r->>'ok'='true' AND jsonb_array_length(r->'rows')=1);
 
-  INSERT INTO public.movement_needs(id,member_id,origin_area,destination_area,earliest_departure_at,people_count)
-    VALUES (need2,requester,'Next A','Next B',now()+interval '6 hours',1);
-  r:=pg_temp.face_as('authenticated',driver,format('SELECT * FROM public.create_movement_offer(%L,%L,1)',need2,vehicle));
+  SELECT need_id, match_id
+  INTO STRICT need2, need2_match
+  FROM pg_temp.face_trusted_need(requester, driver, 'Next', 1);
+
+  r:=pg_temp.face_as('authenticated',driver,format(
+    'SELECT * FROM public.create_movement_offer(%L::uuid,%L::uuid,%L::uuid,1)',
+    need2,need2_match,vehicle));
+
   offer:=(r#>>'{rows,0,movement_offer_id}')::uuid;
-  r:=pg_temp.face_as('authenticated',requester,format('SELECT * FROM public.accept_movement_offer(%L)',offer));
+
+  IF offer IS NULL THEN
+    RAISE EXCEPTION 'Later movement offer fixture failed: %',r;
+  END IF;
+
+  r:=pg_temp.face_as('authenticated',requester,format(
+    'SELECT * FROM public.accept_movement_offer(%L::uuid)',offer));
+
   alignment2:=(r#>>'{rows,0,alignment_id}')::uuid;
-  IF alignment2 IS NULL THEN RAISE EXCEPTION 'Later movement fixture failed: %',r; END IF;
+
+  IF alignment2 IS NULL THEN
+    RAISE EXCEPTION 'Later movement fixture failed: %',r;
+  END IF;
   PERFORM pg_temp.face_denied('verified profiles and earlier alignment checks cannot initiate later payment','service_role',NULL,
     format('SELECT * FROM public.create_alignment_activation_payment(%L,100)',alignment2),'P0001',expected_message);
   PERFORM pg_temp.face_check('later movement needs new checks before any payment row',
@@ -501,17 +712,46 @@ BEGIN
     AND (SELECT count(*)=1 FROM private.alignment_activation_payments WHERE alignment_id=alignment2 AND status='succeeded'));
   -- Add an awaiting movement with real successful and pending sessions before
   -- revocation, alongside the already-activated movement evidence above.
-  audit_need:=gen_random_uuid();
-  INSERT INTO public.movement_needs(id,member_id,origin_area,destination_area,earliest_departure_at,people_count)
-    VALUES (audit_need,requester,'Audit A','Audit B',now()+interval '8 hours',1);
-  r:=pg_temp.face_as('authenticated',driver,format('SELECT * FROM public.create_movement_offer(%L,%L,1)',audit_need,vehicle));
+  SELECT need_id, match_id
+  INTO STRICT audit_need, audit_match
+  FROM pg_temp.face_trusted_need(requester, driver, 'Audit', 1);
+
+  r:=pg_temp.face_as('authenticated',driver,format(
+    'SELECT * FROM public.create_movement_offer(%L::uuid,%L::uuid,%L::uuid,1)',
+    audit_need,audit_match,vehicle));
+
   offer:=(r#>>'{rows,0,movement_offer_id}')::uuid;
-  r:=pg_temp.face_as('authenticated',requester,format('SELECT * FROM public.accept_movement_offer(%L)',offer));
+
+  IF offer IS NULL THEN
+    RAISE EXCEPTION 'Revocation audit offer fixture failed: %',r;
+  END IF;
+
+  r:=pg_temp.face_as('authenticated',requester,format(
+    'SELECT * FROM public.accept_movement_offer(%L::uuid)',offer));
+
   audit_alignment:=(r#>>'{rows,0,alignment_id}')::uuid;
-  r:=pg_temp.face_as('service_role',NULL,format('SELECT public.start_alignment_face_verification_for_server(%L,%L,''test'',%L) AS id',audit_alignment,driver,gen_random_uuid()::text));
+
+  IF audit_alignment IS NULL THEN
+    RAISE EXCEPTION 'Revocation audit alignment fixture failed: %',r;
+  END IF;
+
+  r:=pg_temp.face_as('service_role',NULL,format(
+    'SELECT public.start_alignment_face_verification_for_server(%L,%L,''test'',%L) AS id',
+    audit_alignment,driver,gen_random_uuid()::text));
+
   audit_session:=(r#>>'{rows,0,id}')::uuid;
-  r:=pg_temp.face_as('service_role',NULL,format('SELECT public.complete_alignment_face_verification_for_server(%L,%L,true,true)',audit_session,replacement));
-  IF r->>'ok'<>'true' THEN RAISE EXCEPTION 'Revocation audit fixture failed: %',r; END IF;
+
+  IF audit_session IS NULL THEN
+    RAISE EXCEPTION 'Revocation audit session fixture failed: %',r;
+  END IF;
+
+  r:=pg_temp.face_as('service_role',NULL,format(
+    'SELECT public.complete_alignment_face_verification_for_server(%L,%L,true,true)',
+    audit_session,replacement));
+
+  IF r->>'ok'<>'true' THEN
+    RAISE EXCEPTION 'Revocation audit fixture failed: %',r;
+  END IF;
   PERFORM pg_temp.face_check('awaiting success authorizes own readiness before revocation',
     private.has_current_alignment_face_check(audit_alignment,driver,clock_timestamp()));
   -- Another member's pending session on this movement is not affected.

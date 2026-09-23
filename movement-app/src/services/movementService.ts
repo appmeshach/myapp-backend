@@ -167,6 +167,7 @@ export async function createMovementOffer(
 ): Promise<CreatedMovementOffer> {
   const { data, error } = await supabase.rpc('create_movement_offer', {
     p_movement_need_id: input.movementNeedId,
+    p_route_match_evidence_id: input.routeMatchEvidenceId,
     p_vehicle_id: input.vehicleId,
     p_seats_offered: input.seatsOffered,
     p_proposed_pickup_area: input.proposedPickupArea ?? null,
