@@ -23,20 +23,26 @@ export const MAPBOX_GEOCODING_PRODUCT =
 export const MAPBOX_GEOCODING_PROVIDER_VERSION =
   'v6';
 
-export const MAPBOX_GEOCODING_RESOLUTION_VERSION =
-  'mapbox-geocoding-v6-normalization-v1';
 
+export const MAPBOX_GEOCODING_RESOLUTION_VERSION =
+  'mapbox-geocoding-v6-normalization-v2';
 const MAPBOX_ORIGIN =
   'https://api.mapbox.com';
 
 const MAPBOX_FORWARD_PATH =
   '/search/geocode/v6/forward';
 
+const MAPBOX_REVERSE_PATH =
+  '/search/geocode/v6/reverse';
+
 const MAPBOX_COUNTRY =
   'ng';
 
 const MAPBOX_TYPES =
   'address,street,neighborhood,locality,place';
+
+const MAPBOX_REVERSE_TYPES =
+  'locality,place';
 
 const MAPBOX_LANGUAGE =
   'en';
@@ -426,26 +432,26 @@ async function fetchProviderJson(
     }
 
     const contentType =
-  response.headers
-    .get('content-type')
-    ?.toLowerCase()
-  ?? '';
+      response.headers
+        .get('content-type')
+        ?.toLowerCase()
+      ?? '';
 
-if (
-  !contentType.includes(
-    'application/json',
-  )
-  && !contentType.includes(
-    'application/geo+json',
-  )
-  && !contentType.includes(
-    'application/vnd.geo+json',
-  )
-) {
-  throw new MapboxGeocodingProviderError(
-    'invalid_response',
-  );
-}
+    if (
+      !contentType.includes(
+        'application/json',
+      )
+      && !contentType.includes(
+        'application/geo+json',
+      )
+      && !contentType.includes(
+        'application/vnd.geo+json',
+      )
+    ) {
+      throw new MapboxGeocodingProviderError(
+        'invalid_response',
+      );
+    }
 
     const text =
       await readBoundedBody(response);
@@ -532,6 +538,61 @@ function buildForwardUrl(
   url.searchParams.set(
     'format',
     MAPBOX_FORMAT,
+  );
+
+  return url;
+}
+
+function buildReverseUrl(
+  coordinates: {
+    longitude: number;
+    latitude: number;
+  },
+  accessToken: string,
+): URL {
+  const url =
+    new URL(
+      MAPBOX_REVERSE_PATH,
+      MAPBOX_ORIGIN,
+    );
+
+  url.searchParams.set(
+    'longitude',
+    String(
+      coordinates.longitude,
+    ),
+  );
+
+  url.searchParams.set(
+    'latitude',
+    String(
+      coordinates.latitude,
+    ),
+  );
+
+  url.searchParams.set(
+    'access_token',
+    accessToken,
+  );
+
+  url.searchParams.set(
+    'permanent',
+    'true',
+  );
+
+  url.searchParams.set(
+    'country',
+    MAPBOX_COUNTRY,
+  );
+
+  url.searchParams.set(
+    'types',
+    MAPBOX_REVERSE_TYPES,
+  );
+
+  url.searchParams.set(
+    'language',
+    MAPBOX_LANGUAGE,
   );
 
   return url;
@@ -902,6 +963,113 @@ function discoveryAreaLabel(
   return label;
 }
 
+function missingBroadAreaContext(
+  properties: Record<string, unknown>,
+): boolean {
+  const context =
+    properties.context;
+
+  if (context === undefined) {
+    return true;
+  }
+
+  if (!isPlainObject(context)) {
+    throw new MapboxGeocodingProviderError(
+      'invalid_response',
+    );
+  }
+
+  return (
+    context.neighborhood === undefined
+    && context.locality === undefined
+    && context.place === undefined
+  );
+}
+
+function reverseDiscoveryAreaLabel(
+  value: unknown,
+): string {
+  const collection =
+    parseFeatureCollection(value);
+
+  if (
+    collection.features.length === 0
+    || collection.features.length > 2
+  ) {
+    throw new MapboxGeocodingProviderError(
+      'invalid_response',
+    );
+  }
+
+  let localityLabel: string | null =
+    null;
+
+  let placeLabel: string | null =
+    null;
+
+  for (
+    const feature
+    of collection.features
+  ) {
+    const identity =
+      featureIdentity(feature);
+
+    if (
+      identity.featureType
+        !== 'locality'
+      && identity.featureType
+        !== 'place'
+    ) {
+      throw new MapboxGeocodingProviderError(
+        'invalid_response',
+      );
+    }
+
+    requireNigeria(
+      identity.properties,
+    );
+
+    const label =
+      discoveryAreaLabel(
+        identity.properties,
+        identity.featureType,
+      );
+
+    if (
+      identity.featureType
+        === 'locality'
+    ) {
+      if (localityLabel !== null) {
+        throw new MapboxGeocodingProviderError(
+          'invalid_response',
+        );
+      }
+
+      localityLabel = label;
+    } else {
+      if (placeLabel !== null) {
+        throw new MapboxGeocodingProviderError(
+          'invalid_response',
+        );
+      }
+
+      placeLabel = label;
+    }
+  }
+
+  const label =
+    localityLabel
+    ?? placeLabel;
+
+  if (label === null) {
+    throw new MapboxGeocodingProviderError(
+      'invalid_response',
+    );
+  }
+
+  return label;
+}
+
 function searchSuggestion(
   feature: unknown,
 ): ProviderSearchSuggestion {
@@ -1179,13 +1347,54 @@ export function createMapboxGeocodingProvider(
       }
 
       requireNigeriaIfPresent(
-  identity.properties,
-);
+        identity.properties,
+      );
 
       const coordinates =
         resolutionCoordinates(
           feature,
         );
+
+      let resolvedDiscoveryAreaLabel:
+        string;
+
+      if (
+        (
+          identity.featureType
+            === 'address'
+          || identity.featureType
+            === 'street'
+        )
+        && missingBroadAreaContext(
+          identity.properties,
+        )
+      ) {
+        const reverseUrl =
+          buildReverseUrl(
+            coordinates,
+            token,
+          );
+
+        const reverseRaw =
+          await fetchProviderJson(
+            reverseUrl,
+            token,
+            fetchImpl,
+            signal,
+            timeoutMs,
+          );
+
+        resolvedDiscoveryAreaLabel =
+          reverseDiscoveryAreaLabel(
+            reverseRaw,
+          );
+      } else {
+        resolvedDiscoveryAreaLabel =
+          discoveryAreaLabel(
+            identity.properties,
+            identity.featureType,
+          );
+      }
 
       const resolvedAt =
         now();
@@ -1218,10 +1427,7 @@ export function createMapboxGeocodingProvider(
           MAPBOX_GEOCODING_RESOLUTION_VERSION,
 
         discoveryAreaLabel:
-          discoveryAreaLabel(
-            identity.properties,
-            identity.featureType,
-          ),
+          resolvedDiscoveryAreaLabel,
 
         latitude:
           coordinates.latitude,

@@ -1328,6 +1328,231 @@ test(
 );
 
 test(
+  'street resolution recovers broad area from trusted-coordinate reverse fallback',
+  async () => {
+    const id =
+      'street-no-inline-area';
+
+    const returned =
+      feature({
+        id,
+        featureType:
+          'street',
+        name:
+          'Ologolo Road',
+        longitude:
+          3.501,
+        latitude:
+          6.437,
+      });
+
+    delete returned.properties
+      .place_formatted;
+
+    const calls = [];
+
+    const provider =
+      createMapboxGeocodingProvider(
+        TOKEN,
+        {
+          async fetchImpl(
+            input,
+            init,
+          ) {
+            calls.push({
+              input,
+              init,
+            });
+
+            const url =
+              new URL(
+                String(input),
+              );
+
+            if (
+              url.pathname
+                === '/search/geocode/v6/forward'
+            ) {
+              return jsonResponse(
+                collection([
+                  returned,
+                ]),
+              );
+            }
+
+            if (
+              url.pathname
+                === '/search/geocode/v6/reverse'
+            ) {
+              return jsonResponse(
+                collection([
+                  feature({
+                    id:
+                      'reverse-locality-id',
+                    featureType:
+                      'locality',
+                    name:
+                      'Lekki',
+                    placeName:
+                      'Lagos',
+                    longitude:
+                      3.501,
+                    latitude:
+                      6.437,
+                  }),
+                ]),
+              );
+            }
+
+            throw new Error(
+              'unexpected_provider_request',
+            );
+          },
+        },
+      );
+
+    const result =
+      await provider.resolve(
+        {
+          providerNamespace:
+            MAPBOX_GEOCODING_NAMESPACE,
+
+          providerPlaceReference:
+            id,
+        },
+        signal(),
+      );
+
+    assert.equal(
+      result.discoveryAreaLabel,
+      'Lekki, Lagos',
+    );
+
+    assert.equal(
+      calls.length,
+      2,
+    );
+
+    const reverseCall =
+      calls[1];
+
+    const reverseUrl =
+      new URL(
+        String(
+          reverseCall.input,
+        ),
+      );
+
+    assert.equal(
+      reverseUrl.origin,
+      'https://api.mapbox.com',
+    );
+
+    assert.equal(
+      reverseUrl.pathname,
+      '/search/geocode/v6/reverse',
+    );
+
+    assert.equal(
+      reverseUrl.searchParams.get(
+        'longitude',
+      ),
+      '3.501',
+    );
+
+    assert.equal(
+      reverseUrl.searchParams.get(
+        'latitude',
+      ),
+      '6.437',
+    );
+
+    assert.equal(
+      reverseUrl.searchParams.get(
+        'access_token',
+      ),
+      TOKEN,
+    );
+
+    assert.equal(
+      reverseUrl.searchParams.get(
+        'permanent',
+      ),
+      'true',
+    );
+
+    assert.equal(
+      reverseUrl.searchParams.get(
+        'country',
+      ),
+      'ng',
+    );
+
+    assert.equal(
+      reverseUrl.searchParams.get(
+        'types',
+      ),
+      'locality,place',
+    );
+
+    assert.equal(
+      reverseUrl.searchParams.get(
+        'language',
+      ),
+      'en',
+    );
+
+    assert.equal(
+      reverseUrl.searchParams.has(
+        'limit',
+      ),
+      false,
+    );
+
+    assert.equal(
+      reverseUrl.searchParams.has(
+        'q',
+      ),
+      false,
+    );
+
+    assert.equal(
+      reverseUrl.searchParams.has(
+        'autocomplete',
+      ),
+      false,
+    );
+
+    assert.equal(
+      reverseCall.init?.method,
+      'GET',
+    );
+
+    assert.equal(
+      reverseCall.init?.redirect,
+      'error',
+    );
+
+    assert.equal(
+      reverseCall.init?.cache,
+      'no-store',
+    );
+
+    assert.equal(
+      reverseCall.init?.headers
+        ?.Authorization,
+      undefined,
+    );
+
+    assert.equal(
+      reverseCall.init?.headers
+        ?.Cookie,
+      undefined,
+    );
+  },
+);
+
+test(
   'address and street resolution fail closed without broad area context',
   async () => {
     const cases = [
@@ -2330,7 +2555,7 @@ test(
 );
 
 test(
-  'each resolution operation performs at most one provider fetch',
+  'resolution with inline broad area performs one provider fetch',
   async () => {
     const id =
       'expected-id';
