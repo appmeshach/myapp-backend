@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import {
-    createRouteBackend,
+  createRouteBackend,
 } from '../functions/_shared/route-runtime.ts';
 
 const member =
@@ -2094,6 +2094,417 @@ test(
         routeExpiresAt:
           '2026-09-21T20:45:00.000Z',
       },
+    );
+  },
+);
+
+test(
+  'requester availability matching context maps exactly to 0046 RPC',
+  async () => {
+    const verifiedMemberId =
+      '11111111-1111-4111-8111-111111111111';
+
+    const movementNeedId =
+      '22222222-2222-4222-8222-222222222222';
+
+    const availabilityId =
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
+    const offeringMovementIntentId =
+      '33333333-3333-4333-8333-333333333333';
+
+    const offeringMemberId =
+      '55555555-5555-4555-8555-555555555555';
+
+    const requesterOriginId =
+      '66666666-6666-4666-8666-666666666666';
+
+    const requesterDestinationId =
+      '77777777-7777-4777-8777-777777777777';
+
+    const routeEvidenceId =
+      '88888888-8888-4888-8888-888888888888';
+
+    let call;
+
+    const db =
+      createRouteBackend(
+        'https://project.invalid',
+        'server-secret',
+        async (url, init) => {
+          call = { url, init };
+
+          return Response.json([
+            {
+              movement_need_id:
+                movementNeedId,
+
+              requesting_member_id:
+                verifiedMemberId,
+
+              requester_origin_location_reference_id:
+                requesterOriginId,
+
+              requester_origin_latitude:
+                6.4300,
+
+              requester_origin_longitude:
+                3.5200,
+
+              requester_destination_location_reference_id:
+                requesterDestinationId,
+
+              requester_destination_latitude:
+                6.6018,
+
+              requester_destination_longitude:
+                3.3515,
+
+              requester_earliest_departure_at:
+                '2026-09-21T18:00:00.000Z',
+
+              requester_latest_departure_at:
+                '2026-09-21T19:00:00.000Z',
+
+              offering_movement_intent_id:
+                offeringMovementIntentId,
+
+              offering_member_id:
+                offeringMemberId,
+
+              offering_intent_version:
+                1,
+
+              offering_earliest_departure_at:
+                '2026-09-21T18:15:00.000Z',
+
+              offering_latest_departure_at:
+                null,
+
+              route_evidence_id:
+                routeEvidenceId,
+
+              route_evidence_version:
+                2,
+
+              route_shape_format:
+                'geojson_linestring_v1',
+
+              route_shape: {
+                type: 'LineString',
+                coordinates: [
+                  [3.5200, 6.4300],
+                  [3.4900, 6.4320],
+                  [3.4430, 6.4310],
+                ],
+              },
+
+              route_distance_meters:
+                18000,
+
+              route_duration_seconds:
+                2400,
+
+              route_generated_at:
+                '2026-09-21T17:45:00.000Z',
+
+              route_expires_at:
+                '2026-09-21T20:45:00.000Z',
+            },
+          ]);
+        },
+      );
+
+    const result =
+      await db
+        .getRequesterAvailabilityMatchingContext(
+          verifiedMemberId,
+          movementNeedId,
+          availabilityId,
+          signal(),
+        );
+
+    assert.equal(
+      call.url,
+      'https://project.invalid/rest/v1/rpc/get_requester_availability_matching_context_for_server',
+    );
+
+    assert.equal(
+      call.init.method,
+      'POST',
+    );
+
+    assert.equal(
+      call.init.headers.Authorization,
+      'Bearer server-secret',
+    );
+
+    assert.deepEqual(
+      JSON.parse(call.init.body),
+      {
+        p_verified_member_id:
+          verifiedMemberId,
+
+        p_movement_need_id:
+          movementNeedId,
+
+        p_availability_id:
+          availabilityId,
+      },
+    );
+
+    assert.deepEqual(
+      result,
+      {
+        movementNeedId,
+
+        requestingMemberId:
+          verifiedMemberId,
+
+        requesterOriginLocationReferenceId:
+          requesterOriginId,
+
+        requesterOrigin: {
+          latitude: 6.4300,
+          longitude: 3.5200,
+        },
+
+        requesterDestinationLocationReferenceId:
+          requesterDestinationId,
+
+        requesterDestination: {
+          latitude: 6.6018,
+          longitude: 3.3515,
+        },
+
+        requesterEarliestDepartureAt:
+          '2026-09-21T18:00:00.000Z',
+
+        requesterLatestDepartureAt:
+          '2026-09-21T19:00:00.000Z',
+
+        offeringMovementIntentId,
+        offeringMemberId,
+
+        offeringIntentVersion: 1,
+
+        offeringEarliestDepartureAt:
+          '2026-09-21T18:15:00.000Z',
+
+        offeringLatestDepartureAt:
+          null,
+
+        routeEvidenceId,
+        routeEvidenceVersion: 2,
+
+        routeShapeFormat:
+          'geojson_linestring_v1',
+
+        routeShape: {
+          type: 'LineString',
+          coordinates: [
+            [3.5200, 6.4300],
+            [3.4900, 6.4320],
+            [3.4430, 6.4310],
+          ],
+        },
+
+        routeDistanceMeters: 18000,
+        routeDurationSeconds: 2400,
+
+        routeGeneratedAt:
+          '2026-09-21T17:45:00.000Z',
+
+        routeExpiresAt:
+          '2026-09-21T20:45:00.000Z',
+      },
+    );
+  },
+);
+
+test(
+  'requester availability matching context rejects malformed identifiers before network request',
+  async () => {
+    let calls = 0;
+
+    const verifiedMemberId =
+      '11111111-1111-4111-8111-111111111111';
+
+    const movementNeedId =
+      '22222222-2222-4222-8222-222222222222';
+
+    const availabilityId =
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
+    const db =
+      createRouteBackend(
+        'https://project.invalid',
+        'server-secret',
+        async () => {
+          calls += 1;
+
+          return Response.json([]);
+        },
+      );
+
+    await assert.rejects(
+      db.getRequesterAvailabilityMatchingContext(
+        'not-a-uuid',
+        movementNeedId,
+        availabilityId,
+        signal(),
+      ),
+    );
+
+    await assert.rejects(
+      db.getRequesterAvailabilityMatchingContext(
+        verifiedMemberId,
+        'not-a-uuid',
+        availabilityId,
+        signal(),
+      ),
+    );
+
+    await assert.rejects(
+      db.getRequesterAvailabilityMatchingContext(
+        verifiedMemberId,
+        movementNeedId,
+        'not-a-uuid',
+        signal(),
+      ),
+    );
+
+    assert.equal(
+      calls,
+      0,
+    );
+  },
+);
+
+test(
+  'requester availability matching context rejects mismatched requester identity',
+  async () => {
+    const verifiedMemberId =
+      '11111111-1111-4111-8111-111111111111';
+
+    const movementNeedId =
+      '22222222-2222-4222-8222-222222222222';
+
+    const availabilityId =
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
+    const wrongRequesterMemberId =
+      '44444444-4444-4444-8444-444444444444';
+
+    const offeringMovementIntentId =
+      '33333333-3333-4333-8333-333333333333';
+
+    const offeringMemberId =
+      '55555555-5555-4555-8555-555555555555';
+
+    const requesterOriginId =
+      '66666666-6666-4666-8666-666666666666';
+
+    const requesterDestinationId =
+      '77777777-7777-4777-8777-777777777777';
+
+    const routeEvidenceId =
+      '88888888-8888-4888-8888-888888888888';
+
+    const db =
+      createRouteBackend(
+        'https://project.invalid',
+        'server-secret',
+        async () =>
+          Response.json([
+            {
+              movement_need_id:
+                movementNeedId,
+
+              requesting_member_id:
+                wrongRequesterMemberId,
+
+              requester_origin_location_reference_id:
+                requesterOriginId,
+
+              requester_origin_latitude:
+                6.4300,
+
+              requester_origin_longitude:
+                3.5200,
+
+              requester_destination_location_reference_id:
+                requesterDestinationId,
+
+              requester_destination_latitude:
+                6.6018,
+
+              requester_destination_longitude:
+                3.3515,
+
+              requester_earliest_departure_at:
+                '2026-09-21T18:00:00.000Z',
+
+              requester_latest_departure_at:
+                null,
+
+              offering_movement_intent_id:
+                offeringMovementIntentId,
+
+              offering_member_id:
+                offeringMemberId,
+
+              offering_intent_version:
+                1,
+
+              offering_earliest_departure_at:
+                '2026-09-21T18:15:00.000Z',
+
+              offering_latest_departure_at:
+                null,
+
+              route_evidence_id:
+                routeEvidenceId,
+
+              route_evidence_version:
+                2,
+
+              route_shape_format:
+                'geojson_linestring_v1',
+
+              route_shape: {
+                type: 'LineString',
+                coordinates: [
+                  [3.5200, 6.4300],
+                  [3.4900, 6.4320],
+                  [3.4430, 6.4310],
+                ],
+              },
+
+              route_distance_meters:
+                18000,
+
+              route_duration_seconds:
+                2400,
+
+              route_generated_at:
+                '2026-09-21T17:45:00.000Z',
+
+              route_expires_at:
+                null,
+            },
+          ]),
+      );
+
+    assert.equal(
+      await db
+        .getRequesterAvailabilityMatchingContext(
+          verifiedMemberId,
+          movementNeedId,
+          availabilityId,
+          signal(),
+        ),
+      null,
     );
   },
 );

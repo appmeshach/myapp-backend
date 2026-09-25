@@ -160,6 +160,13 @@ export interface RouteBackend {
     signal: AbortSignal,
   ): Promise<TrustedMatchingContext | null>;
 
+  getRequesterAvailabilityMatchingContext(
+    verifiedMemberId: string,
+    movementNeedId: string,
+    availabilityId: string,
+    signal: AbortSignal,
+  ): Promise<TrustedMatchingContext | null>;
+
   recordTrustedRouteMatchEvidence(
     input: {
       movementNeedId: string;

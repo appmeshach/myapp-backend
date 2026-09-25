@@ -322,24 +322,10 @@ export function createRouteMatchHandler(
 
       if (
         !record(body)
-        || !exactKeys(
-          body,
-          [
-            'movementNeedId',
-            'offeringMovementIntentId',
-          ],
-        )
         || typeof body.movementNeedId
           !== 'string'
         || !UUID.test(
           body.movementNeedId,
-        )
-        || typeof body
-          .offeringMovementIntentId
-          !== 'string'
-        || !UUID.test(
-          body
-            .offeringMovementIntentId,
         )
       ) {
         throw new Denied(
@@ -348,22 +334,83 @@ export function createRouteMatchHandler(
         );
       }
 
+      const intentRequest =
+        exactKeys(
+          body,
+          [
+            'movementNeedId',
+            'offeringMovementIntentId',
+          ],
+        )
+        && typeof body
+          .offeringMovementIntentId
+          === 'string'
+        && UUID.test(
+          body
+            .offeringMovementIntentId,
+        );
+
+      const availabilityRequest =
+        exactKeys(
+          body,
+          [
+            'movementNeedId',
+            'availabilityId',
+          ],
+        )
+        && typeof body.availabilityId
+          === 'string'
+        && UUID.test(
+          body.availabilityId,
+        );
+
+      if (
+        intentRequest === availabilityRequest
+      ) {
+        /*
+         * Exactly one selector must be present.
+         *
+         * Old path:
+         * movementNeedId + offeringMovementIntentId
+         *
+         * Requester availability path:
+         * movementNeedId + availabilityId
+         */
+        throw new Denied(
+          400,
+          'invalid_request',
+        );
+      }
+
       /*
-       * 0039 is the authorization boundary.
+       * The old intent-based path keeps 0039 as its
+       * authorization boundary.
        *
-       * No private requester coordinates or route
-       * geometry leave the database before the
-       * verified member is confirmed as either the
-       * requester owner or offering-intent owner.
+       * The requester availability path uses 0046,
+       * which privately resolves the availability's
+       * hidden offering intent and trusted route.
+       *
+       * Neither path exposes private requester
+       * coordinates or route geometry to the client.
        */
       const context =
-        await backend
-          .getAuthorizedTrustedMatchingContext(
-            memberId,
-            body.movementNeedId,
-            body.offeringMovementIntentId,
-            signal,
-          )
+        await (
+          intentRequest
+            ? backend
+                .getAuthorizedTrustedMatchingContext(
+                  memberId,
+                  body.movementNeedId,
+                  body.offeringMovementIntentId as string,
+                  signal,
+                )
+            : backend
+                .getRequesterAvailabilityMatchingContext(
+                  memberId,
+                  body.movementNeedId,
+                  body.availabilityId as string,
+                  signal,
+                )
+        )
           .catch(() => null);
 
       if (!context) {

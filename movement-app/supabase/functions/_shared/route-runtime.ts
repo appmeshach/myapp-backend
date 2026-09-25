@@ -37,6 +37,9 @@ const RPC_RECORD_CLAIMED_ROUTE =
 const RPC_AUTHORIZED_MATCHING_CONTEXT =
   'get_authorized_trusted_matching_context_for_server';
 
+const RPC_REQUESTER_AVAILABILITY_MATCHING_CONTEXT =
+  'get_requester_availability_matching_context_for_server';
+
 const RPC_RECORD_ROUTE_MATCH =
   'record_trusted_route_match_evidence_for_server';
 
@@ -47,6 +50,7 @@ const ALLOWED_RPCS = new Set([
   RPC_RECORD_ROUTE,
   RPC_RECORD_CLAIMED_ROUTE,
   RPC_AUTHORIZED_MATCHING_CONTEXT,
+  RPC_REQUESTER_AVAILABILITY_MATCHING_CONTEXT,
   RPC_RECORD_ROUTE_MATCH,
 ]);
 
@@ -323,7 +327,7 @@ export function createRouteBackend(
         },
       );
 
-    if (
+        if (
       !response.ok
       || response.redirected
     ) {
@@ -377,6 +381,251 @@ export function createRouteBackend(
       response,
       signal,
     );
+  }
+
+  function trustedMatchingContext(
+    row: Record<string, unknown>,
+    movementNeedId: string,
+    expectedOfferingMovementIntentId:
+      string | null,
+    expectedRequestingMemberId:
+      string | null,
+  ): TrustedMatchingContext | null {
+    if (
+      typeof row.movement_need_id
+        !== 'string'
+      || !UUID.test(
+        row.movement_need_id,
+      )
+      || row.movement_need_id
+        !== movementNeedId
+      || typeof row
+        .requesting_member_id
+        !== 'string'
+      || !UUID.test(
+        row.requesting_member_id,
+      )
+      || (
+        expectedRequestingMemberId !== null
+        && row.requesting_member_id
+          !== expectedRequestingMemberId
+      )
+      || typeof row
+        .offering_movement_intent_id
+        !== 'string'
+      || !UUID.test(
+        row.offering_movement_intent_id,
+      )
+      || (
+        expectedOfferingMovementIntentId
+          !== null
+        && row.offering_movement_intent_id
+          !== expectedOfferingMovementIntentId
+      )
+      || typeof row
+        .offering_member_id
+        !== 'string'
+      || !UUID.test(
+        row.offering_member_id,
+      )
+      || typeof row
+        .requester_origin_location_reference_id
+        !== 'string'
+      || !UUID.test(
+        row
+          .requester_origin_location_reference_id,
+      )
+      || typeof row
+        .requester_destination_location_reference_id
+        !== 'string'
+      || !UUID.test(
+        row
+          .requester_destination_location_reference_id,
+      )
+      || row
+          .requester_origin_location_reference_id
+        === row
+          .requester_destination_location_reference_id
+    ) {
+      return null;
+    }
+
+    const offeringIntentVersion =
+      positiveSafeInteger(
+        row.offering_intent_version,
+      );
+
+    const routeEvidenceVersion =
+      positiveSafeInteger(
+        row.route_evidence_version,
+      );
+
+    const routeDistanceMeters =
+      positiveSafeInteger(
+        row.route_distance_meters,
+      );
+
+    const routeDurationSeconds =
+      positiveSafeInteger(
+        row.route_duration_seconds,
+      );
+
+    const requesterOriginLatitude =
+      finiteCoordinate(
+        row.requester_origin_latitude,
+        -90,
+        90,
+      );
+
+    const requesterOriginLongitude =
+      finiteCoordinate(
+        row.requester_origin_longitude,
+        -180,
+        180,
+      );
+
+    const requesterDestinationLatitude =
+      finiteCoordinate(
+        row.requester_destination_latitude,
+        -90,
+        90,
+      );
+
+    const requesterDestinationLongitude =
+      finiteCoordinate(
+        row.requester_destination_longitude,
+        -180,
+        180,
+      );
+
+    const requesterEarliestDepartureAt =
+      nullableIso(
+        row.requester_earliest_departure_at,
+      );
+
+    const requesterLatestDepartureAt =
+      nullableIso(
+        row.requester_latest_departure_at,
+      );
+
+    const offeringEarliestDepartureAt =
+      nullableIso(
+        row.offering_earliest_departure_at,
+      );
+
+    const offeringLatestDepartureAt =
+      nullableIso(
+        row.offering_latest_departure_at,
+      );
+
+    const routeGeneratedAt =
+      nullableIso(
+        row.route_generated_at,
+      );
+
+    const routeExpiresAt =
+      nullableIso(
+        row.route_expires_at,
+      );
+
+    const routeShape =
+      trustedLineString(
+        row.route_shape,
+      );
+
+    if (
+      offeringIntentVersion === null
+      || routeEvidenceVersion === null
+      || routeDistanceMeters === null
+      || routeDurationSeconds === null
+      || requesterOriginLatitude === null
+      || requesterOriginLongitude === null
+      || requesterDestinationLatitude === null
+      || requesterDestinationLongitude === null
+      || requesterEarliestDepartureAt === null
+      || requesterEarliestDepartureAt
+        === undefined
+      || requesterLatestDepartureAt
+        === undefined
+      || offeringEarliestDepartureAt === null
+      || offeringEarliestDepartureAt
+        === undefined
+      || offeringLatestDepartureAt
+        === undefined
+      || routeGeneratedAt === null
+      || routeGeneratedAt === undefined
+      || routeExpiresAt === undefined
+      || typeof row.route_evidence_id
+        !== 'string'
+      || !UUID.test(
+        row.route_evidence_id,
+      )
+      || row.route_shape_format
+        !== 'geojson_linestring_v1'
+      || routeShape === null
+    ) {
+      return null;
+    }
+
+    return {
+      movementNeedId:
+        row.movement_need_id,
+
+      requestingMemberId:
+        row.requesting_member_id,
+
+      requesterOriginLocationReferenceId:
+        row
+          .requester_origin_location_reference_id,
+
+      requesterOrigin: {
+        latitude:
+          requesterOriginLatitude,
+        longitude:
+          requesterOriginLongitude,
+      },
+
+      requesterDestinationLocationReferenceId:
+        row
+          .requester_destination_location_reference_id,
+
+      requesterDestination: {
+        latitude:
+          requesterDestinationLatitude,
+        longitude:
+          requesterDestinationLongitude,
+      },
+
+      requesterEarliestDepartureAt,
+      requesterLatestDepartureAt,
+
+      offeringMovementIntentId:
+        row.offering_movement_intent_id,
+
+      offeringMemberId:
+        row.offering_member_id,
+
+      offeringIntentVersion,
+
+      offeringEarliestDepartureAt,
+      offeringLatestDepartureAt,
+
+      routeEvidenceId:
+        row.route_evidence_id,
+
+      routeEvidenceVersion,
+
+      routeShapeFormat:
+        'geojson_linestring_v1',
+
+      routeShape,
+
+      routeDistanceMeters,
+      routeDurationSeconds,
+
+      routeGeneratedAt,
+      routeExpiresAt,
+    };
   }
 
   return {
@@ -1027,248 +1276,75 @@ export function createRouteBackend(
         return null;
       }
 
-      if (
-        typeof row.movement_need_id
-          !== 'string'
-        || !UUID.test(
-          row.movement_need_id,
-        )
-        || row.movement_need_id
-          !== movementNeedId
-        || typeof row
-          .requesting_member_id
-          !== 'string'
-        || !UUID.test(
-          row.requesting_member_id,
-        )
-        || typeof row
-          .offering_movement_intent_id
-          !== 'string'
-        || !UUID.test(
-          row
-            .offering_movement_intent_id,
-        )
-        || row
-            .offering_movement_intent_id
-          !== offeringMovementIntentId
-        || typeof row
-          .offering_member_id
-          !== 'string'
-        || !UUID.test(
-          row.offering_member_id,
-        )
-        || typeof row
-          .requester_origin_location_reference_id
-          !== 'string'
-        || !UUID.test(
-          row
-            .requester_origin_location_reference_id,
-        )
-        || typeof row
-          .requester_destination_location_reference_id
-          !== 'string'
-        || !UUID.test(
-          row
-            .requester_destination_location_reference_id,
-        )
-        || row
-            .requester_origin_location_reference_id
-          === row
-            .requester_destination_location_reference_id
-      ) {
-        return null;
-      }
-
-      const offeringIntentVersion =
-        positiveSafeInteger(
-          row.offering_intent_version,
-        );
-
-      const routeEvidenceVersion =
-        positiveSafeInteger(
-          row.route_evidence_version,
-        );
-
-      const routeDistanceMeters =
-        positiveSafeInteger(
-          row.route_distance_meters,
-        );
-
-      const routeDurationSeconds =
-        positiveSafeInteger(
-          row.route_duration_seconds,
-        );
-
-      const requesterOriginLatitude =
-        finiteCoordinate(
-          row.requester_origin_latitude,
-          -90,
-          90,
-        );
-
-      const requesterOriginLongitude =
-        finiteCoordinate(
-          row.requester_origin_longitude,
-          -180,
-          180,
-        );
-
-      const requesterDestinationLatitude =
-        finiteCoordinate(
-          row
-            .requester_destination_latitude,
-          -90,
-          90,
-        );
-
-      const requesterDestinationLongitude =
-        finiteCoordinate(
-          row
-            .requester_destination_longitude,
-          -180,
-          180,
-        );
-
-      const requesterEarliestDepartureAt =
-        nullableIso(
-          row
-            .requester_earliest_departure_at,
-        );
-
-      const requesterLatestDepartureAt =
-        nullableIso(
-          row
-            .requester_latest_departure_at,
-        );
-
-      const offeringEarliestDepartureAt =
-        nullableIso(
-          row
-            .offering_earliest_departure_at,
-        );
-
-      const offeringLatestDepartureAt =
-        nullableIso(
-          row
-            .offering_latest_departure_at,
-        );
-
-      const routeGeneratedAt =
-        nullableIso(
-          row.route_generated_at,
-        );
-
-      const routeExpiresAt =
-        nullableIso(
-          row.route_expires_at,
-        );
-
-      const routeShape =
-        trustedLineString(
-          row.route_shape,
-        );
-
-      if (
-        offeringIntentVersion === null
-        || routeEvidenceVersion === null
-        || routeDistanceMeters === null
-        || routeDurationSeconds === null
-        || requesterOriginLatitude
-          === null
-        || requesterOriginLongitude
-          === null
-        || requesterDestinationLatitude
-          === null
-        || requesterDestinationLongitude
-          === null
-        || requesterEarliestDepartureAt
-          === null
-        || requesterEarliestDepartureAt
-          === undefined
-        || requesterLatestDepartureAt
-          === undefined
-        || offeringEarliestDepartureAt
-          === null
-        || offeringEarliestDepartureAt
-          === undefined
-        || offeringLatestDepartureAt
-          === undefined
-        || routeGeneratedAt === null
-        || routeGeneratedAt === undefined
-        || routeExpiresAt === undefined
-        || typeof row.route_evidence_id
-          !== 'string'
-        || !UUID.test(
-          row.route_evidence_id,
-        )
-        || row.route_shape_format
-          !== 'geojson_linestring_v1'
-        || routeShape === null
-      ) {
-        return null;
-      }
-
-      return {
-        movementNeedId:
-          row.movement_need_id,
-
-        requestingMemberId:
-          row.requesting_member_id,
-
-        requesterOriginLocationReferenceId:
-          row
-            .requester_origin_location_reference_id,
-
-        requesterOrigin: {
-          latitude:
-            requesterOriginLatitude,
-          longitude:
-            requesterOriginLongitude,
-        },
-
-        requesterDestinationLocationReferenceId:
-          row
-            .requester_destination_location_reference_id,
-
-        requesterDestination: {
-          latitude:
-            requesterDestinationLatitude,
-          longitude:
-            requesterDestinationLongitude,
-        },
-
-        requesterEarliestDepartureAt,
-        requesterLatestDepartureAt,
-
-        offeringMovementIntentId:
-          row
-            .offering_movement_intent_id,
-
-        offeringMemberId:
-          row.offering_member_id,
-
-        offeringIntentVersion,
-
-        offeringEarliestDepartureAt,
-        offeringLatestDepartureAt,
-
-        routeEvidenceId:
-          row.route_evidence_id,
-
-        routeEvidenceVersion,
-
-        routeShapeFormat:
-          'geojson_linestring_v1',
-
-        routeShape,
-
-        routeDistanceMeters,
-        routeDurationSeconds,
-
-        routeGeneratedAt,
-        routeExpiresAt,
-      };
+      return trustedMatchingContext(
+        row,
+        movementNeedId,
+        offeringMovementIntentId,
+        null,
+      );
     },
+
+
+    async getRequesterAvailabilityMatchingContext(
+      verifiedMemberId,
+      movementNeedId,
+      availabilityId,
+      signal,
+    ): Promise<
+      TrustedMatchingContext | null
+    > {
+      if (
+        !UUID.test(verifiedMemberId)
+        || !UUID.test(movementNeedId)
+        || !UUID.test(availabilityId)
+      ) {
+        throw new Error('Unavailable');
+      }
+
+      signal.throwIfAborted();
+
+      const body =
+        await rpc(
+          RPC_REQUESTER_AVAILABILITY_MATCHING_CONTEXT,
+          {
+            p_verified_member_id:
+              verifiedMemberId,
+
+            p_movement_need_id:
+              movementNeedId,
+
+            p_availability_id:
+              availabilityId,
+          },
+          signal,
+        );
+
+      const row =
+        exactlyOneRow(body);
+
+      if (!row) {
+        return null;
+      }
+
+      /*
+       * Unlike the older intent-based path, the
+       * requester does not know the hidden offering
+       * movement-intent id.
+       *
+       * 0046 derives and validates that binding in
+       * the database. Here we independently require
+       * the returned requester identity to equal the
+       * verified authenticated member.
+       */
+      return trustedMatchingContext(
+        row,
+        movementNeedId,
+        null,
+        verifiedMemberId,
+      );
+    },
+
+
 
     async recordTrustedRouteMatchEvidence(
       input,
