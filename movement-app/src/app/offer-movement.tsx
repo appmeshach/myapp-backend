@@ -35,9 +35,11 @@ import {
   createMovementOffer,
   discoverMaskedMovementNeeds,
 } from '../services/movementService';
+import { listRequesterMovementInterestsForOfferer } from '../services/requesterMovementInterestService';
 
 import type {
   MaskedMovementNeed,
+  OffererRequesterInterest,
 } from '../types/movement';
 
 import {
@@ -185,6 +187,34 @@ export default function OfferMovementScreen() {
 
   const [availabilityId, setAvailabilityId] =
     useState<string | null>(null);
+
+  const [interestRefresh, setInterestRefresh] = useState(0);
+  const [interestInbox, setInterestInbox] = useState<{
+    availabilityId: string | null;
+    rows: OffererRequesterInterest[];
+    loading: boolean;
+    error: string;
+  }>({ availabilityId: null, rows: [], loading: false, error: '' });
+  const currentInbox = interestInbox.availabilityId === availabilityId
+    ? interestInbox : { rows: [], loading: !!availabilityId, error: '' };
+
+  useEffect(() => {
+    let active = true;
+    if (!signedIn || !availabilityId) {
+      setInterestInbox({ availabilityId: null, rows: [], loading: false, error: '' });
+      return;
+    }
+    setInterestInbox({ availabilityId, rows: [], loading: true, error: '' });
+    void listRequesterMovementInterestsForOfferer({ availabilityId, limit: 20 })
+      .then(rows => {
+        if (active) setInterestInbox({ availabilityId, rows, loading: false, error: '' });
+      })
+      .catch(() => {
+        if (active) setInterestInbox({ availabilityId, rows: [], loading: false,
+          error: 'Interested requesters could not be loaded right now. Please refresh.' });
+      });
+    return () => { active = false; };
+  }, [signedIn, availabilityId, interestRefresh]);
 
   const [availabilityRequestId, setAvailabilityRequestId] =
     useState(() => Crypto.randomUUID());
@@ -936,6 +966,41 @@ export default function OfferMovementScreen() {
 
           {availabilityId && (
             <>
+              <View style={styles.section}>
+                <Text style={styles.label}>Interested requesters</Text>
+                {currentInbox.loading && <Text style={styles.help}>Loading interested requesters...</Text>}
+                {!!currentInbox.error && <Text style={styles.message}>{currentInbox.error}</Text>}
+                {!currentInbox.loading && !currentInbox.error && currentInbox.rows.length === 0 && (
+                  <Text style={styles.help}>No interests yet.</Text>
+                )}
+                {currentInbox.rows.map(interest => (
+                  <View key={interest.interestId} style={styles.optionCard}>
+                    <Text style={styles.optionTitle}>
+                      {interest.originArea}{' \u2192 '}{interest.destinationArea}
+                    </Text>
+                    <Text style={styles.help}>
+                      {interest.peopleCount} {interest.peopleCount === 1 ? 'person' : 'people'}
+                    </Text>
+                    <Text style={styles.help}>
+                      Earliest: {new Date(interest.earliestDepartureAt).toLocaleString()}
+                    </Text>
+                    {interest.latestDepartureAt && (
+                      <Text style={styles.help}>Latest: {new Date(interest.latestDepartureAt).toLocaleString()}</Text>
+                    )}
+                    <Text style={styles.help}>
+                      Requester origin is approximately {(interest.requesterOriginDistanceToRouteMeters / 1000).toFixed(1)} km from your route.
+                    </Text>
+                    <Text style={styles.help}>
+                      Interest received: {new Date(interest.interestCreatedAt).toLocaleString()}
+                    </Text>
+                  </View>
+                ))}
+                <Pressable accessibilityRole="button" disabled={currentInbox.loading}
+                  onPress={() => { setInterestRefresh(value => value + 1); }} style={styles.button}>
+                  <Text style={styles.buttonText}>Refresh interested requesters</Text>
+                </Pressable>
+              </View>
+
               <View style={styles.section}>
                 <Text style={styles.label}>
                   Current movement requests

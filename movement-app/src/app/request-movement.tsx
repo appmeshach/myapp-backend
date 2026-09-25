@@ -1,5 +1,5 @@
 import * as Crypto from 'expo-crypto';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   Modal,
@@ -24,6 +24,12 @@ import {
 } from '../services/locationService';
 
 import { createMovementNeed } from '../services/movementService';
+import {
+  createRequesterMovementInterest,
+  withdrawRequesterMovementInterest,
+  type CreateRequesterMovementInterestInput,
+} from '../services/requesterMovementInterestService';
+import type { RequesterMovementInterestWriteResult } from '../types/movement';
 
 import {
   calculateRouteMatch,
@@ -170,6 +176,98 @@ export default function RequestMovementScreen() {
   const [requesterRouteMatch, setRequesterRouteMatch] =
     useState<RouteMatchReady | null>(null);
 
+  const [routeMatchSelection, setRouteMatchSelection] =
+    useState<{ movementNeedId: string; availabilityId: string } | null>(null);
+  const [requesterInterests, setRequesterInterests] =
+    useState<Record<string, RequesterMovementInterestWriteResult>>({});
+  const [interestLoading, setInterestLoading] = useState(false);
+  const [interestError, setInterestError] = useState('');
+  const interestInFlight = useRef(false);
+  const interestRequests = useRef<Record<string, CreateRequesterMovementInterestInput>>({});
+  const routeCheckVersion = useRef(0);
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; routeCheckVersion.current += 1; };
+  }, []);
+
+  const interestKey = activeMovementNeedId && selectedAvailabilityId
+    ? `${activeMovementNeedId}:${selectedAvailabilityId}` : null;
+  const currentInterest = interestKey ? requesterInterests[interestKey] : undefined;
+  const activeRequesterInterestId = currentInterest?.interestStatus === 'active'
+    ? currentInterest.interestId : null;
+  const activeRequesterInterestAvailabilityId = activeRequesterInterestId ? selectedAvailabilityId : null;
+  const hasCurrentReadyRouteMatch = !!activeMovementNeedId && !!selectedAvailabilityId
+    && requesterRouteMatch?.state === 'ready' && !!requesterRouteMatch.routeMatchEvidenceId
+    && routeMatchSelection?.movementNeedId === activeMovementNeedId
+    && routeMatchSelection?.availabilityId === selectedAvailabilityId;
+  const canExpressInterest = hasCurrentReadyRouteMatch
+    && (requesterRouteMatch.routeMatchEvidenceExpiresAt === null
+      || Date.parse(requesterRouteMatch.routeMatchEvidenceExpiresAt) > Date.now())
+    && !activeRequesterInterestId;
+
+  async function expressInterest() {
+    if (busy || interestInFlight.current || !canExpressInterest || !interestKey
+      || !activeMovementNeedId || !selectedAvailabilityId || !requesterRouteMatch) return;
+    if (requesterRouteMatch.routeMatchEvidenceExpiresAt !== null
+      && Date.parse(requesterRouteMatch.routeMatchEvidenceExpiresAt) <= Date.now()) {
+      setInterestError('Check the private route relationship again before expressing interest.');
+      setRequesterRouteMatch(null);
+      return;
+    }
+    interestInFlight.current = true;
+    setInterestLoading(true);
+    setBusy(true);
+    setInterestError('');
+    try {
+      // Keep the same request UUID for retries after an ambiguous response.
+      let input = interestRequests.current[interestKey];
+      if (!input || input.routeMatchEvidenceId !== requesterRouteMatch.routeMatchEvidenceId) {
+        input = {
+          requestId: Crypto.randomUUID(), movementNeedId: activeMovementNeedId,
+          availabilityId: selectedAvailabilityId, routeMatchEvidenceId: requesterRouteMatch.routeMatchEvidenceId,
+        };
+        interestRequests.current[interestKey] = input;
+      }
+      const result = await createRequesterMovementInterest(input);
+      if (!mounted.current) return;
+      setRequesterInterests(previous => ({ ...previous, [interestKey]: result }));
+      delete interestRequests.current[interestKey];
+      if (result.interestStatus !== 'active') {
+        setRequesterRouteMatch(null);
+        setRouteMatchSelection(null);
+        setInterestError('This interest is no longer active. Check the private route relationship again.');
+      }
+    } catch {
+      if (mounted.current) setInterestError('Interest could not be saved. Retry, or check the private route relationship again if availability has changed.');
+    } finally {
+      interestInFlight.current = false;
+      if (mounted.current) { setInterestLoading(false); setBusy(false); }
+    }
+  }
+
+  async function withdrawInterest() {
+    if (busy || interestInFlight.current || !interestKey || !activeRequesterInterestId) return;
+    interestInFlight.current = true;
+    setInterestLoading(true);
+    setBusy(true);
+    setInterestError('');
+    try {
+      const result = await withdrawRequesterMovementInterest(activeRequesterInterestId);
+      if (!mounted.current) return;
+      setRequesterInterests(previous => ({ ...previous, [interestKey]: result }));
+      delete interestRequests.current[interestKey];
+      setRequesterRouteMatch(null);
+      setRouteMatchSelection(null);
+    } catch {
+      if (mounted.current) setInterestError('Interest could not be withdrawn right now. Please retry.');
+    } finally {
+      interestInFlight.current = false;
+      if (mounted.current) { setInterestLoading(false); setBusy(false); }
+    }
+  }
+
   const loadOfferedMovements = useCallback(async function loadOfferedMovements() {
     setOfferedMovementsLoading(true);
     setOfferedMovementsMessage('');
@@ -196,8 +294,12 @@ export default function RequestMovementScreen() {
     async function checkOfferedMovement(
     availabilityId: string,
   ) {
+    if (busy || interestInFlight.current) return;
+    const version = ++routeCheckVersion.current;
     setMessage('');
+    setInterestError('');
     setRequesterRouteMatch(null);
+    setRouteMatchSelection(null);
     setSelectedAvailabilityId(
       availabilityId,
     );
@@ -221,7 +323,9 @@ export default function RequestMovementScreen() {
           },
         );
 
+      if (!mounted.current || version !== routeCheckVersion.current) return;
       setRequesterRouteMatch(match);
+      setRouteMatchSelection({ movementNeedId: activeMovementNeedId, availabilityId });
 
       const distanceKm =
         (
@@ -234,6 +338,7 @@ export default function RequestMovementScreen() {
         `Your origin is approximately ${distanceKm} km from this movement's route.`,
       );
     } catch (error) {
+      if (!mounted.current || version !== routeCheckVersion.current) return;
       setRequesterRouteMatch(null);
 
       setMessage(
@@ -242,7 +347,7 @@ export default function RequestMovementScreen() {
           : 'route_match_unavailable',
       );
     } finally {
-      setBusy(false);
+      if (mounted.current && version === routeCheckVersion.current) setBusy(false);
     }
   }
 
@@ -438,6 +543,9 @@ export default function RequestMovementScreen() {
 
       setSelectedAvailabilityId(null);
       setRequesterRouteMatch(null);
+      setRouteMatchSelection(null);
+      setInterestError('');
+      routeCheckVersion.current += 1;
 
       setMessage(
         'Movement request created. You can now privately check the route relationship of an available movement.',
@@ -589,6 +697,35 @@ export default function RequestMovementScreen() {
               )}
           </Pressable>
         ))}
+
+        {(hasCurrentReadyRouteMatch || !!currentInterest) && (
+          <View style={styles.section}>
+            <Text style={styles.help}>
+              Interest lets the person offering this movement know you may want to join. It does not reserve a place.
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              disabled={busy || interestLoading || !canExpressInterest}
+              onPress={() => { void expressInterest(); }}
+              style={styles.primaryButton}
+            >
+              <Text style={styles.primaryButtonText}>
+                {activeRequesterInterestAvailabilityId === selectedAvailabilityId
+                  ? 'Interested' : interestLoading ? 'Working...' : "I'm interested"}
+              </Text>
+            </Pressable>
+            {activeRequesterInterestId && (
+              <Pressable accessibilityRole="button" disabled={busy || interestLoading}
+                onPress={() => { void withdrawInterest(); }} style={styles.button}>
+                <Text style={styles.buttonText}>Withdraw interest</Text>
+              </Pressable>
+            )}
+            {currentInterest?.interestStatus === 'withdrawn' && (
+              <Text style={styles.help}>Interest withdrawn. Check the private route relationship again to express a new interest.</Text>
+            )}
+            {!!interestError && <Text style={styles.message}>{interestError}</Text>}
+          </View>
+        )}
 
         <Pressable
           accessibilityRole="button"

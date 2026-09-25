@@ -4,6 +4,27 @@ export type MovementNeedStatus =
   | "expired"
   | "closed";
 
+export type RequesterMovementInterestStatus = 'active' | 'withdrawn' | 'expired';
+
+export type RequesterMovementInterestWriteResult = {
+  interestId: string;
+  interestStatus: RequesterMovementInterestStatus;
+  createdAt: string;
+};
+
+export type OffererRequesterInterest = {
+  interestId: string;
+  movementNeedId: string;
+  availabilityId: string;
+  originArea: string;
+  destinationArea: string;
+  peopleCount: number;
+  earliestDepartureAt: string;
+  latestDepartureAt: string | null;
+  requesterOriginDistanceToRouteMeters: number;
+  interestCreatedAt: string;
+};
+
 export type MovementOfferStatus =
   | "pending"
   | "accepted"
