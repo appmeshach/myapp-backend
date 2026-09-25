@@ -1,14 +1,14 @@
 import * as Crypto from 'expo-crypto';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
-    FlatList,
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  FlatList,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 
 import { Redirect } from 'expo-router';
@@ -16,14 +16,21 @@ import { Redirect } from 'expo-router';
 import { getCurrentSession } from '../services/authService';
 
 import {
-    recoverSelectedLocation,
-    resolveSelectedLocation,
-    searchMovementLocations,
-    selectMovementLocation,
-    type MovementLocationSuggestion,
+  recoverSelectedLocation,
+  resolveSelectedLocation,
+  searchMovementLocations,
+  selectMovementLocation,
+  type MovementLocationSuggestion,
 } from '../services/locationService';
 
 import { createMovementNeed } from '../services/movementService';
+
+import {
+  calculateRouteMatch,
+  discoverOfferingMovementAvailability,
+  type DiscoverableOfferingMovement,
+  type RouteMatchReady,
+} from '../services/offeringMovementService';
 
 type TrustedLocation = {
   label: string;
@@ -144,6 +151,100 @@ export default function RequestMovementScreen() {
 
   const [message, setMessage] =
     useState('');
+
+  const [offeredMovements, setOfferedMovements] =
+    useState<DiscoverableOfferingMovement[]>([]);
+
+  const [offeredMovementsLoading, setOfferedMovementsLoading] =
+    useState(false);
+
+  const [offeredMovementsMessage, setOfferedMovementsMessage] =
+    useState('');
+
+  const [activeMovementNeedId, setActiveMovementNeedId] =
+    useState<string | null>(null);
+
+  const [selectedAvailabilityId, setSelectedAvailabilityId] =
+    useState<string | null>(null);
+
+  const [requesterRouteMatch, setRequesterRouteMatch] =
+    useState<RouteMatchReady | null>(null);
+
+  const loadOfferedMovements = useCallback(async function loadOfferedMovements() {
+    setOfferedMovementsLoading(true);
+    setOfferedMovementsMessage('');
+    try {
+      const rows = await discoverOfferingMovementAvailability();
+      setOfferedMovements(rows);
+      if (rows.length === 0) {
+        setOfferedMovementsMessage('No offered movements are available right now.');
+      }
+    } catch {
+      setOfferedMovements([]);
+      setOfferedMovementsMessage('Offered movements could not be loaded right now.');
+    } finally {
+      setOfferedMovementsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (signedIn) {
+      void loadOfferedMovements();
+    }
+  }, [signedIn, loadOfferedMovements]);
+
+    async function checkOfferedMovement(
+    availabilityId: string,
+  ) {
+    setMessage('');
+    setRequesterRouteMatch(null);
+    setSelectedAvailabilityId(
+      availabilityId,
+    );
+
+    if (!activeMovementNeedId) {
+      setMessage(
+        'Create your movement request first. You can browse available movements before creating one, but a trusted request is required to check the route relationship.',
+      );
+
+      return;
+    }
+
+    setBusy(true);
+
+    try {
+      const match =
+        await calculateRouteMatch(
+          activeMovementNeedId,
+          {
+            availabilityId,
+          },
+        );
+
+      setRequesterRouteMatch(match);
+
+      const distanceKm =
+        (
+          match
+            .straightLineDistanceFromRouteMeters
+          / 1000
+        ).toFixed(1);
+
+      setMessage(
+        `Your origin is approximately ${distanceKm} km from this movement's route.`,
+      );
+    } catch (error) {
+      setRequesterRouteMatch(null);
+
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'route_match_unavailable',
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function searchOrigin() {
     setBusy(true);
@@ -331,8 +432,15 @@ export default function RequestMovementScreen() {
           peopleCount,
         });
 
+      setActiveMovementNeedId(
+        created.movementNeedId,
+      );
+
+      setSelectedAvailabilityId(null);
+      setRequesterRouteMatch(null);
+
       setMessage(
-        `Movement request created: ${created.movementNeedId}`,
+        'Movement request created. You can now privately check the route relationship of an available movement.',
       );
 
       setOrigin(null);
@@ -381,6 +489,116 @@ export default function RequestMovementScreen() {
       <Text style={styles.description}>
         Tell us where you need to move.
       </Text>
+
+      <View style={styles.section}>
+        <Text style={styles.label}>Available movements</Text>
+        <Text style={styles.help}>
+          Browse movement that members are already making.
+        </Text>
+
+        {offeredMovementsLoading && (
+          <Text style={styles.help}>Loading available movements...</Text>
+        )}
+        {!!offeredMovementsMessage && (
+          <Text style={styles.message}>{offeredMovementsMessage}</Text>
+        )}
+
+        {offeredMovements.map(movement => (
+          <Pressable
+            key={movement.availabilityId}
+            accessibilityRole="button"
+            disabled={busy}
+            onPress={() => {
+              void checkOfferedMovement(
+                movement.availabilityId,
+              );
+            }}
+            style={[
+              styles.offeredMovementCard,
+              selectedAvailabilityId
+                === movement.availabilityId
+                && styles.offeredMovementCardSelected,
+            ]}
+          >
+            <Text style={styles.confirmed}>
+              {movement.originArea}
+              {' \u2192 '}
+              {movement.destinationArea}
+            </Text>
+
+            <Text style={styles.help}>
+              Earliest:{' '}
+              {new Date(
+                movement.earliestDepartureAt,
+              ).toLocaleString()}
+            </Text>
+
+            {movement.latestDepartureAt && (
+              <Text style={styles.help}>
+                Latest:{' '}
+                {new Date(
+                  movement.latestDepartureAt,
+                ).toLocaleString()}
+              </Text>
+            )}
+
+            <Text>
+              {movement.remainingPlaces}{' '}
+              {movement.remainingPlaces === 1
+                ? 'place'
+                : 'places'}{' '}
+              available
+            </Text>
+
+            <Text>
+              {movement.make}
+              {movement.model
+                ? ` ${movement.model}`
+                : ''}
+              {movement.year !== null
+                ? ` \u2022 ${movement.year}`
+                : ''}
+            </Text>
+
+            <Text>
+              {movement.color}
+            </Text>
+
+            {selectedAvailabilityId
+              === movement.availabilityId
+              && requesterRouteMatch && (
+                <>
+                  <Text style={styles.confirmed}>
+                    Route relationship
+                  </Text>
+
+                  <Text style={styles.help}>
+                    Your origin is approximately{' '}
+                    {(
+                      requesterRouteMatch
+                        .straightLineDistanceFromRouteMeters
+                      / 1000
+                    ).toFixed(1)}{' '}
+                    km from this movement&apos;s route.
+                  </Text>
+
+                  <Text style={styles.help}>
+                    This is an objective route fact, not an automatic acceptance or rejection.
+                  </Text>
+                </>
+              )}
+          </Pressable>
+        ))}
+
+        <Pressable
+          accessibilityRole="button"
+          disabled={offeredMovementsLoading}
+          onPress={() => { void loadOfferedMovements(); }}
+          style={styles.button}
+        >
+          <Text style={styles.buttonText}>Refresh available movements</Text>
+        </Pressable>
+      </View>
 
       <View style={styles.section}>
         <Text style={styles.label}>
@@ -661,6 +879,19 @@ const styles = StyleSheet.create({
 
   section: {
     gap: 10,
+  },
+
+  offeredMovementCard: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 12,
+    padding: 14,
+    gap: 6,
+  },
+
+  offeredMovementCardSelected: {
+    borderWidth: 2,
+    borderColor: '#111',
   },
 
   label: {

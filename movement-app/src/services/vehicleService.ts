@@ -54,3 +54,56 @@ export async function registerVehicleWithAccess(input: {
     accessId: row.access_id,
   };
 }
+
+export type ActiveVehicle = {
+  vehicleId: string;
+  make: string;
+  model: string;
+  year: number | null;
+  color: string;
+  seatCapacity: number;
+};
+
+interface ActiveVehicleRow {
+  id: string;
+  make: string;
+  model: string;
+  year: number | null;
+  color: string;
+  seat_capacity: number;
+}
+
+export async function listMyActiveVehicles(): Promise<
+  ActiveVehicle[]
+> {
+  const {
+    data,
+    error,
+  } = await supabase
+    .from('vehicles')
+    .select(
+      'id, make, model, year, color, seat_capacity',
+    )
+    .order('created_at', {
+      ascending: false,
+    });
+
+  if (error) {
+    throw new Error(
+      'vehicle_list_unavailable',
+    );
+  }
+
+  const rows =
+    (data ?? []) as ActiveVehicleRow[];
+
+  return rows.map(row => ({
+    vehicleId: row.id,
+    make: row.make,
+    model: row.model,
+    year: row.year,
+    color: row.color,
+    seatCapacity:
+      row.seat_capacity,
+  }));
+}

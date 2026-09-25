@@ -15,6 +15,30 @@ export type CreatedOfferingMovementIntent = {
   offeringMovementIntentId: string;
 };
 
+export type OpenOfferingMovementAvailabilityInput = {
+  requestId: string;
+  offeringMovementIntentId: string;
+  vehicleId: string;
+  totalPlaces: number;
+};
+
+export type OpenedOfferingMovementAvailability = {
+  availabilityId: string;
+};
+
+export type DiscoverableOfferingMovement = {
+  availabilityId: string;
+  originArea: string;
+  destinationArea: string;
+  earliestDepartureAt: string;
+  latestDepartureAt: string | null;
+  remainingPlaces: number;
+  make: string;
+  model: string | null;
+  year: number | null;
+  color: string;
+};
+
 export type OfferingRouteReady = {
   state: 'ready';
   routeEvidenceId: string;
@@ -33,6 +57,23 @@ export type OfferingRouteRetry = {
 export type GenerateOfferingRouteResult =
   | OfferingRouteReady
   | OfferingRouteRetry;
+
+export type RouteMatchReady = {
+  state: 'ready';
+  routeMatchEvidenceId: string;
+  routeMatchEvidenceVersion: number;
+  routeMatchEvidenceStatus: 'current';
+  routeMatchEvidenceExpiresAt: string | null;
+  straightLineDistanceFromRouteMeters: number;
+};
+
+export type RouteMatchSelector =
+  | {
+      offeringMovementIntentId: string;
+    }
+  | {
+      availabilityId: string;
+    };
 
 function isValidUuid(
   value: unknown,
@@ -183,6 +224,109 @@ export async function createOfferingMovementIntent(
     offeringMovementIntentId:
       row.offering_movement_intent_id,
   };
+}
+
+export async function openOfferingMovementAvailability(
+  input: OpenOfferingMovementAvailabilityInput,
+): Promise<OpenedOfferingMovementAvailability> {
+  if (
+    !input
+    || !isValidUuid(input.requestId)
+    || !isValidUuid(input.offeringMovementIntentId)
+    || !isValidUuid(input.vehicleId)
+    || !Number.isInteger(input.totalPlaces)
+    || input.totalPlaces < 1
+  ) {
+    throw new Error('invalid_offering_movement_availability');
+  }
+
+  const { data, error } = await supabase.rpc(
+    'open_offering_movement_availability',
+    {
+      p_request_id: input.requestId,
+      p_offering_movement_intent_id: input.offeringMovementIntentId,
+      p_vehicle_id: input.vehicleId,
+      p_total_places: input.totalPlaces,
+    },
+  );
+
+  if (error) {
+    throw new Error('offering_movement_availability_unavailable');
+  }
+
+  const row: unknown = Array.isArray(data) && data.length === 1
+    ? data[0]
+    : null;
+
+  if (!isRecord(row) || !isValidUuid(row.availability_id)) {
+    throw new Error('offering_movement_availability_unavailable');
+  }
+
+  return { availabilityId: row.availability_id };
+}
+
+export async function discoverOfferingMovementAvailability(
+  limit: number = 20,
+): Promise<DiscoverableOfferingMovement[]> {
+  if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+    throw new Error('invalid_offering_movement_discovery');
+  }
+
+  try {
+    const { data, error } = await supabase.rpc(
+      'discover_offering_movement_availability',
+      { p_limit: limit },
+    );
+
+    if (error || !Array.isArray(data)) {
+      throw new Error('offering_movement_discovery_unavailable');
+    }
+
+    return data.map((row: unknown) => {
+      if (
+        !isRecord(row)
+        || !hasExactKeys(row, [
+          'availability_id', 'origin_area', 'destination_area',
+          'earliest_departure_at', 'latest_departure_at',
+          'remaining_places', 'make', 'model', 'year', 'color',
+        ])
+        || !isValidUuid(row.availability_id)
+        || typeof row.origin_area !== 'string' || !row.origin_area.trim()
+        || typeof row.destination_area !== 'string' || !row.destination_area.trim()
+        || typeof row.earliest_departure_at !== 'string'
+        || !isValidIsoDate(row.earliest_departure_at)
+        || (row.latest_departure_at !== null && (
+          typeof row.latest_departure_at !== 'string'
+          || !isValidIsoDate(row.latest_departure_at)
+        ))
+        || typeof row.remaining_places !== 'number'
+        || !Number.isInteger(row.remaining_places) || row.remaining_places < 1
+        || typeof row.make !== 'string' || !row.make.trim()
+        || (row.model !== null && typeof row.model !== 'string')
+        || (row.year !== null && (
+          typeof row.year !== 'number' || !Number.isInteger(row.year)
+        ))
+        || typeof row.color !== 'string' || !row.color.trim()
+      ) {
+        throw new Error('offering_movement_discovery_unavailable');
+      }
+
+      return {
+        availabilityId: row.availability_id,
+        originArea: row.origin_area,
+        destinationArea: row.destination_area,
+        earliestDepartureAt: row.earliest_departure_at,
+        latestDepartureAt: row.latest_departure_at,
+        remainingPlaces: row.remaining_places,
+        make: row.make,
+        model: row.model,
+        year: row.year,
+        color: row.color,
+      };
+    });
+  } catch {
+    throw new Error('offering_movement_discovery_unavailable');
+  }
 }
 
 export async function generateOfferingRoute(
@@ -441,6 +585,289 @@ export async function generateOfferingRoute(
 
     throw new Error(
       'route_generation_unavailable',
+    );
+  } finally {
+    clearTimeout(timer);
+
+    signal?.removeEventListener(
+      'abort',
+      cancel,
+    );
+  }
+}
+
+export async function calculateRouteMatch(
+  movementNeedId: string,
+  selector: RouteMatchSelector,
+  signal?: AbortSignal,
+): Promise<RouteMatchReady> {
+  if (!isValidUuid(movementNeedId)) {
+    throw new Error(
+      'invalid_route_match',
+    );
+  }
+
+  const intentRequest =
+    'offeringMovementIntentId' in selector;
+
+  const availabilityRequest =
+    'availabilityId' in selector;
+
+  if (
+    intentRequest === availabilityRequest
+  ) {
+    throw new Error(
+      'invalid_route_match',
+    );
+  }
+
+  if (
+    intentRequest
+    && !isValidUuid(
+      selector.offeringMovementIntentId,
+    )
+  ) {
+    throw new Error(
+      'invalid_route_match',
+    );
+  }
+
+  if (
+    availabilityRequest
+    && !isValidUuid(
+      selector.availabilityId,
+    )
+  ) {
+    throw new Error(
+      'invalid_route_match',
+    );
+  }
+
+  const abort =
+    new AbortController();
+
+  const cancel =
+    () => abort.abort();
+
+  signal?.addEventListener(
+    'abort',
+    cancel,
+    { once: true },
+  );
+
+  if (signal?.aborted) {
+    cancel();
+  }
+
+  const timer =
+    setTimeout(
+      cancel,
+      30_000,
+    );
+
+  try {
+    abort.signal.throwIfAborted();
+
+    const {
+      data,
+      error,
+    } =
+      await supabase.auth.getSession();
+
+    abort.signal.throwIfAborted();
+
+    if (
+      error
+      || !data.session?.access_token
+    ) {
+      throw new Error(
+        'authentication_required',
+      );
+    }
+
+    const url =
+      process.env
+        .EXPO_PUBLIC_SUPABASE_URL;
+
+    const key =
+      process.env
+        .EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+    if (!url || !key) {
+      throw new Error(
+        'route_match_unavailable',
+      );
+    }
+
+    const response =
+      await fetch(
+        `${url.replace(/\/$/, '')}/functions/v1/calculate-route-match`,
+        {
+          method: 'POST',
+
+          headers: {
+            Authorization:
+              `Bearer ${data.session.access_token}`,
+
+            apikey: key,
+
+            'Content-Type':
+              'application/json',
+          },
+
+          body: JSON.stringify(
+            'offeringMovementIntentId' in selector
+              ? {
+                  movementNeedId,
+                  offeringMovementIntentId:
+                    selector.offeringMovementIntentId,
+                }
+              : {
+                  movementNeedId,
+                  availabilityId:
+                    selector.availabilityId,
+                },
+          ),
+
+          signal:
+            abort.signal,
+
+          redirect:
+            'error',
+
+          cache:
+            'no-store',
+        },
+      );
+
+    abort.signal.throwIfAborted();
+
+    if (response.status === 401) {
+      throw new Error(
+        'authentication_required',
+      );
+    }
+
+    if (response.redirected) {
+      throw new Error(
+        'route_match_unavailable',
+      );
+    }
+
+    let body: unknown;
+
+    try {
+      body =
+        await response.json();
+    } catch {
+      throw new Error(
+        'route_match_unavailable',
+      );
+    }
+
+    abort.signal.throwIfAborted();
+
+    if (!isRecord(body)) {
+      throw new Error(
+        'route_match_unavailable',
+      );
+    }
+
+    if (
+      response.status === 200
+      && hasExactKeys(
+        body,
+        [
+          'state',
+          'routeMatchEvidenceId',
+          'routeMatchEvidenceVersion',
+          'routeMatchEvidenceStatus',
+          'routeMatchEvidenceExpiresAt',
+          'straightLineDistanceFromRouteMeters',
+        ],
+      )
+      && body.state === 'ready'
+      && isValidUuid(
+        body.routeMatchEvidenceId,
+      )
+      && typeof body.routeMatchEvidenceVersion
+        === 'number'
+      && Number.isInteger(
+        body.routeMatchEvidenceVersion,
+      )
+      && body.routeMatchEvidenceVersion >= 1
+      && body.routeMatchEvidenceStatus
+        === 'current'
+      && (
+        body.routeMatchEvidenceExpiresAt
+          === null
+        || (
+          typeof body
+            .routeMatchEvidenceExpiresAt
+            === 'string'
+          && isValidIsoDate(
+            body.routeMatchEvidenceExpiresAt,
+          )
+        )
+      )
+      && typeof body
+        .straightLineDistanceFromRouteMeters
+        === 'number'
+      && Number.isInteger(
+        body
+          .straightLineDistanceFromRouteMeters,
+      )
+      && body
+        .straightLineDistanceFromRouteMeters
+        >= 0
+    ) {
+      return {
+        state: 'ready',
+
+        routeMatchEvidenceId:
+          body.routeMatchEvidenceId,
+
+        routeMatchEvidenceVersion:
+          body.routeMatchEvidenceVersion,
+
+        routeMatchEvidenceStatus:
+          'current',
+
+        routeMatchEvidenceExpiresAt:
+          body.routeMatchEvidenceExpiresAt,
+
+        straightLineDistanceFromRouteMeters:
+          body
+            .straightLineDistanceFromRouteMeters,
+      };
+    }
+
+    throw new Error(
+      'route_match_unavailable',
+    );
+  } catch (error) {
+    if (
+      error instanceof Error
+      && [
+        'authentication_required',
+        'invalid_route_match',
+        'route_match_unavailable',
+      ].includes(error.message)
+    ) {
+      throw error;
+    }
+
+    if (
+      abort.signal.aborted
+      || error instanceof TypeError
+    ) {
+      throw new Error(
+        'network_unavailable',
+      );
+    }
+
+    throw new Error(
+      'route_match_unavailable',
     );
   } finally {
     clearTimeout(timer);
