@@ -313,6 +313,8 @@ test('resolution context maps exact three identifiers', async () => {
               null,
             version: null,
             expires_at: null,
+            has_trusted_state_evidence:
+              false,
           },
         ]);
       },
@@ -338,7 +340,7 @@ test('resolution context maps exact three identifiers', async () => {
 
   assert.equal(
     new URL(call.url).pathname,
-    '/rest/v1/rpc/get_selected_location_resolution_context_for_server',
+    '/rest/v1/rpc/get_selected_location_resolution_context_with_state_for_server',
   );
 
   assert.deepEqual(

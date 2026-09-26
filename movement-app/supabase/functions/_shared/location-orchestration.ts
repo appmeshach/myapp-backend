@@ -400,6 +400,16 @@ function existingResolution(
     && context.resolvedLocationReferenceId === null
     && context.version === null
   ) {
+    if (
+      context.hasTrustedStateEvidence
+        !== false
+    ) {
+      throw new Denied(
+        502,
+        'location_unavailable',
+      );
+    }
+
     return null;
   }
 
@@ -412,6 +422,9 @@ function existingResolution(
     )
     || !Number.isInteger(context.version)
     || Number(context.version) < 1
+    || typeof context
+      .hasTrustedStateEvidence
+      !== 'boolean'
     || (
       context.expiresAt !== null
       && !validIso(context.expiresAt)
@@ -421,6 +434,13 @@ function existingResolution(
       502,
       'location_unavailable',
     );
+  }
+
+  if (
+    context.hasTrustedStateEvidence
+      !== true
+  ) {
+    return null;
   }
 
   return {
@@ -457,6 +477,14 @@ function validResolution(
     )
     || !trimmed(
       result.discoveryAreaLabel,
+      MAX_LOCATION_LABEL_LENGTH,
+    )
+    || !trimmed(
+      result.stateProviderReference,
+      MAX_PROVIDER_REFERENCE_LENGTH,
+    )
+    || !trimmed(
+      result.stateName,
       MAX_LOCATION_LABEL_LENGTH,
     )
     || !Number.isFinite(result.latitude)
@@ -1045,6 +1073,13 @@ export function createLocationResolutionHandler(
                   result.resolutionVersion,
                 discoveryAreaLabel:
                   result.discoveryAreaLabel,
+
+                stateProviderReference:
+                  result.stateProviderReference,
+
+                stateName:
+                  result.stateName,
+
                 latitude:
                   result.latitude,
                 longitude:

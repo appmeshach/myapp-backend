@@ -42,6 +42,10 @@ function feature({
   fullAddress,
   countryCode = 'NG',
   includeCountryContext = true,
+  includeRegionContext = true,
+  regionId =
+    'dXJuOm1ieHBsYzpMYWdvcy1TdGF0ZQ',
+  regionName = 'Lagos',
   neighborhoodName,
   localityName,
   placeName,
@@ -63,6 +67,15 @@ function feature({
       country_code:
         countryCode,
       name: 'Nigeria',
+    };
+  }
+
+  if (includeRegionContext) {
+    context.region = {
+      mapbox_id:
+        regionId,
+      name:
+        regionName,
     };
   }
 
@@ -1111,6 +1124,12 @@ test(
 
         discoveryAreaLabel:
           'Ologolo',
+
+        stateProviderReference:
+          'dXJuOm1ieHBsYzpMYWdvcy1TdGF0ZQ',
+
+        stateName:
+          'Lagos',
 
         latitude: 6.437,
         longitude: 3.501,
@@ -2592,6 +2611,385 @@ test(
     assert.equal(
       calls,
       1,
+    );
+  },
+);
+
+test(
+  'resolution fails closed when trusted state region is absent',
+  async () => {
+    const id =
+      'resolution-no-state';
+
+    const provider =
+      createMapboxGeocodingProvider(
+        TOKEN,
+        {
+          async fetchImpl() {
+            return jsonResponse(
+              collection([
+                feature({
+                  id,
+                  featureType:
+                    'place',
+                  includeRegionContext:
+                    false,
+                }),
+              ]),
+            );
+          },
+        },
+      );
+
+    await assert.rejects(
+      provider.resolve(
+        {
+          providerNamespace:
+            MAPBOX_GEOCODING_NAMESPACE,
+
+          providerPlaceReference:
+            id,
+        },
+        signal(),
+      ),
+      error =>
+        error
+          instanceof
+            MapboxGeocodingProviderError
+        && error.code
+          === 'invalid_response',
+    );
+  },
+);
+
+
+test(
+  'resolution rejects blank or malformed trusted state provider reference',
+  async () => {
+    const cases = [
+      '   ',
+      'bad;region',
+    ];
+
+    for (
+      const regionId
+      of cases
+    ) {
+      const id =
+        `resolution-bad-state-${regionId.length}`;
+
+      const provider =
+        createMapboxGeocodingProvider(
+          TOKEN,
+          {
+            async fetchImpl() {
+              return jsonResponse(
+                collection([
+                  feature({
+                    id,
+                    featureType:
+                      'place',
+                    regionId,
+                  }),
+                ]),
+              );
+            },
+          },
+        );
+
+      await assert.rejects(
+        provider.resolve(
+          {
+            providerNamespace:
+              MAPBOX_GEOCODING_NAMESPACE,
+
+            providerPlaceReference:
+              id,
+          },
+          signal(),
+        ),
+        error =>
+          error
+            instanceof
+              MapboxGeocodingProviderError
+          && error.code
+            === 'invalid_response',
+      );
+    }
+  },
+);
+
+
+test(
+  'resolution rejects blank or overlong trusted state name',
+  async () => {
+    const cases = [
+      '   ',
+      'x'.repeat(1000),
+    ];
+
+    for (
+      const regionName
+      of cases
+    ) {
+      const id =
+        `resolution-bad-state-name-${regionName.length}`;
+
+      const provider =
+        createMapboxGeocodingProvider(
+          TOKEN,
+          {
+            async fetchImpl() {
+              return jsonResponse(
+                collection([
+                  feature({
+                    id,
+                    featureType:
+                      'place',
+                    regionName,
+                  }),
+                ]),
+              );
+            },
+          },
+        );
+
+      await assert.rejects(
+        provider.resolve(
+          {
+            providerNamespace:
+              MAPBOX_GEOCODING_NAMESPACE,
+
+            providerPlaceReference:
+              id,
+          },
+          signal(),
+        ),
+        error =>
+          error
+            instanceof
+              MapboxGeocodingProviderError
+          && error.code
+            === 'invalid_response',
+      );
+    }
+  },
+);
+
+
+test(
+  'reverse fallback supplies trusted state evidence when inline state is absent',
+  async () => {
+    const id =
+      'street-reverse-state';
+
+    const returned =
+      feature({
+        id,
+        featureType:
+          'street',
+        name:
+          'Ologolo Road',
+        longitude:
+          3.501,
+        latitude:
+          6.437,
+        includeRegionContext:
+          false,
+      });
+
+    delete returned.properties
+      .place_formatted;
+
+    const provider =
+      createMapboxGeocodingProvider(
+        TOKEN,
+        {
+          async fetchImpl(
+            input,
+          ) {
+            const url =
+              new URL(
+                String(input),
+              );
+
+            if (
+              url.pathname
+                === '/search/geocode/v6/forward'
+            ) {
+              return jsonResponse(
+                collection([
+                  returned,
+                ]),
+              );
+            }
+
+            if (
+              url.pathname
+                === '/search/geocode/v6/reverse'
+            ) {
+              return jsonResponse(
+                collection([
+                  feature({
+                    id:
+                      'reverse-state-locality',
+                    featureType:
+                      'locality',
+                    name:
+                      'Lekki',
+                    placeName:
+                      'Lagos',
+                    longitude:
+                      3.501,
+                    latitude:
+                      6.437,
+                    regionId:
+                      'dXJuOm1ieHBsYzpMYWdvcy1TdGF0ZQ',
+                    regionName:
+                      'Lagos',
+                  }),
+                ]),
+              );
+            }
+
+            throw new Error(
+              'unexpected_provider_request',
+            );
+          },
+        },
+      );
+
+    const result =
+      await provider.resolve(
+        {
+          providerNamespace:
+            MAPBOX_GEOCODING_NAMESPACE,
+
+          providerPlaceReference:
+            id,
+        },
+        signal(),
+      );
+
+    assert.equal(
+      result.stateProviderReference,
+      'dXJuOm1ieHBsYzpMYWdvcy1TdGF0ZQ',
+    );
+
+    assert.equal(
+      result.stateName,
+      'Lagos',
+    );
+
+    assert.equal(
+      result.discoveryAreaLabel,
+      'Lekki, Lagos',
+    );
+  },
+);
+
+
+test(
+  'resolution fails closed when inline and reverse trusted state disagree',
+  async () => {
+    const id =
+      'street-conflicting-state';
+
+    const returned =
+      feature({
+        id,
+        featureType:
+          'street',
+        name:
+          'Ologolo Road',
+        longitude:
+          3.501,
+        latitude:
+          6.437,
+        regionId:
+          'dXJuOm1ieHBsYzpMYWdvcy1TdGF0ZQ',
+        regionName:
+          'Lagos',
+      });
+
+    delete returned.properties
+      .place_formatted;
+
+    const provider =
+      createMapboxGeocodingProvider(
+        TOKEN,
+        {
+          async fetchImpl(
+            input,
+          ) {
+            const url =
+              new URL(
+                String(input),
+              );
+
+            if (
+              url.pathname
+                === '/search/geocode/v6/forward'
+            ) {
+              return jsonResponse(
+                collection([
+                  returned,
+                ]),
+              );
+            }
+
+            if (
+              url.pathname
+                === '/search/geocode/v6/reverse'
+            ) {
+              return jsonResponse(
+                collection([
+                  feature({
+                    id:
+                      'reverse-ogun-locality',
+                    featureType:
+                      'locality',
+                    name:
+                      'Somewhere',
+                    placeName:
+                      'Somewhere',
+                    longitude:
+                      3.501,
+                    latitude:
+                      6.437,
+                    regionId:
+                      'dXJuOm1ieHBsYzpPZ3VuLVN0YXRl',
+                    regionName:
+                      'Ogun',
+                  }),
+                ]),
+              );
+            }
+
+            throw new Error(
+              'unexpected_provider_request',
+            );
+          },
+        },
+      );
+
+    await assert.rejects(
+      provider.resolve(
+        {
+          providerNamespace:
+            MAPBOX_GEOCODING_NAMESPACE,
+
+          providerPlaceReference:
+            id,
+        },
+        signal(),
+      ),
+      error =>
+        error
+          instanceof
+            MapboxGeocodingProviderError
+        && error.code
+          === 'invalid_response',
     );
   },
 );

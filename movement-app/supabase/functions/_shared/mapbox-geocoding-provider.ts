@@ -25,7 +25,7 @@ export const MAPBOX_GEOCODING_PROVIDER_VERSION =
 
 
 export const MAPBOX_GEOCODING_RESOLUTION_VERSION =
-  'mapbox-geocoding-v6-normalization-v2';
+  'mapbox-geocoding-v6-normalization-v3';
 const MAPBOX_ORIGIN =
   'https://api.mapbox.com';
 
@@ -890,6 +890,64 @@ function contextAreaName(
   return name;
 }
 
+type MapboxStateContext = {
+  providerReference: string;
+  name: string;
+};
+
+function stateContext(
+  properties: Record<string, unknown>,
+): MapboxStateContext | null {
+  const context =
+    properties.context;
+
+  if (!isPlainObject(context)) {
+    return null;
+  }
+
+  const region =
+    context.region;
+
+  if (region === undefined) {
+    return null;
+  }
+
+  if (!isPlainObject(region)) {
+    throw new MapboxGeocodingProviderError(
+      'invalid_response',
+    );
+  }
+
+  const providerReference =
+    nonblankString(
+      region.mapbox_id,
+    );
+
+  const name =
+    nonblankString(
+      region.name,
+    );
+
+  if (
+    providerReference === null
+    || !validOpaqueReference(
+      providerReference,
+    )
+    || name === null
+    || codePointLength(name)
+      > MAX_LOCATION_LABEL_LENGTH
+  ) {
+    throw new MapboxGeocodingProviderError(
+      'invalid_response',
+    );
+  }
+
+  return {
+    providerReference,
+    name,
+  };
+}
+
 function discoveryAreaLabel(
   properties: Record<string, unknown>,
   featureType: string,
@@ -986,9 +1044,12 @@ function missingBroadAreaContext(
   );
 }
 
-function reverseDiscoveryAreaLabel(
+function reverseResolutionContext(
   value: unknown,
-): string {
+): {
+  discoveryAreaLabel: string;
+  state: MapboxStateContext;
+} {
   const collection =
     parseFeatureCollection(value);
 
@@ -1005,6 +1066,10 @@ function reverseDiscoveryAreaLabel(
     null;
 
   let placeLabel: string | null =
+    null;
+
+  let resolvedState:
+    MapboxStateContext | null =
     null;
 
   for (
@@ -1028,6 +1093,31 @@ function reverseDiscoveryAreaLabel(
     requireNigeria(
       identity.properties,
     );
+
+    const featureState =
+      stateContext(
+        identity.properties,
+      );
+
+    if (featureState === null) {
+      throw new MapboxGeocodingProviderError(
+        'invalid_response',
+      );
+    }
+
+    if (resolvedState === null) {
+      resolvedState =
+        featureState;
+    } else if (
+      resolvedState.providerReference
+        !== featureState.providerReference
+      || resolvedState.name
+        !== featureState.name
+    ) {
+      throw new MapboxGeocodingProviderError(
+        'invalid_response',
+      );
+    }
 
     const label =
       discoveryAreaLabel(
@@ -1057,17 +1147,24 @@ function reverseDiscoveryAreaLabel(
     }
   }
 
-  const label =
+  const resolvedDiscoveryAreaLabel =
     localityLabel
     ?? placeLabel;
 
-  if (label === null) {
+  if (
+    resolvedDiscoveryAreaLabel === null
+    || resolvedState === null
+  ) {
     throw new MapboxGeocodingProviderError(
       'invalid_response',
     );
   }
 
-  return label;
+  return {
+    discoveryAreaLabel:
+      resolvedDiscoveryAreaLabel,
+    state: resolvedState,
+  };
 }
 
 function searchSuggestion(
@@ -1358,6 +1455,12 @@ export function createMapboxGeocodingProvider(
       let resolvedDiscoveryAreaLabel:
         string;
 
+      let resolvedState:
+        MapboxStateContext | null =
+        stateContext(
+          identity.properties,
+        );
+
       if (
         (
           identity.featureType
@@ -1384,16 +1487,48 @@ export function createMapboxGeocodingProvider(
             timeoutMs,
           );
 
-        resolvedDiscoveryAreaLabel =
-          reverseDiscoveryAreaLabel(
+        const reverseContext =
+          reverseResolutionContext(
             reverseRaw,
           );
+
+        resolvedDiscoveryAreaLabel =
+          reverseContext
+            .discoveryAreaLabel;
+
+        if (
+          resolvedState !== null
+          && (
+            resolvedState
+              .providerReference
+              !== reverseContext
+                .state
+                .providerReference
+            || resolvedState.name
+              !== reverseContext
+                .state
+                .name
+          )
+        ) {
+          throw new MapboxGeocodingProviderError(
+            'invalid_response',
+          );
+        }
+
+        resolvedState =
+          reverseContext.state;
       } else {
         resolvedDiscoveryAreaLabel =
           discoveryAreaLabel(
             identity.properties,
             identity.featureType,
           );
+      }
+
+      if (resolvedState === null) {
+        throw new MapboxGeocodingProviderError(
+          'invalid_response',
+        );
       }
 
       const resolvedAt =
@@ -1428,6 +1563,13 @@ export function createMapboxGeocodingProvider(
 
         discoveryAreaLabel:
           resolvedDiscoveryAreaLabel,
+
+        stateProviderReference:
+          resolvedState
+            .providerReference,
+
+        stateName:
+          resolvedState.name,
 
         latitude:
           coordinates.latitude,

@@ -169,6 +169,7 @@ test('no operational callers or older migrations consume these tables', () => {
   'supabase/migrations/0045_movement_offer_availability_capacity.sql',
   'supabase/migrations/0046_requester_availability_matching_context.sql',
   'supabase/migrations/0047_requester_movement_interest_foundation.sql',
+  'supabase/migrations/0050_state_bound_movement_matching.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);

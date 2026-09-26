@@ -46,6 +46,10 @@ export interface DurableLocationResolution {
   providerPlaceReference: string;
   resolutionVersion: string;
   discoveryAreaLabel: string;
+
+  stateProviderReference: string;
+  stateName: string;
+
   latitude: number;
   longitude: number;
   resolvedAt: string;
@@ -104,6 +108,7 @@ export interface LocationResolutionContext {
   resolvedLocationReferenceId: string | null;
   version: number | null;
   expiresAt: string | null;
+  hasTrustedStateEvidence: boolean;
 }
 
 export interface AttestedResolutionRecord {
@@ -168,6 +173,10 @@ export interface LocationBackend {
       providerPlaceReference: string;
       resolutionVersion: string;
       discoveryAreaLabel: string;
+
+      stateProviderReference: string;
+      stateName: string;
+
       latitude: number;
       longitude: number;
       resolvedAt: string;

@@ -122,6 +122,8 @@ function backend(overrides = {}) {
           null,
         version: null,
         expiresAt: null,
+        hasTrustedStateEvidence:
+          false,
       };
     },
 
@@ -247,6 +249,13 @@ function resolver(overrides = {}) {
           'normalization-v1',
         discoveryAreaLabel:
           'Ologolo, Lagos',
+
+        stateProviderReference:
+          'mapbox-region-lagos',
+
+        stateName:
+          'Lagos',
+
         latitude: 6.45,
         longitude: 3.47,
         resolvedAt:
@@ -756,7 +765,7 @@ test('resolution uses stored provider identity only', async () => {
   );
 });
 
-test('existing committed resolution avoids provider call', async () => {
+test('existing committed resolution with trusted state avoids provider call', async () => {
   const { db } = backend({
     async getResolutionContext() {
       return {
@@ -772,6 +781,8 @@ test('existing committed resolution avoids provider call', async () => {
           resolved,
         version: 1,
         expiresAt: null,
+        hasTrustedStateEvidence:
+          true,
       };
     },
   });
@@ -791,6 +802,109 @@ test('existing committed resolution avoids provider call', async () => {
 
   assert.equal(response.status, 200);
   assert.equal(r.calls.length, 0);
+});
+
+test('legacy committed resolution without trusted state re-resolves once to attach state evidence', async () => {
+  let quotaCalls = 0;
+
+  const { db, calls } = backend({
+    async consumeProviderQuota(
+      id,
+      operation,
+      signal,
+    ) {
+      signal.throwIfAborted();
+      quotaCalls += 1;
+
+      assert.equal(id, member);
+      assert.equal(
+        operation,
+        'location_resolution',
+      );
+
+      return {
+        admitted: true,
+        retryAfterSeconds: 0,
+      };
+    },
+
+    async getResolutionContext() {
+      return {
+        providerNamespace:
+          'test-provider',
+        providerPlaceReference:
+          'opaque-reference',
+        sourceCreatedAt:
+          '2026-09-17T11:00:00.000Z',
+        sourceExpiresAt: null,
+        evidenceId: evidence,
+        resolvedLocationReferenceId:
+          resolved,
+        version: 1,
+        expiresAt: null,
+        hasTrustedStateEvidence:
+          false,
+      };
+    },
+  });
+
+  const r = resolver();
+
+  const response =
+    await createLocationResolutionHandler(
+      db,
+      r.resolver,
+    )(
+      request({
+        sourceLocationReferenceId:
+          source,
+      }),
+    );
+
+  assert.equal(response.status, 200);
+
+  assert.equal(
+    quotaCalls,
+    1,
+  );
+
+  assert.equal(
+    r.calls.length,
+    1,
+  );
+
+  assert.deepEqual(
+    r.calls[0],
+    {
+      providerNamespace:
+        'test-provider',
+      providerPlaceReference:
+        'opaque-reference',
+    },
+  );
+
+  const writes =
+    calls.filter(
+      call =>
+        call[0]
+        === 'recordResolution',
+    );
+
+  assert.equal(
+    writes.length,
+    1,
+  );
+
+  assert.equal(
+    writes[0][1]
+      .stateProviderReference,
+    'mapbox-region-lagos',
+  );
+
+  assert.equal(
+    writes[0][1].stateName,
+    'Lagos',
+  );
 });
 
 test('foreign or unattested source causes zero provider calls', async () => {
@@ -847,6 +961,22 @@ for (const [name, patch] of [
         'other-reference',
     },
   ],
+
+  [
+    'missing state provider reference',
+    {
+      stateProviderReference:
+        '',
+    },
+  ],
+  [
+    'missing state name',
+    {
+      stateName:
+        '',
+    },
+  ],
+
 ]) {
   test(`resolution rejects ${name}`, async () => {
     const { db, calls } = backend();
@@ -863,6 +993,12 @@ for (const [name, patch] of [
             'opaque-reference',
           resolutionVersion:
             'normalization-v1',
+          discoveryAreaLabel:
+            'Ologolo, Lagos',
+          stateProviderReference:
+            'mapbox-region-lagos',
+          stateName:
+            'Lagos',
           latitude: 6.45,
           longitude: 3.47,
           resolvedAt:
@@ -920,6 +1056,8 @@ test('ambiguous resolution write recovers committed winner', async () => {
             null,
           version: null,
           expiresAt: null,
+          hasTrustedStateEvidence:
+            false,
         };
       }
 
@@ -936,6 +1074,8 @@ test('ambiguous resolution write recovers committed winner', async () => {
           resolved,
         version: 1,
         expiresAt: null,
+        hasTrustedStateEvidence:
+          true,
       };
     },
 
@@ -1069,6 +1209,8 @@ test('expired trusted resolution context fails closed before provider call', asy
         version: 1,
         expiresAt:
           '2000-01-02T00:00:00.000Z',
+        hasTrustedStateEvidence:
+          true,
       };
     },
   });
@@ -1369,8 +1511,10 @@ test('existing committed resolution consumes zero provider quota', async () => {
         evidenceId: evidence,
         resolvedLocationReferenceId:
           resolved,
-        version: 1,
-        expiresAt: null,
+version: 1,
+expiresAt: null,
+hasTrustedStateEvidence:
+  true,
       };
     },
   });
@@ -1564,6 +1708,8 @@ test('ambiguous resolution write recovery does not consume second quota or call 
             null,
           version: null,
           expiresAt: null,
+          hasTrustedStateEvidence:
+            false,
         };
       }
 
@@ -1580,6 +1726,8 @@ test('ambiguous resolution write recovery does not consume second quota or call 
           resolved,
         version: 1,
         expiresAt: null,
+        hasTrustedStateEvidence:
+          true,
       };
     },
 
@@ -1640,6 +1788,8 @@ test('expired recovered resolution is rejected without second quota or provider 
             null,
           version: null,
           expiresAt: null,
+          hasTrustedStateEvidence:
+            false,
         };
       }
 
@@ -1657,6 +1807,8 @@ test('expired recovered resolution is rejected without second quota or provider 
         version: 1,
         expiresAt:
           '2000-01-02T00:00:00.000Z',
+        hasTrustedStateEvidence:
+          true,
       };
     },
 

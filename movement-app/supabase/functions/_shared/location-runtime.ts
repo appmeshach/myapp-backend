@@ -23,7 +23,7 @@ const RPC_RECOVER_SELECTION =
   'get_verified_selected_location_for_server';
 
 const RPC_RESOLUTION_CONTEXT =
-  'get_selected_location_resolution_context_for_server';
+  'get_selected_location_resolution_context_with_state_for_server';
 
 const RPC_RECORD_RESOLUTION =
   'record_attested_location_resolution_for_server';
@@ -512,6 +512,9 @@ export function createLocationBackend(
         || typeof row
           .source_created_at
           !== 'string'
+        || typeof row
+          .has_trusted_state_evidence
+          !== 'boolean'
       ) {
         return null;
       }
@@ -611,8 +614,10 @@ export function createLocationBackend(
           resolvedId,
 
         version,
-
         expiresAt,
+
+        hasTrustedStateEvidence:
+          row.has_trusted_state_evidence,
       };
     },
 
@@ -654,6 +659,12 @@ export function createLocationBackend(
 
             p_discovery_area_label:
               input.discoveryAreaLabel,
+
+            p_state_provider_reference:
+              input.stateProviderReference,
+
+            p_state_name:
+              input.stateName,
 
             p_latitude:
               input.latitude,
