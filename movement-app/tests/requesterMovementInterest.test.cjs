@@ -171,6 +171,7 @@ function screen(kind) {
     } },
   };
   const handlers = {
+    recoverLatestActiveMovementNeed: async () => need,
     calculateRouteMatch: async () => match,
     createRequesterMovementInterest: async () => ({ interestId: interest, interestStatus: 'active', createdAt: time }),
     withdrawRequesterMovementInterest: async () => ({ interestId: interest, interestStatus: 'withdrawn', createdAt: time }),
@@ -190,6 +191,7 @@ function screen(kind) {
       recoverSelectedLocation: async () => { throw new Error('unexpected recovery'); },
     },
     '../services/movementService': {
+      recoverLatestActiveMovementNeed: wrap('recoverLatestActiveMovementNeed'),
       createMovementNeed: async input => { calls.push(['createMovementNeed', plain(input)]); return { movementNeedId: need }; },
       discoverMaskedMovementNeeds: async () => [],
       createMovementOffer: async input => { calls.push(['createMovementOffer', plain(input)]); },
@@ -235,9 +237,11 @@ function screen(kind) {
 }
 
 test('requester browsing selecting and private checking never auto-create interest', async () => {
-  const h = screen('request'); await h.settle(); await h.select();
+  const h = screen('request');
+  h.handlers.recoverLatestActiveMovementNeed = async () => null;
+  await h.settle(); await h.select();
   assert(!h.text().includes("I'm interested"));
-  assert.equal(h.calls.length, 0);
+  assert.deepEqual(h.calls, [['recoverLatestActiveMovementNeed']]);
   await h.form();
   const waiting = deferred(); h.handlers.calculateRouteMatch = () => waiting.promise;
   await h.select(); assert(!h.text().includes("I'm interested"));
@@ -254,7 +258,12 @@ test('explicit create uses exact context updates CTA and performs no offer capac
   assert.match(created.requestId, /^[a-f0-9-]{36}$/);
   assert.equal(h.button('Interested').props.disabled, true);
   assert(h.button('Withdraw interest'));
-  assert.deepEqual(h.calls.map(c => c[0]), ['createMovementNeed', 'calculateRouteMatch', 'createRequesterMovementInterest']);
+  assert.deepEqual(h.calls.map(c => c[0]), [
+    'recoverLatestActiveMovementNeed',
+    'createMovementNeed',
+    'calculateRouteMatch',
+    'createRequesterMovementInterest',
+  ]);
 });
 test('withdraw uses exact ID preserves withdrawn meaning and requires a fresh check/request', async () => {
   const h = screen('request'); await h.settle(); await h.form(); await h.select(); await h.press("I'm interested");

@@ -23,6 +23,22 @@ export interface CreatedMovementNeed {
   movementNeedId: string;
 }
 
+interface RecoverableMovementNeedRow {
+  movement_need_id: string;
+}
+
+export async function recoverLatestActiveMovementNeed(): Promise<string | null> {
+  const { data, error } = await supabase.rpc('get_my_current_movement_need');
+
+  if (error) {
+    throw new Error('movement_need_recovery_unavailable');
+  }
+
+  const rows = data as RecoverableMovementNeedRow[] | null;
+
+  return rows?.[0]?.movement_need_id ?? null;
+}
+
 interface CreatedMovementNeedRpcRow {
   movement_need_id: string;
 }

@@ -23,7 +23,10 @@ import {
   type MovementLocationSuggestion,
 } from '../services/locationService';
 
-import { createMovementNeed } from '../services/movementService';
+import {
+  createMovementNeed,
+  recoverLatestActiveMovementNeed,
+} from '../services/movementService';
 import {
   createRequesterMovementInterest,
   withdrawRequesterMovementInterest,
@@ -288,6 +291,24 @@ export default function RequestMovementScreen() {
   useEffect(() => {
     if (signedIn) {
       void loadOfferedMovements();
+
+      void recoverLatestActiveMovementNeed()
+        .then(movementNeedId => {
+          if (!mounted.current) {
+            return;
+          }
+
+          setActiveMovementNeedId(movementNeedId);
+        })
+        .catch(() => {
+          if (!mounted.current) {
+            return;
+          }
+
+          setMessage(
+            'Your existing movement request could not be recovered right now.',
+          );
+        });
     }
   }, [signedIn, loadOfferedMovements]);
 
