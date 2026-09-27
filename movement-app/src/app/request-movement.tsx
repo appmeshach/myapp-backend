@@ -24,7 +24,9 @@ import {
 } from '../services/locationService';
 
 import {
+  acceptMovementOffer,
   createMovementNeed,
+  discoverMaskedOffersForMyNeed,
   recoverLatestActiveMovementNeed,
 } from '../services/movementService';
 import {
@@ -170,14 +172,31 @@ export default function RequestMovementScreen() {
   const [offeredMovementsMessage, setOfferedMovementsMessage] =
     useState('');
 
-  const [activeMovementNeedId, setActiveMovementNeedId] =
-    useState<string | null>(null);
+const [activeMovementNeedId, setActiveMovementNeedId] =
+  useState<string | null>(null);
 
-  const [explicitMovementNeedId, setExplicitMovementNeedId] =
-    useState<string | null>(null);
+const [explicitMovementNeedId, setExplicitMovementNeedId] =
+  useState<string | null>(null);
 
-  const [selectedAvailabilityId, setSelectedAvailabilityId] =
-    useState<string | null>(null);
+const [incomingOffers, setIncomingOffers] =
+  useState<Awaited<ReturnType<typeof discoverMaskedOffersForMyNeed>>>([]);
+
+const [incomingOffersLoading, setIncomingOffersLoading] =
+  useState(false);
+
+const [incomingOffersMessage, setIncomingOffersMessage] =
+  useState('');
+
+const [acceptingOfferId, setAcceptingOfferId] =
+  useState<string | null>(null);
+
+const [offerAcceptanceMessage, setOfferAcceptanceMessage] =
+  useState('');
+
+const offerAcceptanceInFlight = useRef(false);
+
+const [selectedAvailabilityId, setSelectedAvailabilityId] =
+  useState<string | null>(null);
 
   const [requesterRouteMatch, setRequesterRouteMatch] =
     useState<RouteMatchReady | null>(null);
@@ -304,29 +323,120 @@ export default function RequestMovementScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    if (signedIn) {
-      void loadOfferedMovements();
+useEffect(() => {
+  if (signedIn) {
+    void loadOfferedMovements();
 
-      void recoverLatestActiveMovementNeed()
-        .then(movementNeedId => {
+    void recoverLatestActiveMovementNeed()
+      .then(async movementNeedId => {
+        if (!mounted.current) {
+          return;
+        }
+
+        setActiveMovementNeedId(movementNeedId);
+
+        if (!movementNeedId) {
+          setIncomingOffers([]);
+          setIncomingOffersMessage('');
+          return;
+        }
+
+        setIncomingOffersLoading(true);
+        setIncomingOffersMessage('');
+
+        try {
+          const offers =
+            await discoverMaskedOffersForMyNeed(
+              movementNeedId,
+            );
+
           if (!mounted.current) {
             return;
           }
 
-          setActiveMovementNeedId(movementNeedId);
-        })
-        .catch(() => {
+          setIncomingOffers(offers);
+
+          if (offers.length === 0) {
+            setIncomingOffersMessage(
+              'No movement offers have been sent to this request yet.',
+            );
+          }
+        } catch {
           if (!mounted.current) {
             return;
           }
 
-          setMessage(
-            'Your existing movement request could not be recovered right now.',
+          setIncomingOffers([]);
+          setIncomingOffersMessage(
+            'Your movement offers could not be loaded right now.',
           );
-        });
+        } finally {
+          if (mounted.current) {
+            setIncomingOffersLoading(false);
+          }
+        }
+      })
+      .catch(() => {
+        if (!mounted.current) {
+          return;
+        }
+
+        setMessage(
+          'Your existing movement request could not be recovered right now.',
+        );
+      });
+  }
+}, [signedIn, loadOfferedMovements]);
+
+  async function acceptIncomingOffer(
+    movementOfferId: string,
+  ) {
+    if (
+      offerAcceptanceInFlight.current
+      || acceptingOfferId !== null
+    ) {
+      return;
     }
-  }, [signedIn, loadOfferedMovements]);
+
+    offerAcceptanceInFlight.current = true;
+    setAcceptingOfferId(movementOfferId);
+    setOfferAcceptanceMessage('');
+
+    try {
+      const result =
+        await acceptMovementOffer(movementOfferId);
+
+      if (!mounted.current) {
+        return;
+      }
+
+      /*
+       * Once one offer has been accepted the requester has an
+       * alignment. Do not keep presenting this screen's recovered
+       * pending offers as if another one can still be accepted.
+       */
+      setIncomingOffers([]);
+      setIncomingOffersMessage('');
+
+      setOfferAcceptanceMessage(
+        `Movement offer accepted. Alignment status: ${result.alignmentStatus}.`,
+      );
+    } catch {
+      if (!mounted.current) {
+        return;
+      }
+
+      setOfferAcceptanceMessage(
+        'This movement offer could not be accepted. It may no longer be available, or your movement request may have expired.',
+      );
+    } finally {
+      offerAcceptanceInFlight.current = false;
+
+      if (mounted.current) {
+        setAcceptingOfferId(null);
+      }
+    }
+  }
 
     async function checkOfferedMovement(
     availabilityId: string,
@@ -641,6 +751,103 @@ export default function RequestMovementScreen() {
       <Text style={styles.description}>
         Tell us where you need to move.
       </Text>
+
+      {activeMovementNeedId && (
+        <View style={styles.section}>
+          <Text style={styles.label}>
+            Offers sent to you
+          </Text>
+
+          {incomingOffersLoading && (
+            <Text style={styles.help}>
+              Loading movement offers...
+            </Text>
+          )}
+
+          {!!incomingOffersMessage && (
+            <Text style={styles.message}>
+              {incomingOffersMessage}
+            </Text>
+          )}
+
+          {!!offerAcceptanceMessage && (
+            <Text style={styles.message}>
+              {offerAcceptanceMessage}
+            </Text>
+          )}
+
+          {incomingOffers.map(offer => (
+            <View
+              key={offer.movementOfferId}
+              style={styles.offeredMovementCard}
+            >
+              <Text style={styles.confirmed}>
+                Movement offer
+              </Text>
+
+              <Text>
+                {offer.seatsOffered}{' '}
+                {offer.seatsOffered === 1
+                  ? 'place'
+                  : 'places'}{' '}
+                offered
+              </Text>
+
+              <Text>
+                {offer.vehicleMake}
+                {offer.vehicleModel
+                  ? ` ${offer.vehicleModel}`
+                  : ''}
+                {offer.vehicleYear !== null
+                  ? ` • ${offer.vehicleYear}`
+                  : ''}
+              </Text>
+
+              <Text>
+                {offer.vehicleColor}
+              </Text>
+
+              {offer.estimatedArrivalMinutes !== null && (
+                <Text style={styles.help}>
+                  Estimated arrival:{' '}
+                  {offer.estimatedArrivalMinutes} minutes
+                </Text>
+              )}
+
+              <Text style={styles.help}>
+                Offer sent:{' '}
+                {new Date(
+                  offer.offerCreatedAt,
+                ).toLocaleString()}
+              </Text>
+
+              <Text style={styles.help}>
+                Status: {offer.offerStatus}
+              </Text>
+
+              {offer.offerStatus === 'pending' && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Accept movement offer ${offer.movementOfferId}`}
+                  disabled={acceptingOfferId !== null}
+                  onPress={() => {
+                    void acceptIncomingOffer(
+                      offer.movementOfferId,
+                    );
+                  }}
+                  style={styles.primaryButton}
+                >
+                  <Text style={styles.primaryButtonText}>
+                    {acceptingOfferId === offer.movementOfferId
+                      ? 'Accepting...'
+                      : 'Accept offer'}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          ))}
+        </View>
+      )}
 
       <View style={styles.section}>
         <Text style={styles.label}>Available movements</Text>

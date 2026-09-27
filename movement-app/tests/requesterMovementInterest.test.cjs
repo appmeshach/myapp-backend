@@ -172,6 +172,14 @@ function screen(kind) {
   };
   const handlers = {
     recoverLatestActiveMovementNeed: async () => need,
+    discoverMaskedOffersForMyNeed: async () => [],
+    acceptMovementOffer: async movementOfferId => ({
+      alignmentId: id(70),
+      alignmentStatus: 'awaiting_activation_payment',
+      movementNeedId: need,
+      movementOfferId,
+      createdAt: time,
+    }),
     calculateRouteMatch: async () => match,
     createRequesterMovementInterest: async () => ({ interestId: interest, interestStatus: 'active', createdAt: time }),
     withdrawRequesterMovementInterest: async () => ({ interestId: interest, interestStatus: 'withdrawn', createdAt: time }),
@@ -192,6 +200,8 @@ function screen(kind) {
     },
     '../services/movementService': {
       recoverLatestActiveMovementNeed: wrap('recoverLatestActiveMovementNeed'),
+      discoverMaskedOffersForMyNeed: wrap('discoverMaskedOffersForMyNeed'),
+      acceptMovementOffer: wrap('acceptMovementOffer'),
       createMovementNeed: async input => { calls.push(['createMovementNeed', plain(input)]); return { movementNeedId: need }; },
       discoverMaskedMovementNeeds: async () => [],
       createMovementOffer: async input => { calls.push(['createMovementOffer', plain(input)]); },
@@ -242,6 +252,7 @@ test('recovered current movement need alone cannot check route or express intere
 
   assert.deepEqual(h.calls, [
     ['recoverLatestActiveMovementNeed'],
+    ['discoverMaskedOffersForMyNeed', need],
   ]);
 
   await h.select();
@@ -285,12 +296,9 @@ test('explicit create uses exact context updates CTA and performs no offer capac
   assert.match(created.requestId, /^[a-f0-9-]{36}$/);
   assert.equal(h.button('Interested').props.disabled, true);
   assert(h.button('Withdraw interest'));
-  assert.deepEqual(h.calls.map(c => c[0]), [
-    'recoverLatestActiveMovementNeed',
-    'createMovementNeed',
-    'calculateRouteMatch',
-    'createRequesterMovementInterest',
-  ]);
+  assert.deepEqual(h.calls.map(c => c[0]), ['recoverLatestActiveMovementNeed', 'discoverMaskedOffersForMyNeed',
+    'createMovementNeed', 'calculateRouteMatch', 'createRequesterMovementInterest']);
+  assert.deepEqual(h.calls[1], ['discoverMaskedOffersForMyNeed', need]);
 });
 test('editing submitted movement details requires explicit resubmission before interest', async () => {
   const mutationCases = [
@@ -508,4 +516,173 @@ test('offerer inbox loading and errors are neutral and retryable', async () => {
   assert(h.text().includes('could not be loaded')); assert(!h.text().includes('private SQL'));
   h.handlers.listRequesterMovementInterestsForOfferer = async () => [];
   await h.press('Refresh interested requesters'); assert(h.text().includes('No interests yet.'));
+});
+
+test('requester accepts an exact pending movement offer and removes pending offers after alignment creation', async () => {
+  const h = screen('request');
+  const movementOfferId = id(71);
+
+  h.handlers.discoverMaskedOffersForMyNeed = async () => [{
+    movementOfferId,
+    seatsOffered: 2,
+    estimatedArrivalMinutes: 12,
+    offerStatus: 'pending',
+    offerCreatedAt: time,
+    vehicleMake: 'Test',
+    vehicleModel: 'Car',
+    vehicleYear: 2024,
+    vehicleColor: 'Blue',
+    vehicleSeatCapacity: 3,
+    age: null,
+    commonMovementArea: null,
+    identityVerified: true,
+    profileMediaVerified: true,
+    completedMovements: 4,
+    rating: null,
+  }];
+
+  await h.settle();
+
+  const acceptButton =
+    h.button(`Accept movement offer ${movementOfferId}`);
+
+  assert.equal(
+    text(acceptButton).replace(/\s+/g, ' ').trim(),
+    'Accept offer',
+  );
+
+  await h.press(`Accept movement offer ${movementOfferId}`);
+
+  assert.deepEqual(
+    h.calls.find(c => c[0] === 'acceptMovementOffer'),
+    ['acceptMovementOffer', movementOfferId],
+  );
+
+  assert(
+    h.text().includes(
+      'Movement offer accepted. Alignment status: awaiting_activation_payment.',
+    ),
+  );
+
+  assert(!h.text().includes('Status: pending'));
+});
+
+test('requester movement offer acceptance prevents duplicate writes while one acceptance is pending', async () => {
+  const h = screen('request');
+  const movementOfferId = id(72);
+  const pending = deferred();
+
+  h.handlers.discoverMaskedOffersForMyNeed = async () => [{
+    movementOfferId,
+    seatsOffered: 1,
+    estimatedArrivalMinutes: null,
+    offerStatus: 'pending',
+    offerCreatedAt: time,
+    vehicleMake: 'Test',
+    vehicleModel: 'Car',
+    vehicleYear: null,
+    vehicleColor: 'Blue',
+    vehicleSeatCapacity: 3,
+    age: null,
+    commonMovementArea: null,
+    identityVerified: true,
+    profileMediaVerified: true,
+    completedMovements: 0,
+    rating: null,
+  }];
+
+  h.handlers.acceptMovementOffer =
+    () => pending.promise;
+
+  await h.settle();
+
+  const action =
+    h.button(
+      `Accept movement offer ${movementOfferId}`,
+    ).props.onPress;
+
+  action();
+  action();
+
+  await h.settle();
+
+  assert.equal(
+    h.calls.filter(c => c[0] === 'acceptMovementOffer').length,
+    1,
+  );
+
+  assert(
+    h.text().includes('Accepting...'),
+  );
+
+  pending.resolve({
+    alignmentId: id(73),
+    alignmentStatus: 'awaiting_activation_payment',
+    movementNeedId: need,
+    movementOfferId,
+    createdAt: time,
+  });
+
+  await h.settle();
+
+  assert.equal(
+    h.calls.filter(c => c[0] === 'acceptMovementOffer').length,
+    1,
+  );
+});
+
+test('failed movement offer acceptance keeps the offer visible and does not expose backend details', async () => {
+  const h = screen('request');
+  const movementOfferId = id(74);
+
+  h.handlers.discoverMaskedOffersForMyNeed = async () => [{
+    movementOfferId,
+    seatsOffered: 1,
+    estimatedArrivalMinutes: null,
+    offerStatus: 'pending',
+    offerCreatedAt: time,
+    vehicleMake: 'Test',
+    vehicleModel: 'Car',
+    vehicleYear: null,
+    vehicleColor: 'Blue',
+    vehicleSeatCapacity: 3,
+    age: null,
+    commonMovementArea: null,
+    identityVerified: true,
+    profileMediaVerified: true,
+    completedMovements: 0,
+    rating: null,
+  }];
+
+  h.handlers.acceptMovementOffer =
+    async () => {
+      throw new Error(
+        'Movement need is not available for matching private SQL detail',
+      );
+    };
+
+  await h.settle();
+
+  await h.press(
+    `Accept movement offer ${movementOfferId}`,
+  );
+
+  assert.equal(
+    h.calls.filter(c => c[0] === 'acceptMovementOffer').length,
+    1,
+  );
+
+  assert(
+    h.text().includes(
+      'This movement offer could not be accepted. It may no longer be available, or your movement request may have expired.',
+    ),
+  );
+
+  assert(
+    h.text().includes('Status: pending'),
+  );
+
+  assert(
+    !h.text().includes('private SQL detail'),
+  );
 });
