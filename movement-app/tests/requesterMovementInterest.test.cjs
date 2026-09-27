@@ -236,6 +236,33 @@ function screen(kind) {
   };
 }
 
+test('recovered current movement need alone cannot check route or express interest', async () => {
+  const h = screen('request');
+  await h.settle();
+
+  assert.deepEqual(h.calls, [
+    ['recoverLatestActiveMovementNeed'],
+  ]);
+
+  await h.select();
+
+  assert(!h.text().includes("I'm interested"));
+  assert(!h.text().includes('Interest lets the person'));
+  assert.equal(
+    h.calls.filter(c => c[0] === 'calculateRouteMatch').length,
+    0,
+  );
+  assert.equal(
+    h.calls.filter(c => c[0] === 'createRequesterMovementInterest').length,
+    0,
+  );
+  assert(
+    h.text().includes(
+      'Submit your movement request first.',
+    ),
+  );
+});
+
 test('requester browsing selecting and private checking never auto-create interest', async () => {
   const h = screen('request');
   h.handlers.recoverLatestActiveMovementNeed = async () => null;
@@ -264,6 +291,130 @@ test('explicit create uses exact context updates CTA and performs no offer capac
     'calculateRouteMatch',
     'createRequesterMovementInterest',
   ]);
+});
+test('editing submitted movement details requires explicit resubmission before interest', async () => {
+  const mutationCases = [
+    {
+      name: 'origin',
+      mutate: async h => {
+        h.find(
+          n =>
+            n.type === 'TextInput'
+            && n.props.accessibilityLabel === 'Movement request origin',
+        ).props.onChangeText('Changed origin');
+        await h.settle();
+      },
+    },
+    {
+      name: 'destination',
+      mutate: async h => {
+        h.find(
+          n =>
+            n.type === 'TextInput'
+            && n.props.accessibilityLabel === 'Movement request destination',
+        ).props.onChangeText('Changed destination');
+        await h.settle();
+      },
+    },
+    {
+      name: 'departure',
+      mutate: async h => {
+        await h.press('Choose earliest departure');
+        const list = h.find(n => n.type === 'FlatList');
+        list.props.renderItem({
+          item: list.props.data[0],
+        }).props.onPress();
+        await h.settle();
+      },
+    },
+    {
+      name: 'people count',
+      mutate: async h => {
+        h.find(
+          n =>
+            n.type === 'TextInput'
+            && n.props.accessibilityLabel === 'Number of people',
+        ).props.onChangeText('2');
+        await h.settle();
+      },
+    },
+  ];
+
+  for (const mutationCase of mutationCases) {
+    const h = screen('request');
+    await h.settle();
+    await h.form();
+
+    await mutationCase.mutate(h);
+
+    const routeCallsBefore =
+      h.calls.filter(c => c[0] === 'calculateRouteMatch').length;
+
+    await h.select();
+
+    assert.equal(
+      h.calls.filter(c => c[0] === 'calculateRouteMatch').length,
+      routeCallsBefore,
+      mutationCase.name,
+    );
+
+    assert(
+      !h.text().includes("I'm interested"),
+      mutationCase.name,
+    );
+
+    assert.equal(
+      h.calls.filter(c => c[0] === 'createRequesterMovementInterest').length,
+      0,
+      mutationCase.name,
+    );
+
+    h.unmount();
+  }
+});
+test('resubmitting changed movement restores route and interest flow', async () => {
+  const h = screen('request');
+  await h.settle();
+  await h.form();
+
+  h.find(
+    n =>
+      n.type === 'TextInput'
+      && n.props.accessibilityLabel === 'Movement request origin',
+  ).props.onChangeText('Changed origin');
+
+  await h.settle();
+  await h.select();
+
+  assert.equal(
+    h.calls.filter(c => c[0] === 'calculateRouteMatch').length,
+    0,
+  );
+  assert(!h.text().includes("I'm interested"));
+
+  await h.form();
+  await h.select();
+
+  assert.equal(
+    h.calls.filter(c => c[0] === 'calculateRouteMatch').length,
+    1,
+  );
+  assert.equal(
+    h.button("I'm interested").props.disabled,
+    false,
+  );
+
+  await h.press("I'm interested");
+
+  assert.equal(
+    h.calls.filter(c => c[0] === 'createRequesterMovementInterest').length,
+    1,
+  );
+
+  assert.equal(
+    h.calls.filter(c => c[0] === 'createMovementNeed').length,
+    2,
+  );
 });
 test('withdraw uses exact ID preserves withdrawn meaning and requires a fresh check/request', async () => {
   const h = screen('request'); await h.settle(); await h.form(); await h.select(); await h.press("I'm interested");

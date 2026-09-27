@@ -173,6 +173,9 @@ export default function RequestMovementScreen() {
   const [activeMovementNeedId, setActiveMovementNeedId] =
     useState<string | null>(null);
 
+  const [explicitMovementNeedId, setExplicitMovementNeedId] =
+    useState<string | null>(null);
+
   const [selectedAvailabilityId, setSelectedAvailabilityId] =
     useState<string | null>(null);
 
@@ -195,15 +198,28 @@ export default function RequestMovementScreen() {
     return () => { mounted.current = false; routeCheckVersion.current += 1; };
   }, []);
 
-  const interestKey = activeMovementNeedId && selectedAvailabilityId
-    ? `${activeMovementNeedId}:${selectedAvailabilityId}` : null;
+  function invalidateExplicitMovementDeclaration() {
+    if (!explicitMovementNeedId) {
+      return;
+    }
+
+    setExplicitMovementNeedId(null);
+    setSelectedAvailabilityId(null);
+    setRequesterRouteMatch(null);
+    setRouteMatchSelection(null);
+    setInterestError('');
+    routeCheckVersion.current += 1;
+  }
+
+  const interestKey = explicitMovementNeedId && selectedAvailabilityId
+    ? `${explicitMovementNeedId}:${selectedAvailabilityId}` : null;
   const currentInterest = interestKey ? requesterInterests[interestKey] : undefined;
   const activeRequesterInterestId = currentInterest?.interestStatus === 'active'
     ? currentInterest.interestId : null;
   const activeRequesterInterestAvailabilityId = activeRequesterInterestId ? selectedAvailabilityId : null;
-  const hasCurrentReadyRouteMatch = !!activeMovementNeedId && !!selectedAvailabilityId
+  const hasCurrentReadyRouteMatch = !!explicitMovementNeedId && !!selectedAvailabilityId
     && requesterRouteMatch?.state === 'ready' && !!requesterRouteMatch.routeMatchEvidenceId
-    && routeMatchSelection?.movementNeedId === activeMovementNeedId
+    && routeMatchSelection?.movementNeedId === explicitMovementNeedId
     && routeMatchSelection?.availabilityId === selectedAvailabilityId;
   const canExpressInterest = hasCurrentReadyRouteMatch
     && (requesterRouteMatch.routeMatchEvidenceExpiresAt === null
@@ -212,7 +228,7 @@ export default function RequestMovementScreen() {
 
   async function expressInterest() {
     if (busy || interestInFlight.current || !canExpressInterest || !interestKey
-      || !activeMovementNeedId || !selectedAvailabilityId || !requesterRouteMatch) return;
+      || !explicitMovementNeedId || !selectedAvailabilityId || !requesterRouteMatch) return;
     if (requesterRouteMatch.routeMatchEvidenceExpiresAt !== null
       && Date.parse(requesterRouteMatch.routeMatchEvidenceExpiresAt) <= Date.now()) {
       setInterestError('Check the private route relationship again before expressing interest.');
@@ -228,7 +244,7 @@ export default function RequestMovementScreen() {
       let input = interestRequests.current[interestKey];
       if (!input || input.routeMatchEvidenceId !== requesterRouteMatch.routeMatchEvidenceId) {
         input = {
-          requestId: Crypto.randomUUID(), movementNeedId: activeMovementNeedId,
+          requestId: Crypto.randomUUID(), movementNeedId: explicitMovementNeedId,
           availabilityId: selectedAvailabilityId, routeMatchEvidenceId: requesterRouteMatch.routeMatchEvidenceId,
         };
         interestRequests.current[interestKey] = input;
@@ -325,9 +341,9 @@ export default function RequestMovementScreen() {
       availabilityId,
     );
 
-    if (!activeMovementNeedId) {
+    if (!explicitMovementNeedId) {
       setMessage(
-        'Create your movement request first. You can browse available movements before creating one, but a trusted request is required to check the route relationship.',
+        'Submit your movement request first. You can browse available movements before submitting one, but an explicit trusted request is required to check the route relationship.',
       );
 
       return;
@@ -338,15 +354,16 @@ export default function RequestMovementScreen() {
     try {
       const match =
         await calculateRouteMatch(
-          activeMovementNeedId,
+          explicitMovementNeedId,
           {
             availabilityId,
           },
         );
 
       if (!mounted.current || version !== routeCheckVersion.current) return;
+
       setRequesterRouteMatch(match);
-      setRouteMatchSelection({ movementNeedId: activeMovementNeedId, availabilityId });
+      setRouteMatchSelection({ movementNeedId: explicitMovementNeedId, availabilityId });
 
       const distanceKm =
         (
@@ -457,6 +474,7 @@ export default function RequestMovementScreen() {
       const trusted =
         await trustSuggestion(suggestion);
 
+      invalidateExplicitMovementDeclaration();
       setOrigin(trusted);
       setOriginQuery(trusted.label);
       setOriginSuggestions([]);
@@ -481,6 +499,7 @@ export default function RequestMovementScreen() {
       const trusted =
         await trustSuggestion(suggestion);
 
+      invalidateExplicitMovementDeclaration();
       setDestination(trusted);
       setDestinationQuery(trusted.label);
       setDestinationSuggestions([]);
@@ -559,6 +578,10 @@ export default function RequestMovementScreen() {
         });
 
       setActiveMovementNeedId(
+        created.movementNeedId,
+      );
+
+      setExplicitMovementNeedId(
         created.movementNeedId,
       );
 
@@ -767,6 +790,7 @@ export default function RequestMovementScreen() {
           accessibilityLabel="Movement request origin"
           value={originQuery}
           onChangeText={text => {
+            invalidateExplicitMovementDeclaration();
             setOriginQuery(text);
             setOrigin(null);
             setOriginSuggestions([]);
@@ -827,6 +851,7 @@ export default function RequestMovementScreen() {
           accessibilityLabel="Movement request destination"
           value={destinationQuery}
           onChangeText={text => {
+            invalidateExplicitMovementDeclaration();
             setDestinationQuery(text);
             setDestination(null);
             setDestinationSuggestions([]);
@@ -922,7 +947,10 @@ export default function RequestMovementScreen() {
         <TextInput
           accessibilityLabel="Number of people"
           value={peopleCountText}
-          onChangeText={setPeopleCountText}
+          onChangeText={text => {
+            invalidateExplicitMovementDeclaration();
+            setPeopleCountText(text);
+          }}
           placeholder="1"
           keyboardType="number-pad"
           editable={!busy}
@@ -996,6 +1024,7 @@ export default function RequestMovementScreen() {
               <Pressable
                 accessibilityRole="button"
                 onPress={() => {
+                  invalidateExplicitMovementDeclaration();
                   setDeparture(item);
                   setDeparturePickerOpen(false);
                   setMessage('');
