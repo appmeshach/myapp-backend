@@ -1,5 +1,5 @@
 import * as Crypto from 'expo-crypto';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   Modal,
@@ -33,6 +33,7 @@ import {
 
 import {
   createMovementOffer,
+  createMovementOfferFromInterest,
   discoverMaskedMovementNeeds,
 } from '../services/movementService';
 import { listRequesterMovementInterestsForOfferer } from '../services/requesterMovementInterestService';
@@ -158,6 +159,7 @@ export default function OfferMovementScreen() {
     useState(() => Crypto.randomUUID());
 
   const [busy, setBusy] = useState(false);
+  const offerCreationInFlight = useRef(false);
   const [message, setMessage] = useState('');
 
   const [
@@ -189,6 +191,9 @@ export default function OfferMovementScreen() {
     useState<string | null>(null);
 
   const [interestRefresh, setInterestRefresh] = useState(0);
+  const [sentOfferInterestIds, setSentOfferInterestIds] =
+    useState<Record<string, true>>({});
+
   const [interestInbox, setInterestInbox] = useState<{
     availabilityId: string | null;
     rows: OffererRequesterInterest[];
@@ -198,23 +203,57 @@ export default function OfferMovementScreen() {
   const currentInbox = interestInbox.availabilityId === availabilityId
     ? interestInbox : { rows: [], loading: !!availabilityId, error: '' };
 
-  useEffect(() => {
-    let active = true;
-    if (!signedIn || !availabilityId) {
-      setInterestInbox({ availabilityId: null, rows: [], loading: false, error: '' });
-      return;
-    }
-    setInterestInbox({ availabilityId, rows: [], loading: true, error: '' });
-    void listRequesterMovementInterestsForOfferer({ availabilityId, limit: 20 })
-      .then(rows => {
-        if (active) setInterestInbox({ availabilityId, rows, loading: false, error: '' });
-      })
-      .catch(() => {
-        if (active) setInterestInbox({ availabilityId, rows: [], loading: false,
-          error: 'Interested requesters could not be loaded right now. Please refresh.' });
-      });
-    return () => { active = false; };
-  }, [signedIn, availabilityId, interestRefresh]);
+useEffect(() => {
+  let active = true;
+
+  if (!signedIn) {
+    setInterestInbox({
+      availabilityId: null,
+      rows: [],
+      loading: false,
+      error: '',
+    });
+
+    return;
+  }
+
+  setInterestInbox({
+    availabilityId,
+    rows: [],
+    loading: true,
+    error: '',
+  });
+
+  void listRequesterMovementInterestsForOfferer({
+    availabilityId,
+    limit: 20,
+  })
+    .then(rows => {
+      if (active) {
+        setInterestInbox({
+          availabilityId,
+          rows,
+          loading: false,
+          error: '',
+        });
+      }
+    })
+    .catch(() => {
+      if (active) {
+        setInterestInbox({
+          availabilityId,
+          rows: [],
+          loading: false,
+          error:
+            'Interested requesters could not be loaded right now. Please refresh.',
+        });
+      }
+    });
+
+  return () => {
+    active = false;
+  };
+}, [signedIn, availabilityId, interestRefresh]);
 
   const [availabilityRequestId, setAvailabilityRequestId] =
     useState(() => Crypto.randomUUID());
@@ -498,6 +537,49 @@ export default function OfferMovementScreen() {
           : 'offering_movement_availability_unavailable',
       );
     } finally {
+      setBusy(false);
+    }
+  }
+
+  async function createOfferForInterest(
+    interest: OffererRequesterInterest,
+  ) {
+    if (
+      busy
+      || offerCreationInFlight.current
+    ) {
+      return;
+    }
+
+    offerCreationInFlight.current = true;
+    setBusy(true);
+    setMessage('');
+
+    try {
+      await createMovementOfferFromInterest({
+        interestId: interest.interestId,
+        seatsOffered: interest.peopleCount,
+        proposedPickupArea: null,
+        proposedDropoffArea: null,
+        estimatedArrivalMinutes: null,
+      });
+
+      setSentOfferInterestIds(previous => ({
+        ...previous,
+        [interest.interestId]: true,
+      }));
+
+      setMessage(
+        'Movement offer sent to the interested requester.',
+      );
+
+      setInterestRefresh(value => value + 1);
+    } catch {
+      setMessage(
+        'The movement offer could not be created. The interest or movement may no longer be available.',
+      );
+    } finally {
+      offerCreationInFlight.current = false;
       setBusy(false);
     }
   }
@@ -873,13 +955,124 @@ export default function OfferMovementScreen() {
         </View>
       </Modal>
 
-      {!!message && (
-        <Text style={styles.message}>
-          {message}
+{!!message && (
+  <Text style={styles.message}>
+    {message}
+  </Text>
+)}
+
+<View style={styles.section}>
+  <Text style={styles.label}>
+    Interested requesters
+  </Text>
+
+  {currentInbox.loading && (
+    <Text style={styles.help}>
+      Loading interested requesters...
+    </Text>
+  )}
+
+  {!!currentInbox.error && (
+    <Text style={styles.message}>
+      {currentInbox.error}
+    </Text>
+  )}
+
+  {!currentInbox.loading
+    && !currentInbox.error
+    && currentInbox.rows.length === 0 && (
+      <Text style={styles.help}>
+        No interests yet.
+      </Text>
+    )}
+
+  {currentInbox.rows.map(interest => (
+    <View
+      key={interest.interestId}
+      style={styles.optionCard}
+    >
+      <Text style={styles.optionTitle}>
+        {interest.originArea}
+        {' → '}
+        {interest.destinationArea}
+      </Text>
+
+      <Text style={styles.help}>
+        {interest.peopleCount}{' '}
+        {interest.peopleCount === 1
+          ? 'person'
+          : 'people'}
+      </Text>
+
+      <Text style={styles.help}>
+        Earliest:{' '}
+        {new Date(
+          interest.earliestDepartureAt,
+        ).toLocaleString()}
+      </Text>
+
+      {interest.latestDepartureAt && (
+        <Text style={styles.help}>
+          Latest:{' '}
+          {new Date(
+            interest.latestDepartureAt,
+          ).toLocaleString()}
         </Text>
       )}
 
-      {offeringMovementIntentId && (
+      <Text style={styles.help}>
+        Requester origin is approximately{' '}
+        {(
+          interest.requesterOriginDistanceToRouteMeters
+          / 1000
+        ).toFixed(1)}{' '}
+        km from your route.
+      </Text>
+
+<Text style={styles.help}>
+  Interest received:{' '}
+  {new Date(
+    interest.interestCreatedAt,
+  ).toLocaleString()}
+</Text>
+
+<Pressable
+  accessibilityRole="button"
+  disabled={
+    busy
+    || !!sentOfferInterestIds[interest.interestId]
+  }
+  onPress={() => {
+    void createOfferForInterest(interest);
+  }}
+  style={styles.primaryButton}
+>
+  <Text style={styles.primaryButtonText}>
+    {sentOfferInterestIds[interest.interestId]
+      ? 'Offer sent'
+      : busy
+        ? 'Working...'
+        : 'Send movement offer'}
+  </Text>
+</Pressable>
+</View>
+  ))}
+
+  <Pressable
+    accessibilityRole="button"
+    disabled={currentInbox.loading}
+    onPress={() => {
+      setInterestRefresh(value => value + 1);
+    }}
+    style={styles.button}
+  >
+    <Text style={styles.buttonText}>
+      Refresh interested requesters
+    </Text>
+  </Pressable>
+</View>
+
+{offeringMovementIntentId && (
         <>
           <View style={styles.section}>
             <Text style={styles.label}>
@@ -966,40 +1159,7 @@ export default function OfferMovementScreen() {
 
           {availabilityId && (
             <>
-              <View style={styles.section}>
-                <Text style={styles.label}>Interested requesters</Text>
-                {currentInbox.loading && <Text style={styles.help}>Loading interested requesters...</Text>}
-                {!!currentInbox.error && <Text style={styles.message}>{currentInbox.error}</Text>}
-                {!currentInbox.loading && !currentInbox.error && currentInbox.rows.length === 0 && (
-                  <Text style={styles.help}>No interests yet.</Text>
-                )}
-                {currentInbox.rows.map(interest => (
-                  <View key={interest.interestId} style={styles.optionCard}>
-                    <Text style={styles.optionTitle}>
-                      {interest.originArea}{' \u2192 '}{interest.destinationArea}
-                    </Text>
-                    <Text style={styles.help}>
-                      {interest.peopleCount} {interest.peopleCount === 1 ? 'person' : 'people'}
-                    </Text>
-                    <Text style={styles.help}>
-                      Earliest: {new Date(interest.earliestDepartureAt).toLocaleString()}
-                    </Text>
-                    {interest.latestDepartureAt && (
-                      <Text style={styles.help}>Latest: {new Date(interest.latestDepartureAt).toLocaleString()}</Text>
-                    )}
-                    <Text style={styles.help}>
-                      Requester origin is approximately {(interest.requesterOriginDistanceToRouteMeters / 1000).toFixed(1)} km from your route.
-                    </Text>
-                    <Text style={styles.help}>
-                      Interest received: {new Date(interest.interestCreatedAt).toLocaleString()}
-                    </Text>
-                  </View>
-                ))}
-                <Pressable accessibilityRole="button" disabled={currentInbox.loading}
-                  onPress={() => { setInterestRefresh(value => value + 1); }} style={styles.button}>
-                  <Text style={styles.buttonText}>Refresh interested requesters</Text>
-                </Pressable>
-              </View>
+
 
               <View style={styles.section}>
                 <Text style={styles.label}>

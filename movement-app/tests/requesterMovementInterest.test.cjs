@@ -184,6 +184,12 @@ function screen(kind) {
     createRequesterMovementInterest: async () => ({ interestId: interest, interestStatus: 'active', createdAt: time }),
     withdrawRequesterMovementInterest: async () => ({ interestId: interest, interestStatus: 'withdrawn', createdAt: time }),
     listRequesterMovementInterestsForOfferer: async () => [],
+    createMovementOfferFromInterest: async input => ({
+      movementOfferId: id(60),
+      status: 'pending',
+      createdAt: time,
+      input,
+    }),
     openOfferingMovementAvailability: async () => ({ availabilityId: availability }),
   };
   const wrap = name => async (...args) => { calls.push([name, ...plain(args)]); return handlers[name](...args); };
@@ -202,6 +208,7 @@ function screen(kind) {
       recoverLatestActiveMovementNeed: wrap('recoverLatestActiveMovementNeed'),
       discoverMaskedOffersForMyNeed: wrap('discoverMaskedOffersForMyNeed'),
       acceptMovementOffer: wrap('acceptMovementOffer'),
+      createMovementOfferFromInterest: wrap('createMovementOfferFromInterest'),
       createMovementNeed: async input => { calls.push(['createMovementNeed', plain(input)]); return { movementNeedId: need }; },
       discoverMaskedMovementNeeds: async () => [],
       createMovementOffer: async input => { calls.push(['createMovementOffer', plain(input)]); },
@@ -480,18 +487,25 @@ test('ready match for another availability cannot expose interest while the curr
   assert.equal(created.availabilityId, otherAvailability);
   assert.equal(created.routeMatchEvidenceId, id(44));
 });
-test('offerer inbox waits for current availability and supports empty state and manual refresh', async () => {
-  const h = screen('offer'); await h.settle(); await h.form();
-  assert.equal(h.calls.filter(c => c[0] === 'listRequesterMovementInterestsForOfferer').length, 0);
+test('offerer inbox recovers globally then filters current availability and supports manual refresh', async () => {
+  const h = screen('offer'); await h.settle();
+  assert.deepEqual(h.calls, [['listRequesterMovementInterestsForOfferer', { availabilityId: null, limit: 20 }]]);
+  assert(h.text().includes('No interests yet.'));
+  await h.form();
   // Select the real vehicle card by its key, not private screen state.
   h.find(n => n.type === 'Pressable' && n.key === id(31)).props.onPress(); await h.settle();
   await h.press('Make movement available');
-  assert.deepEqual(h.calls.find(c => c[0] === 'listRequesterMovementInterestsForOfferer'),
-    ['listRequesterMovementInterestsForOfferer', { availabilityId: availability, limit: 20 }]);
+  assert.deepEqual(h.calls.filter(c => c[0] === 'listRequesterMovementInterestsForOfferer'), [
+    ['listRequesterMovementInterestsForOfferer', { availabilityId: null, limit: 20 }],
+    ['listRequesterMovementInterestsForOfferer', { availabilityId: availability, limit: 20 }],
+  ]);
   assert(h.text().includes('No interests yet.'));
   await h.press('Refresh interested requesters');
-  assert.equal(h.calls.filter(c => c[0] === 'listRequesterMovementInterestsForOfferer').length, 2);
-  assert(!h.calls.some(c => c[0] === 'createMovementOffer'));
+  assert.deepEqual(h.calls.map(c => c[0]), ['listRequesterMovementInterestsForOfferer',
+    'openOfferingMovementAvailability', 'listRequesterMovementInterestsForOfferer',
+    'listRequesterMovementInterestsForOfferer']);
+  assert.deepEqual(h.calls.at(-1),
+    ['listRequesterMovementInterestsForOfferer', { availabilityId: availability, limit: 20 }]);
 });
 test('offerer cards render safe fields in server order and stay view-only', async () => {
   const h = screen('offer'); h.handlers.listRequesterMovementInterestsForOfferer = async () => [inboxRow,
@@ -684,5 +698,165 @@ test('failed movement offer acceptance keeps the offer visible and does not expo
 
   assert(
     !h.text().includes('private SQL detail'),
+  );
+});
+test('offerer sends requester-specific movement offer from exact interest context', async () => {
+  const h = screen('offer');
+
+  h.handlers.listRequesterMovementInterestsForOfferer =
+    async ({ availabilityId: requestedAvailabilityId }) => (
+      requestedAvailabilityId === availability
+        ? [inboxRow]
+        : []
+    );
+
+  await h.settle();
+  await h.form();
+
+  h.find(
+    n =>
+      n.type === 'Pressable'
+      && n.key === id(31),
+  ).props.onPress();
+
+  await h.settle();
+  await h.press('Make movement available');
+
+  await h.press('Send movement offer');
+
+  assert.deepEqual(
+    h.calls.find(
+      c => c[0] === 'createMovementOfferFromInterest',
+    ),
+    [
+      'createMovementOfferFromInterest',
+      {
+        interestId: interest,
+        seatsOffered: 2,
+        proposedPickupArea: null,
+        proposedDropoffArea: null,
+        estimatedArrivalMinutes: null,
+      },
+    ],
+  );
+
+  assert(
+    h.text().includes(
+      'Movement offer sent to the interested requester.',
+    ),
+  );
+
+  const sentButton = h.button('Offer sent');
+
+  assert.equal(
+    sentButton.props.disabled,
+    true,
+  );
+});
+
+test('offer-from-interest prevents duplicate writes while the first offer is pending', async () => {
+  const h = screen('offer');
+  const pending = deferred();
+
+  h.handlers.listRequesterMovementInterestsForOfferer =
+    async ({ availabilityId: requestedAvailabilityId }) => (
+      requestedAvailabilityId === availability
+        ? [inboxRow]
+        : []
+    );
+
+  h.handlers.createMovementOfferFromInterest =
+    () => pending.promise;
+
+  await h.settle();
+  await h.form();
+
+  h.find(
+    n =>
+      n.type === 'Pressable'
+      && n.key === id(31),
+  ).props.onPress();
+
+  await h.settle();
+  await h.press('Make movement available');
+
+  const action =
+    h.button('Send movement offer').props.onPress;
+
+  action();
+  action();
+
+  await h.settle();
+
+  assert.equal(
+    h.calls.filter(
+      c => c[0] === 'createMovementOfferFromInterest',
+    ).length,
+    1,
+  );
+
+  pending.resolve({
+    movementOfferId: id(61),
+    status: 'pending',
+    createdAt: time,
+  });
+
+  await h.settle();
+
+  assert.equal(
+    h.calls.filter(
+      c => c[0] === 'createMovementOfferFromInterest',
+    ).length,
+    1,
+  );
+});
+
+test('failed offer-from-interest stays safe and does not expose backend details', async () => {
+  const h = screen('offer');
+
+  h.handlers.listRequesterMovementInterestsForOfferer =
+    async ({ availabilityId: requestedAvailabilityId }) => (
+      requestedAvailabilityId === availability
+        ? [inboxRow]
+        : []
+    );
+
+  h.handlers.createMovementOfferFromInterest =
+    async () => {
+      throw new Error(
+        'private SQL requester deadline detail',
+      );
+    };
+
+  await h.settle();
+  await h.form();
+
+  h.find(
+    n =>
+      n.type === 'Pressable'
+      && n.key === id(31),
+  ).props.onPress();
+
+  await h.settle();
+  await h.press('Make movement available');
+  await h.press('Send movement offer');
+
+  assert.equal(
+    h.calls.filter(
+      c => c[0] === 'createMovementOfferFromInterest',
+    ).length,
+    1,
+  );
+
+  assert(
+    h.text().includes(
+      'The movement offer could not be created. The interest or movement may no longer be available.',
+    ),
+  );
+
+  assert(
+    !h.text().includes(
+      'private SQL requester deadline detail',
+    ),
   );
 });

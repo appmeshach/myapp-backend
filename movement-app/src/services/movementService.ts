@@ -208,6 +208,52 @@ export async function createMovementOffer(
   };
 }
 
+export interface CreateMovementOfferFromInterestInput {
+  interestId: string;
+  seatsOffered: number;
+  proposedPickupArea?: string | null;
+  proposedDropoffArea?: string | null;
+  estimatedArrivalMinutes?: number | null;
+}
+
+export async function createMovementOfferFromInterest(
+  input: CreateMovementOfferFromInterestInput
+): Promise<CreatedMovementOffer> {
+  const { data, error } = await supabase.rpc(
+    'create_movement_offer_from_interest',
+    {
+      p_interest_id: input.interestId,
+      p_seats_offered: input.seatsOffered,
+      p_proposed_pickup_area:
+        input.proposedPickupArea ?? null,
+      p_proposed_dropoff_area:
+        input.proposedDropoffArea ?? null,
+      p_estimated_arrival_minutes:
+        input.estimatedArrivalMinutes ?? null,
+    }
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  const row =
+    (data as CreatedMovementOfferRpcRow[] | null)?.[0]
+    ?? null;
+
+  if (!row) {
+    throw new Error(
+      'No movement offer data returned from create_movement_offer_from_interest'
+    );
+  }
+
+  return {
+    movementOfferId: row.movement_offer_id,
+    status: row.status,
+    createdAt: row.created_at,
+  };
+}
+
 export async function discoverMaskedOffersForMyNeed(
   movementNeedId: string,
   limit: number = 20
