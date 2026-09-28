@@ -155,6 +155,7 @@ const inboxRow = { interestId: interest, movementNeedId: need, availabilityId: a
 // Actions go through real screen handlers; no internal screen state is seeded.
 function screen(kind) {
   const values = [], effects = [], calls = [], navigationCalls = [], continuationCalls = [];
+  const recoveryCalls = [], declarationCalls = [];
   let cursor = 0, dirty = true, tree, serial = 100, mounted = true;
   const same = (a, b) => a && b && a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
   const react = {
@@ -171,6 +172,7 @@ function screen(kind) {
     } },
   };
   const handlers = {
+    listMyOpenOfferingMovementAvailabilities: async () => [],
     recoverRequesterMovementContinuation: async () => null,
     recoverLatestActiveMovementNeed: async () => need,
     discoverMaskedOffersForMyNeed: async () => [],
@@ -220,9 +222,16 @@ function screen(kind) {
       createMovementOffer: async input => { calls.push(['createMovementOffer', plain(input)]); },
     },
     '../services/offeringMovementService': {
+      listMyOpenOfferingMovementAvailabilities: async (...args) => {
+        recoveryCalls.push(plain(args));
+        return handlers.listMyOpenOfferingMovementAvailabilities(...args);
+      },
       calculateRouteMatch: wrap('calculateRouteMatch'),
       discoverOfferingMovementAvailability: async () => [offered(availability), offered(otherAvailability)],
-      createOfferingMovementIntent: async () => ({ offeringMovementIntentId: id(30) }),
+      createOfferingMovementIntent: async input => {
+        declarationCalls.push(plain(input));
+        return { offeringMovementIntentId: id(30) };
+      },
       generateOfferingRoute: async () => ({ state: 'ready' }),
       openOfferingMovementAvailability: wrap('openOfferingMovementAvailability'),
     },
@@ -251,7 +260,7 @@ function screen(kind) {
     list.props.renderItem({ item: list.props.data[0] }).props.onPress(); await settle();
     await press(kind === 'request' ? 'Request this movement' : 'Declare this movement');
   }
-  return { calls, navigationCalls, continuationCalls, handlers, settle, form, press, button, find,
+  return { calls, navigationCalls, continuationCalls, recoveryCalls, declarationCalls, handlers, settle, form, press, button, find,
     text: () => text(tree),
     async select(a = availability) { const card = find(n => n.type === 'Pressable' && n.key === a); assert(!card.props.disabled); card.props.onPress(); await settle(); },
     async open() { await press('Test CarBlueSeat capacity: 3'); await press('Make movement available'); },
@@ -964,5 +973,183 @@ test('late recovery cannot overwrite same-session acceptance or update an unmoun
       await h.press('Continue to movement verification');
       assert.deepEqual(h.navigationCalls, [{ pathname: './movement-verification', params: { movementNeedId: need } }]);
     }
+  }
+});
+
+
+const recoveryRow = {
+  availability_id: id(201), offering_movement_intent_id: id(202), vehicle_id: id(203),
+  total_places: 3, remaining_places: 2, expires_at: '2026-09-29T12:00:00+00:00',
+  origin_area: 'Broad start', destination_area: 'Broad end',
+  earliest_departure_at: '2026-09-29T12:00:00+00:00', latest_departure_at: null,
+  vehicle_make: 'Recovered make', vehicle_model: 'Recovered model', vehicle_year: 2024, vehicle_color: 'Green',
+};
+const recovered = {
+  availabilityId: id(201), offeringMovementIntentId: id(202), vehicleId: id(203),
+  totalPlaces: 3, remainingPlaces: 2, expiresAt: recoveryRow.expires_at,
+  originArea: 'Broad start', destinationArea: 'Broad end',
+  earliestDepartureAt: recoveryRow.earliest_departure_at, latestDepartureAt: null,
+  vehicleMake: 'Recovered make', vehicleModel: 'Recovered model', vehicleYear: 2024, vehicleColor: 'Green',
+};
+function recoveryService(rpc) {
+  return load('src/services/offeringMovementService.ts', { '../lib/supabase': { supabase: { rpc } } });
+}
+test('offerer recovery service sends exact bounded RPC and parses multiple safe rows', async () => {
+  const calls = [];
+  const rows = [recoveryRow, { ...recoveryRow, availability_id: id(204), vehicle_model: null,
+    vehicle_year: null, latest_departure_at: '2026-09-29T13:00:00+00:00' }];
+  const api = recoveryService(async (...args) => { calls.push(plain(args)); return { data: rows, error: null }; });
+  const result = plain(await api.listMyOpenOfferingMovementAvailabilities());
+  assert.deepEqual(result, [recovered, { ...recovered, availabilityId: id(204), vehicleModel: null,
+    vehicleYear: null, latestDepartureAt: '2026-09-29T13:00:00+00:00' }]);
+  await api.listMyOpenOfferingMovementAvailabilities(2);
+  assert.deepEqual(calls, [['list_my_open_offering_movement_availabilities', { p_limit: 20 }],
+    ['list_my_open_offering_movement_availabilities', { p_limit: 2 }]]);
+  assert.deepEqual(plain(await recoveryService(async () => ({ data: [], error: null })).listMyOpenOfferingMovementAvailabilities()), []);
+});
+test('offerer recovery validates limit before network', async () => {
+  let calls = 0;
+  const api = recoveryService(async () => { calls++; return { data: [], error: null }; });
+  for (const limit of [0, 51, -1, 1.5, null, '20', NaN, Infinity]) {
+    await assert.rejects(api.listMyOpenOfferingMovementAvailabilities(limit), /offering_movement_recovery_unavailable/);
+  }
+  assert.equal(calls, 0);
+});
+test('offerer recovery rejects malformed, duplicate, oversized and private responses', async () => {
+  const invalid = [null, {}, [null], [[]], [{}], [recoveryRow,recoveryRow],
+    [recoveryRow,{ ...recoveryRow, availability_id: id(204) },{ ...recoveryRow, availability_id: id(205) }]];
+  for (const field of Object.keys(recoveryRow)) {
+    const missing = { ...recoveryRow }; delete missing[field]; invalid.push([missing]);
+  }
+  for (const [field, values] of Object.entries({
+    availability_id: ['bad', null], offering_movement_intent_id: ['bad', [id(1)]], vehicle_id: ['bad', 1],
+    total_places: [0, -1, 1.5, '3', Number.MAX_SAFE_INTEGER + 1],
+    remaining_places: [0, -1, 4, 1.5, '2'],
+    expires_at: ['bad', '2026-02-30T12:00:00Z', null, 123],
+    earliest_departure_at: ['bad', '2026-09-29', '2026-09-29T24:00:00Z'],
+    latest_departure_at: ['bad', '2026-09-28T12:00:00Z'],
+    origin_area: ['', '  ', 'private\nlabel', 1], destination_area: ['', null],
+    vehicle_make: ['', null], vehicle_color: ['', null], vehicle_model: [1], vehicle_year: ['2024', 2.5, 1800, 2101],
+  })) for (const value of values) invalid.push([{ ...recoveryRow, [field]: value }]);
+  for (const field of ['member_id','route_evidence_id','provider_id','latitude','route_shape','interest_id','offer_id','alignment_id','payment_id']) {
+    invalid.push([{ ...recoveryRow, [field]: 'private' }]);
+  }
+  for (const data of invalid) {
+    await assert.rejects(recoveryService(async () => ({ data, error: null })).listMyOpenOfferingMovementAvailabilities(2),
+      error => error.message === 'offering_movement_recovery_unavailable');
+  }
+});
+test('offerer recovery neutralizes Supabase and thrown transport errors', async () => {
+  for (const rpc of [async () => ({ data: [recoveryRow], error: { message: 'private SQL' } }),
+    async () => { throw new Error('private transport'); }]) {
+    await assert.rejects(recoveryService(rpc).listMyOpenOfferingMovementAvailabilities(),
+      error => error.message === 'offering_movement_recovery_unavailable');
+  }
+});
+test('zero recovered offerings preserves explicit declaration with no automatic writes or navigation', async () => {
+  const h = screen('offer'); await h.settle();
+  assert.deepEqual(h.recoveryCalls, [[]]);
+  assert.deepEqual(h.declarationCalls, []);
+  assert.deepEqual(h.navigationCalls, []);
+  assert(!h.text().includes('Your active offered movements'));
+  assert(!h.text().includes('Movement availability opened'));
+  await h.form();
+  assert.equal(h.declarationCalls.length, 1);
+  assert(h.button('Make movement available'));
+});
+test('one recovered offering restores fixed details and exact filtered inbox without writes', async () => {
+  const h = screen('offer');
+  h.handlers.listMyOpenOfferingMovementAvailabilities = async () => [recovered];
+  await h.settle();
+  assert.deepEqual(h.recoveryCalls, [[]]);
+  assert.deepEqual(h.declarationCalls, []);
+  assert.deepEqual(h.calls, [
+    ['listRequesterMovementInterestsForOfferer', { availabilityId: null, limit: 20 }],
+    ['listRequesterMovementInterestsForOfferer', { availabilityId: recovered.availabilityId, limit: 20 }],
+  ]);
+  assert(h.text().includes('Recovered make'));
+  assert(h.text().includes('Total places: 3'));
+  assert(h.text().includes('Vehicle and total places are fixed'));
+  assert.throws(() => h.find(n => n.type === 'TextInput' && n.props.accessibilityLabel === 'Available places'), /UI control missing/);
+  assert.throws(() => h.button('Make movement available'), /UI control missing/);
+  assert.equal(h.find(n => n.type === 'TextInput' && n.props.accessibilityLabel === 'Movement origin').props.value, '');
+  assert.deepEqual(h.navigationCalls, []);
+  for (const value of [recovered.availabilityId, recovered.offeringMovementIntentId, recovered.vehicleId]) assert(!h.text().includes(value));
+});
+test('multiple recovered offerings require explicit selection and switch filtered inbox', async () => {
+  const h = screen('offer');
+  const second = { ...recovered, availabilityId: id(204), offeringMovementIntentId: id(205), vehicleId: id(206), totalPlaces: 2 };
+  h.handlers.listMyOpenOfferingMovementAvailabilities = async () => [recovered,second];
+  await h.settle();
+  assert(!h.text().includes('Selected offered movement'));
+  assert.deepEqual(h.calls, [['listRequesterMovementInterestsForOfferer', { availabilityId: null, limit: 20 }]]);
+  await h.press('Select active offered movement 2');
+  assert.deepEqual(h.calls.at(-1), ['listRequesterMovementInterestsForOfferer', { availabilityId: second.availabilityId, limit: 20 }]);
+  assert(h.text().includes('Total places: 2'));
+  await h.press('Select active offered movement 1');
+  assert.deepEqual(h.calls.at(-1), ['listRequesterMovementInterestsForOfferer', { availabilityId: recovered.availabilityId, limit: 20 }]);
+  assert.deepEqual(h.declarationCalls, []);
+  assert.deepEqual(h.navigationCalls, []);
+});
+test('new explicit offerer declaration clears recovered availability choices', async () => {
+  const h = screen('offer');
+  const second = {
+    ...recovered,
+    availabilityId: id(204),
+    offeringMovementIntentId: id(205),
+    vehicleId: id(206),
+    totalPlaces: 2,
+  };
+
+  h.handlers.listMyOpenOfferingMovementAvailabilities =
+    async () => [recovered, second];
+
+  await h.settle();
+
+  assert(h.text().includes('Your active offered movements'));
+
+  await h.form();
+
+  assert.equal(h.declarationCalls.length, 1);
+  assert(!h.text().includes('Your active offered movements'));
+  assert(!h.text().includes('Recovered make'));
+  assert(h.button('Make movement available'));
+});
+test('failed offerer recovery is neutral and retryable rather than an empty success', async () => {
+  const h = screen('offer');
+  h.handlers.listMyOpenOfferingMovementAvailabilities = async () => { throw new Error('private SQL backend details'); };
+  await h.settle();
+  assert(h.text().includes('Your active offered movements could not be loaded. Please retry.'));
+  assert(!h.text().includes('private SQL'));
+  assert(!h.text().includes('Movement availability opened'));
+  h.handlers.listMyOpenOfferingMovementAvailabilities = async () => [recovered];
+  await h.press('Retry active offered movements');
+  assert.equal(h.recoveryCalls.length, 2);
+  assert(h.text().includes('Selected offered movement'));
+  assert.deepEqual(h.declarationCalls, []);
+  assert.deepEqual(h.navigationCalls, []);
+});
+test('late offerer recovery cannot replace newly opened availability', async () => {
+  const h = screen('offer'), pending = deferred();
+  h.handlers.listMyOpenOfferingMovementAvailabilities = () => pending.promise;
+  await h.settle(); await h.form();
+  h.find(n => n.type === 'Pressable' && n.key === id(31)).props.onPress(); await h.settle();
+  await h.press('Make movement available');
+  pending.resolve([recovered]); await h.settle();
+  assert(!h.text().includes('Recovered make'));
+  assert.equal(h.calls.filter(c => c[0] === 'openOfferingMovementAvailability').length, 1);
+  assert.deepEqual(h.calls.at(-1), ['listRequesterMovementInterestsForOfferer', { availabilityId: availability, limit: 20 }]);
+  await h.press('Refresh interested requesters');
+  assert.deepEqual(h.calls.at(-1), ['listRequesterMovementInterestsForOfferer', { availabilityId: availability, limit: 20 }]);
+});
+test('unmounted offerer recovery never updates state', async () => {
+  for (const fail of [false,true]) {
+    const h = screen('offer'), pending = deferred();
+    h.handlers.listMyOpenOfferingMovementAvailabilities = () => pending.promise;
+    await h.settle(); h.unmount();
+    if (fail) pending.reject(new Error('private SQL'));
+    else pending.resolve([recovered]);
+    await h.settle();
+    assert.deepEqual(h.navigationCalls, []);
   }
 });

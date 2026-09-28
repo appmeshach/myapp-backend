@@ -26,6 +26,23 @@ export type OpenedOfferingMovementAvailability = {
   availabilityId: string;
 };
 
+export type RecoveredOfferingMovementAvailability = {
+  availabilityId: string;
+  offeringMovementIntentId: string;
+  vehicleId: string;
+  totalPlaces: number;
+  remainingPlaces: number;
+  expiresAt: string;
+  originArea: string;
+  destinationArea: string;
+  earliestDepartureAt: string;
+  latestDepartureAt: string | null;
+  vehicleMake: string;
+  vehicleModel: string | null;
+  vehicleYear: number | null;
+  vehicleColor: string;
+};
+
 export type DiscoverableOfferingMovement = {
   availabilityId: string;
   originArea: string;
@@ -263,6 +280,63 @@ export async function openOfferingMovementAvailability(
   }
 
   return { availabilityId: row.availability_id };
+}
+
+export async function listMyOpenOfferingMovementAvailabilities(
+  limit: number = 20,
+): Promise<RecoveredOfferingMovementAvailability[]> {
+  const safeText = (value: unknown): value is string => typeof value === 'string'
+    && !!value.trim() && !/[\u0000-\u001f\u007f]/.test(value);
+  const date = (value: unknown): value is string => {
+    if (typeof value !== 'string' || !isValidIsoDate(value)) return false;
+    const parts = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.exec(value);
+    if (!parts) return false;
+    const [, year, month, day, hour, minute, second] = parts.map(Number);
+    return month >= 1 && month <= 12 && day >= 1
+      && day <= new Date(Date.UTC(year, month, 0)).getUTCDate()
+      && hour < 24 && minute < 60 && second < 60;
+  };
+  try {
+    if (!Number.isInteger(limit) || limit < 1 || limit > 50) throw new Error();
+    const { data, error } = await supabase.rpc(
+      'list_my_open_offering_movement_availabilities', { p_limit: limit },
+    );
+    if (error || !Array.isArray(data) || data.length > limit) throw new Error();
+    const seen = new Set<string>();
+    return data.map((row: unknown) => {
+      if (!isRecord(row) || !hasExactKeys(row, [
+        'availability_id', 'offering_movement_intent_id', 'vehicle_id',
+        'total_places', 'remaining_places', 'expires_at', 'origin_area', 'destination_area',
+        'earliest_departure_at', 'latest_departure_at',
+        'vehicle_make', 'vehicle_model', 'vehicle_year', 'vehicle_color',
+      ]) || !isValidUuid(row.availability_id) || seen.has(row.availability_id)
+        || !isValidUuid(row.offering_movement_intent_id) || !isValidUuid(row.vehicle_id)
+        || typeof row.total_places !== 'number' || !Number.isSafeInteger(row.total_places) || row.total_places < 1
+        || typeof row.remaining_places !== 'number' || !Number.isSafeInteger(row.remaining_places)
+        || row.remaining_places < 1 || row.remaining_places > row.total_places
+        || !date(row.expires_at) || !date(row.earliest_departure_at)
+        || (row.latest_departure_at !== null && (!date(row.latest_departure_at)
+          || Date.parse(row.latest_departure_at) < Date.parse(row.earliest_departure_at)))
+        || !safeText(row.origin_area) || !safeText(row.destination_area)
+        || !safeText(row.vehicle_make) || !safeText(row.vehicle_color)
+        || (row.vehicle_model !== null && !safeText(row.vehicle_model))
+        || (row.vehicle_year !== null && (typeof row.vehicle_year !== 'number'
+          || !Number.isInteger(row.vehicle_year) || row.vehicle_year < 1900 || row.vehicle_year > 2100))) {
+        throw new Error();
+      }
+      seen.add(row.availability_id);
+      return {
+        availabilityId: row.availability_id, offeringMovementIntentId: row.offering_movement_intent_id,
+        vehicleId: row.vehicle_id, totalPlaces: row.total_places, remainingPlaces: row.remaining_places,
+        expiresAt: row.expires_at, originArea: row.origin_area, destinationArea: row.destination_area,
+        earliestDepartureAt: row.earliest_departure_at, latestDepartureAt: row.latest_departure_at,
+        vehicleMake: row.vehicle_make, vehicleModel: row.vehicle_model,
+        vehicleYear: row.vehicle_year, vehicleColor: row.vehicle_color,
+      };
+    });
+  } catch {
+    throw new Error('offering_movement_recovery_unavailable');
+  }
 }
 
 export async function discoverOfferingMovementAvailability(

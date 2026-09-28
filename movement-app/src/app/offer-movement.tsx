@@ -1,5 +1,5 @@
 import * as Crypto from 'expo-crypto';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   Modal,
@@ -27,7 +27,9 @@ import {
   calculateRouteMatch,
   createOfferingMovementIntent,
   generateOfferingRoute,
+  listMyOpenOfferingMovementAvailabilities,
   openOfferingMovementAvailability,
+  type RecoveredOfferingMovementAvailability,
   type RouteMatchReady,
 } from '../services/offeringMovementService';
 
@@ -190,6 +192,21 @@ export default function OfferMovementScreen() {
   const [availabilityId, setAvailabilityId] =
     useState<string | null>(null);
 
+  const mounted = useRef(true);
+  const recoveryVersion = useRef(0);
+  const [recoveredAvailabilities, setRecoveredAvailabilities] =
+    useState<RecoveredOfferingMovementAvailability[]>([]);
+  const [recoveredAvailability, setRecoveredAvailability] =
+    useState<RecoveredOfferingMovementAvailability | null>(null);
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+  const [recoveryError, setRecoveryError] = useState('');
+  const [recoveryRetry, setRecoveryRetry] = useState(0);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; recoveryVersion.current += 1; };
+  }, []);
+
   const [interestRefresh, setInterestRefresh] = useState(0);
   const [sentOfferInterestIds, setSentOfferInterestIds] =
     useState<Record<string, true>>({});
@@ -265,6 +282,50 @@ useEffect(() => {
     routeMatch,
     setRouteMatch,
   ] = useState<RouteMatchReady | null>(null);
+
+  const restoreAvailability = useCallback((row: RecoveredOfferingMovementAvailability) => {
+    setRecoveredAvailability(row);
+    setAvailabilityId(row.availabilityId);
+    setOfferingMovementIntentId(row.offeringMovementIntentId);
+    setSelectedVehicleId(row.vehicleId);
+    setSeatsText(String(row.totalPlaces));
+    setSelectedMovementNeedId(null);
+    setRouteMatch(null);
+    setMovementNeeds([]);
+    setMessage('');
+  }, []);
+
+  useEffect(() => {
+    if (!signedIn) return;
+    let active = true;
+    const version = recoveryVersion.current;
+    setRecoveryLoading(true);
+    setRecoveryError('');
+    void listMyOpenOfferingMovementAvailabilities()
+      .then(rows => {
+        if (!active || !mounted.current || version !== recoveryVersion.current) return;
+        setRecoveredAvailabilities(rows);
+        setRecoveryLoading(false);
+        if (rows.length === 1) restoreAvailability(rows[0]);
+      })
+      .catch(() => {
+        if (!active || !mounted.current || version !== recoveryVersion.current) return;
+        setRecoveryLoading(false);
+        setRecoveryError('Your active offered movements could not be loaded. Please retry.');
+      });
+    return () => { active = false; };
+  }, [signedIn, recoveryRetry, restoreAvailability]);
+
+  useEffect(() => {
+    if (!recoveredAvailability) return;
+    let active = true;
+    void discoverMaskedMovementNeeds().then(rows => {
+      if (active && mounted.current) setMovementNeeds(rows);
+    }).catch(() => {
+      if (active && mounted.current) setMessage('Current movement requests could not be loaded right now.');
+    });
+    return () => { active = false; };
+  }, [recoveredAvailability]);
 
   async function searchOrigin() {
     setBusy(true);
@@ -413,6 +474,8 @@ useEffect(() => {
       return;
     }
 
+    recoveryVersion.current += 1;
+    setRecoveryLoading(false);
     setBusy(true);
 
     try {
@@ -438,10 +501,14 @@ useEffect(() => {
           created.offeringMovementIntentId,
         );
 
-      if (route.state === 'ready') {
-        setOfferingMovementIntentId(
-          created.offeringMovementIntentId,
-        );
+if (route.state === 'ready') {
+  if (!mounted.current) return;
+  setRecoveredAvailability(null);
+  setRecoveredAvailabilities([]);
+  setRecoveryError('');
+  setOfferingMovementIntentId(
+    created.offeringMovementIntentId,
+  );
 
         setAvailabilityId(null);
         setAvailabilityRequestId(Crypto.randomUUID());
@@ -510,6 +577,8 @@ useEffect(() => {
       return;
     }
 
+    recoveryVersion.current += 1;
+    setRecoveryLoading(false);
     setBusy(true);
     try {
       const result = await openOfferingMovementAvailability({
@@ -518,26 +587,31 @@ useEffect(() => {
         vehicleId: selectedVehicleId,
         totalPlaces: places,
       });
+      if (!mounted.current) return;
+      recoveryVersion.current += 1;
       setAvailabilityId(result.availabilityId);
       setMessage(
         'Your movement is now available. You can also review current movement requests below.',
       );
 
       try {
-        setMovementNeeds(await discoverMaskedMovementNeeds());
+        const rows = await discoverMaskedMovementNeeds();
+        if (mounted.current) setMovementNeeds(rows);
       } catch {
+        if (!mounted.current) return;
         setMessage(
           'Your movement is now available. Current movement requests could not be refreshed right now.',
         );
       }
     } catch (error) {
+      if (!mounted.current) return;
       setMessage(
         error instanceof Error
           ? error.message
           : 'offering_movement_availability_unavailable',
       );
     } finally {
-      setBusy(false);
+      if (mounted.current) setBusy(false);
     }
   }
 
@@ -728,6 +802,41 @@ useEffect(() => {
       <Text style={styles.description}>
         Declare movement you are already making.
       </Text>
+
+      {recoveryLoading && <Text style={styles.help}>Loading your active offered movements...</Text>}
+      {!!recoveryError && (
+        <View style={styles.section}>
+          <Text style={styles.message}>{recoveryError}</Text>
+          <Pressable accessibilityRole="button" disabled={busy || recoveryLoading}
+            onPress={() => { setRecoveryRetry(value => value + 1); }} style={styles.button}>
+            <Text style={styles.buttonText}>Retry active offered movements</Text>
+          </Pressable>
+        </View>
+      )}
+      {recoveredAvailabilities.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.label}>Your active offered movements</Text>
+          {recoveredAvailabilities.map((row, index) => (
+            <Pressable key={row.availabilityId} accessibilityRole="button"
+              accessibilityLabel={`Select active offered movement ${index + 1}`}
+              accessibilityState={{ selected: availabilityId === row.availabilityId }}
+              disabled={busy}
+              onPress={() => {
+                if (busy || !mounted.current) return;
+                recoveryVersion.current += 1;
+                setRecoveryLoading(false);
+                restoreAvailability(row);
+              }}
+              style={[styles.optionCard, availabilityId === row.availabilityId && styles.optionCardSelected]}>
+              <Text style={styles.optionTitle}>{row.originArea}{' → '}{row.destinationArea}</Text>
+              <Text>{new Date(row.earliestDepartureAt).toLocaleString()}</Text>
+              <Text>{row.vehicleMake} {row.vehicleModel} {row.vehicleColor} {row.vehicleYear}</Text>
+              <Text>{row.remainingPlaces} / {row.totalPlaces} places remaining</Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
+      {recoveredAvailability && <Text style={styles.label}>Declare another movement</Text>}
 
       <View style={styles.section}>
         <Text style={styles.label}>
@@ -1074,6 +1183,15 @@ useEffect(() => {
 
 {offeringMovementIntentId && (
         <>
+          {recoveredAvailability ? (
+            <View style={styles.section}>
+              <Text style={styles.label}>Selected offered movement</Text>
+              <Text>{recoveredAvailability.vehicleMake} {recoveredAvailability.vehicleModel} {recoveredAvailability.vehicleColor}</Text>
+              <Text>Total places: {recoveredAvailability.totalPlaces}</Text>
+              <Text style={styles.help}>Vehicle and total places are fixed for this movement.</Text>
+            </View>
+          ) : (
+            <>
           <View style={styles.section}>
             <Text style={styles.label}>
               Vehicle
@@ -1155,6 +1273,8 @@ useEffect(() => {
             <Text style={styles.confirmed}>
               Movement availability opened. Vehicle and total places are fixed for this movement.
             </Text>
+          )}
+            </>
           )}
 
           {availabilityId && (
