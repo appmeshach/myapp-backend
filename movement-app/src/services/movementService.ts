@@ -39,6 +39,27 @@ export async function recoverLatestActiveMovementNeed(): Promise<string | null> 
   return rows?.[0]?.movement_need_id ?? null;
 }
 
+export async function recoverRequesterMovementContinuation(): Promise<string | null> {
+  try {
+    const { data, error } = await supabase.rpc('get_my_requester_movement_continuation');
+    if (error || !Array.isArray(data) || data.length > 1) {
+      throw new Error('Invalid continuation response');
+    }
+    if (data.length === 0) return null;
+
+    const row: unknown = data[0];
+    if (!row || typeof row !== 'object' || Array.isArray(row)
+      || Object.keys(row).length !== 1 || !('movement_need_id' in row)
+      || typeof row.movement_need_id !== 'string'
+      || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(row.movement_need_id)) {
+      throw new Error('Invalid continuation response');
+    }
+    return row.movement_need_id;
+  } catch {
+    throw new Error('movement_continuation_recovery_unavailable');
+  }
+}
+
 interface CreatedMovementNeedRpcRow {
   movement_need_id: string;
 }

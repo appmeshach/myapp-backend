@@ -154,7 +154,7 @@ const inboxRow = { interestId: interest, movementNeedId: need, availabilityId: a
 // Same transpile/VM and lightweight hook-render approach as existing UI tests.
 // Actions go through real screen handlers; no internal screen state is seeded.
 function screen(kind) {
-  const values = [], effects = [], calls = [], navigationCalls = [];
+  const values = [], effects = [], calls = [], navigationCalls = [], continuationCalls = [];
   let cursor = 0, dirty = true, tree, serial = 100, mounted = true;
   const same = (a, b) => a && b && a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
   const react = {
@@ -171,6 +171,7 @@ function screen(kind) {
     } },
   };
   const handlers = {
+    recoverRequesterMovementContinuation: async () => null,
     recoverLatestActiveMovementNeed: async () => need,
     discoverMaskedOffersForMyNeed: async () => [],
     acceptMovementOffer: async movementOfferId => ({
@@ -206,6 +207,10 @@ function screen(kind) {
       recoverSelectedLocation: async () => { throw new Error('unexpected recovery'); },
     },
     '../services/movementService': {
+      recoverRequesterMovementContinuation: async (...args) => {
+        continuationCalls.push(plain(args));
+        return handlers.recoverRequesterMovementContinuation(...args);
+      },
       recoverLatestActiveMovementNeed: wrap('recoverLatestActiveMovementNeed'),
       discoverMaskedOffersForMyNeed: wrap('discoverMaskedOffersForMyNeed'),
       acceptMovementOffer: wrap('acceptMovementOffer'),
@@ -246,7 +251,7 @@ function screen(kind) {
     list.props.renderItem({ item: list.props.data[0] }).props.onPress(); await settle();
     await press(kind === 'request' ? 'Request this movement' : 'Declare this movement');
   }
-  return { calls, navigationCalls, handlers, settle, form, press, button, find,
+  return { calls, navigationCalls, continuationCalls, handlers, settle, form, press, button, find,
     text: () => text(tree),
     async select(a = availability) { const card = find(n => n.type === 'Pressable' && n.key === a); assert(!card.props.disabled); card.props.onPress(); await settle(); },
     async open() { await press('Test CarBlueSeat capacity: 3'); await press('Make movement available'); },
@@ -874,4 +879,90 @@ test('failed offer-from-interest stays safe and does not expose backend details'
       'private SQL requester deadline detail',
     ),
   );
+});
+
+
+test('requester continuation service sends no arguments and returns only a valid need', async () => {
+  for (const [data, expected] of [[[], null], [[{ movement_need_id: need }], need]]) {
+    const calls = [];
+    const api = load('src/services/movementService.ts', {
+      '../lib/supabase': { supabase: { rpc: async (...args) => { calls.push(args); return { data, error: null }; } } },
+    });
+    assert.equal(await api.recoverRequesterMovementContinuation(), expected);
+    assert.deepEqual(calls, [['get_my_requester_movement_continuation']]);
+  }
+});
+
+test('continuation service fails closed on malformed, extra, or failed responses', async () => {
+  const invalid = [null, {}, [null], [[]], [{}], [{ movement_need_id: 'bad' }],
+    [{ movement_need_id: 12 }], [{ movement_need_id: [need] }],
+    [{ movement_need_id: need }, { movement_need_id: need }]];
+  for (const field of ['alignment_id', 'movement_offer_id', 'member_id', 'payment_id', 'provider_id', 'status']) {
+    invalid.push([{ movement_need_id: need, [field]: 'private' }]);
+  }
+  for (const rpc of [
+    ...invalid.map(data => async () => ({ data, error: null })),
+    async () => ({ data: [{ movement_need_id: need }], error: { message: 'private SQL' } }),
+    async () => { throw new Error('private transport'); },
+  ]) {
+    const api = load('src/services/movementService.ts', { '../lib/supabase': { supabase: { rpc } } });
+    await assert.rejects(api.recoverRequesterMovementContinuation(),
+      error => error.message === 'movement_continuation_recovery_unavailable');
+  }
+});
+
+test('reload recovers accepted continuation independently of a discoverable need', async () => {
+  for (const currentNeed of [null, id(88)]) {
+    const h = screen('request');
+    h.handlers.recoverLatestActiveMovementNeed = async () => currentNeed;
+    h.handlers.recoverRequesterMovementContinuation = async () => need;
+    await h.settle();
+    assert.deepEqual(h.continuationCalls, [[]]);
+    assert(h.button('Continue to movement verification'));
+    assert.deepEqual(h.navigationCalls, []);
+    assert.equal(h.calls.filter(c => c[0] === 'acceptMovementOffer').length, 0);
+    assert.deepEqual(h.calls.filter(c => c[0] === 'discoverMaskedOffersForMyNeed'),
+      currentNeed ? [['discoverMaskedOffersForMyNeed', currentNeed]] : []);
+    assert.equal(h.text().includes('Offers sent to you'), !!currentNeed);
+    assert(!h.text().includes('awaiting_activation_payment'));
+    await h.select();
+    assert.equal(h.calls.filter(c => c[0] === 'calculateRouteMatch').length, 0);
+    await h.press('Continue to movement verification');
+    assert.deepEqual(h.navigationCalls, [{ pathname: './movement-verification', params: { movementNeedId: need } }]);
+    h.unmount();
+  }
+});
+
+test('empty or failed continuation recovery exposes no action or private errors', async () => {
+  for (const recover of [async () => null, async () => { throw new Error('private SQL details'); }]) {
+    const h = screen('request');
+    h.handlers.recoverLatestActiveMovementNeed = async () => null;
+    h.handlers.recoverRequesterMovementContinuation = recover;
+    await h.settle();
+    assert(!h.text().includes('Continue to movement verification'));
+    assert(!h.text().includes('private SQL'));
+    assert.deepEqual(h.navigationCalls, []);
+    h.unmount();
+  }
+});
+
+test('late recovery cannot overwrite same-session acceptance or update an unmounted screen', async () => {
+  for (const unmount of [false, true]) {
+    const h = screen('request'), pending = deferred();
+    h.handlers.recoverRequesterMovementContinuation = () => pending.promise;
+    h.handlers.discoverMaskedOffersForMyNeed = async () => [{
+      movementOfferId: id(89), offerStatus: 'pending', seatsOffered: 1,
+      estimatedArrivalMinutes: null, offerCreatedAt: time, vehicleMake: 'Test',
+      vehicleModel: null, vehicleYear: null, vehicleColor: 'Blue',
+    }];
+    await h.settle();
+    if (unmount) h.unmount();
+    else await h.press('Accept movement offer ' + id(89));
+    pending.resolve(id(87));
+    await h.settle();
+    if (!unmount) {
+      await h.press('Continue to movement verification');
+      assert.deepEqual(h.navigationCalls, [{ pathname: './movement-verification', params: { movementNeedId: need } }]);
+    }
+  }
 });

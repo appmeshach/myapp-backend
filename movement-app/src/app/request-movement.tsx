@@ -28,6 +28,7 @@ import {
   createMovementNeed,
   discoverMaskedOffersForMyNeed,
   recoverLatestActiveMovementNeed,
+  recoverRequesterMovementContinuation,
 } from '../services/movementService';
 import {
   createRequesterMovementInterest,
@@ -197,6 +198,7 @@ const [acceptedMovementNeedId, setAcceptedMovementNeedId] =
   useState<string | null>(null);
 
 const offerAcceptanceInFlight = useRef(false);
+const continuationVersion = useRef(0);
 
 const [selectedAvailabilityId, setSelectedAvailabilityId] =
   useState<string | null>(null);
@@ -327,6 +329,22 @@ const [selectedAvailabilityId, setSelectedAvailabilityId] =
   }, []);
 
 useEffect(() => {
+  if (!signedIn) return;
+  let active = true;
+  const version = continuationVersion.current;
+  void recoverRequesterMovementContinuation()
+    .then(movementNeedId => {
+      if (active && mounted.current && version === continuationVersion.current) {
+        setAcceptedMovementNeedId(movementNeedId);
+      }
+    })
+    .catch(() => {
+      // Recovery is optional; never expose backend details or infer acceptance.
+    });
+  return () => { active = false; };
+}, [signedIn]);
+
+useEffect(() => {
   if (signedIn) {
     void loadOfferedMovements();
 
@@ -402,6 +420,7 @@ useEffect(() => {
     }
 
     offerAcceptanceInFlight.current = true;
+    continuationVersion.current += 1;
     setAcceptingOfferId(movementOfferId);
     setOfferAcceptanceMessage('');
     setAcceptedMovementNeedId(null);
@@ -757,6 +776,25 @@ useEffect(() => {
         Tell us where you need to move.
       </Text>
 
+      {acceptedMovementNeedId && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            router.push({
+              pathname: './movement-verification',
+              params: {
+                movementNeedId: acceptedMovementNeedId,
+              },
+            });
+          }}
+          style={styles.primaryButton}
+        >
+          <Text style={styles.primaryButtonText}>
+            Continue to movement verification
+          </Text>
+        </Pressable>
+      )}
+
       {activeMovementNeedId && (
         <View style={styles.section}>
           <Text style={styles.label}>
@@ -779,25 +817,6 @@ useEffect(() => {
             <Text style={styles.message}>
               {offerAcceptanceMessage}
             </Text>
-          )}
-
-          {acceptedMovementNeedId && (
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => {
-                router.push({
-                  pathname: './movement-verification',
-                  params: {
-                    movementNeedId: acceptedMovementNeedId,
-                  },
-                });
-              }}
-              style={styles.primaryButton}
-            >
-              <Text style={styles.primaryButtonText}>
-                Continue to movement verification
-              </Text>
-            </Pressable>
           )}
 
           {incomingOffers.map(offer => (
