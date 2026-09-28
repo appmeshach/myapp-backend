@@ -154,7 +154,7 @@ const inboxRow = { interestId: interest, movementNeedId: need, availabilityId: a
 // Same transpile/VM and lightweight hook-render approach as existing UI tests.
 // Actions go through real screen handlers; no internal screen state is seeded.
 function screen(kind) {
-  const values = [], effects = [], calls = [];
+  const values = [], effects = [], calls = [], navigationCalls = [];
   let cursor = 0, dirty = true, tree, serial = 100, mounted = true;
   const same = (a, b) => a && b && a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
   const react = {
@@ -194,7 +194,8 @@ function screen(kind) {
   };
   const wrap = name => async (...args) => { calls.push([name, ...plain(args)]); return handlers[name](...args); };
   const component = load(`src/app/${kind}-movement.tsx`, {
-    react, 'expo-crypto': { randomUUID: () => id(serial++) }, 'expo-router': { Redirect: 'Redirect' },
+    react, 'expo-crypto': { randomUUID: () => id(serial++) },
+    'expo-router': { Redirect: 'Redirect', router: { push: route => navigationCalls.push(plain(route)) } },
     'react-native': Object.fromEntries(['FlatList', 'Modal', 'Pressable', 'ScrollView', 'Text', 'TextInput', 'View']
       .map(v => [v, v]).concat([['StyleSheet', { create: v => v }]])),
     '../services/authService': { getCurrentSession: async () => ({ user: { id: id(90) } }) },
@@ -245,7 +246,7 @@ function screen(kind) {
     list.props.renderItem({ item: list.props.data[0] }).props.onPress(); await settle();
     await press(kind === 'request' ? 'Request this movement' : 'Declare this movement');
   }
-  return { calls, handlers, settle, form, press, button, find,
+  return { calls, navigationCalls, handlers, settle, form, press, button, find,
     text: () => text(tree),
     async select(a = availability) { const card = find(n => n.type === 'Pressable' && n.key === a); assert(!card.props.disabled); card.props.onPress(); await settle(); },
     async open() { await press('Test CarBlueSeat capacity: 3'); await press('Make movement available'); },
@@ -565,20 +566,31 @@ test('requester accepts an exact pending movement offer and removes pending offe
     'Accept offer',
   );
 
+  assert(!h.text().includes('Continue to movement verification'));
   await h.press(`Accept movement offer ${movementOfferId}`);
 
   assert.deepEqual(
-    h.calls.find(c => c[0] === 'acceptMovementOffer'),
-    ['acceptMovementOffer', movementOfferId],
+    h.calls.filter(c => c[0] === 'acceptMovementOffer'),
+    [['acceptMovementOffer', movementOfferId]],
   );
 
   assert(
     h.text().includes(
-      'Movement offer accepted. Alignment status: awaiting_activation_payment.',
+      'Movement offer accepted. Continue to verify and activate this movement.',
     ),
   );
 
   assert(!h.text().includes('Status: pending'));
+  assert(!h.text().includes('awaiting_activation_payment'));
+  assert(h.button('Continue to movement verification'));
+  assert.deepEqual(h.navigationCalls, []);
+
+  await h.press('Continue to movement verification');
+
+  assert.deepEqual(h.navigationCalls, [{
+    pathname: './movement-verification',
+    params: { movementNeedId: need },
+  }]);
 });
 
 test('requester movement offer acceptance prevents duplicate writes while one acceptance is pending', async () => {
@@ -699,6 +711,9 @@ test('failed movement offer acceptance keeps the offer visible and does not expo
   assert(
     !h.text().includes('private SQL detail'),
   );
+  assert(h.button(`Accept movement offer ${movementOfferId}`));
+  assert(!h.text().includes('Continue to movement verification'));
+  assert.deepEqual(h.navigationCalls, []);
 });
 test('offerer sends requester-specific movement offer from exact interest context', async () => {
   const h = screen('offer');

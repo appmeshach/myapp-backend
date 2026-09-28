@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 
-import { Redirect } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 
 import { getCurrentSession } from '../services/authService';
 
@@ -192,6 +192,9 @@ const [acceptingOfferId, setAcceptingOfferId] =
 
 const [offerAcceptanceMessage, setOfferAcceptanceMessage] =
   useState('');
+
+const [acceptedMovementNeedId, setAcceptedMovementNeedId] =
+  useState<string | null>(null);
 
 const offerAcceptanceInFlight = useRef(false);
 
@@ -401,6 +404,7 @@ useEffect(() => {
     offerAcceptanceInFlight.current = true;
     setAcceptingOfferId(movementOfferId);
     setOfferAcceptanceMessage('');
+    setAcceptedMovementNeedId(null);
 
     try {
       const result =
@@ -418,8 +422,9 @@ useEffect(() => {
       setIncomingOffers([]);
       setIncomingOffersMessage('');
 
+      setAcceptedMovementNeedId(result.movementNeedId);
       setOfferAcceptanceMessage(
-        `Movement offer accepted. Alignment status: ${result.alignmentStatus}.`,
+        'Movement offer accepted. Continue to verify and activate this movement.',
       );
     } catch {
       if (!mounted.current) {
@@ -774,6 +779,25 @@ useEffect(() => {
             <Text style={styles.message}>
               {offerAcceptanceMessage}
             </Text>
+          )}
+
+          {acceptedMovementNeedId && (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                router.push({
+                  pathname: './movement-verification',
+                  params: {
+                    movementNeedId: acceptedMovementNeedId,
+                  },
+                });
+              }}
+              style={styles.primaryButton}
+            >
+              <Text style={styles.primaryButtonText}>
+                Continue to movement verification
+              </Text>
+            </Pressable>
           )}
 
           {incomingOffers.map(offer => (
