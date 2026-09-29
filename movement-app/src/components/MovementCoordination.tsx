@@ -1,6 +1,7 @@
 import { Image, Pressable, Text, View } from 'react-native';
 import { useMovementCoordination } from '../hooks/useMovementCoordination';
 import { MeetingJourney } from './MeetingJourney';
+import { MovementEnd } from './MovementEnd';
 export function MovementCoordination({ movementNeedId }: { movementNeedId: string }) {
   const { state, refresh } = useMovementCoordination(movementNeedId);
   return <View style={{ gap: 20 }}>
@@ -22,8 +23,9 @@ export function MovementCoordination({ movementNeedId }: { movementNeedId: strin
         <Text>Vehicle to expect</Text><Text>{state.reveal.vehicle.vehicleDisplayName}</Text><Text>{state.reveal.vehicle.plateNumber}</Text>
       </View>}
       <MeetingJourney movementNeedId={movementNeedId} />
-      <Text>Chat and journey completion controls are not available in this build yet.</Text>
+      <Text>Chat is not available in this build yet.</Text>
     </>}
+    <MovementEnd movementNeedId={movementNeedId} />
     <Pressable accessibilityRole="button" disabled={state.phase === 'loading' || state.phase === 'signed_out'}
       onPress={() => { void refresh(); }} style={{ padding: 16 }}><Text>Refresh coordination</Text></Pressable>
   </View>;

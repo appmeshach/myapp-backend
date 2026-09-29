@@ -9,12 +9,12 @@ const need = id(1), availability = id(2), otherAvailability = id(3), evidence = 
 const time = '2026-09-25T12:00:00Z';
 const plain = value => JSON.parse(JSON.stringify(value));
 const cache = new Map();
-function load(file, stubs) {
+function load(file, stubs, globals = {}) {
   if (!cache.has(file)) cache.set(file, ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
   }).outputText);
   const exports = {};
-  vm.runInNewContext(cache.get(file), { exports, Error, Date, console,
+  vm.runInNewContext(cache.get(file), { exports, Error, Date, console, ...globals,
     require(name) {
       if (name in stubs) return stubs[name];
       if (name === 'react/jsx-runtime') return require(name);
@@ -1466,3 +1466,161 @@ for (const kind of ['request','offer']) {
     }
   });
 }
+
+
+// 0057: principal-neutral completion UI, strict RPC boundary and lifecycle owner.
+const endRow = (patch = {}) => ({ journey_state: 'in_progress', end_status: 'no_pending_end_request',
+  requested_by_me: false, action_required_from_me: false, requested_at: null, completed_at: null, ...patch });
+const endStatus = (patch = {}) => ({ journeyState: 'in_progress', endStatus: 'no_pending_end_request',
+  requestedByMe: false, actionRequiredFromMe: false, requestedAt: null, completedAt: null, ...patch });
+const endMine = endStatus({ endStatus: 'awaiting_other_member', requestedByMe: true, requestedAt: time });
+const endOther = endStatus({ endStatus: 'action_required_from_me', actionRequiredFromMe: true, requestedAt: time });
+const endDone = endStatus({ journeyState: 'completed', endStatus: 'completed', requestedAt: time, completedAt: time });
+function endService(data = [endRow()], error = null) {
+  const calls = [];
+  const api = load('src/services/movementEndService.ts', { '../lib/supabase': { supabase: {
+    rpc: (...args) => { calls.push(plain(args)); return { abortSignal: async () => ({ data, error }) }; },
+  } } });
+  return { api, calls };
+}
+const endSignal = () => new AbortController().signal;
+test('0057 service sends only movementNeedId and optional reason to exact RPCs', async () => {
+  for (const [method, rpc] of [['getMovementEndStatus','get_my_movement_end_status_by_need'],['requestMovementEnd','request_my_movement_end'],['confirmMovementEnd','confirm_my_movement_end'],['declineMovementEnd','decline_my_movement_end']]) {
+    const h = endService();
+    assert.deepEqual(plain(await h.api[method](need,endSignal())), endStatus());
+    assert.deepEqual(h.calls, [[rpc,{p_movement_need_id:need}]]);
+  }
+  const h=endService(); await h.api.requestMovementEnd(need,endSignal(),'  Arrived  ');
+  assert.deepEqual(h.calls,[['request_my_movement_end',{p_movement_need_id:need,p_reason:'Arrived'}]]);
+});
+test('0057 parser accepts each canonical state including no travel', async () => {
+  for(const patch of [ {}, {journey_state:'not_started'},
+    {end_status:'awaiting_other_member',requested_by_me:true,requested_at:time},
+    {end_status:'action_required_from_me',action_required_from_me:true,requested_at:time},
+    {journey_state:'completed',end_status:'completed',requested_at:time,completed_at:time},
+    {journey_state:'cancelled',end_status:'mutual_no_travel',requested_at:time}]) {
+    await endService([endRow(patch)]).api.getMovementEndStatus(need,endSignal());
+  }
+});
+test('0057 rejects malformed, inconsistent and private response fields with generic errors', async () => {
+  const invalid = [null,{},[],[null],[endRow(),endRow()],...[
+    {journey_id:id(20)},{alignment_id:id(21)},{member_id:id(22)},{settlement_id:id(23)},
+    {journey_state:'failed'},{end_status:'unknown'},{requested_by_me:'false'},{action_required_from_me:1},
+    {requested_at:'2026-02-30T12:00:00Z'},{requested_at:'2026-09-25'},
+    {requested_at:'2026-09-25T24:00:00Z'},{completed_at:'infinity'},
+    {end_status:'completed'},{journey_state:'cancelled'},{requested_by_me:true},
+    {end_status:'action_required_from_me',requested_at:time},
+  ].map(p=>[endRow(p)])];
+  for(const data of invalid) await assert.rejects(endService(data).api.getMovementEndStatus(need,endSignal()),{message:'movement_end_unavailable'});
+  const missing=endRow();delete missing.requested_at;
+  await assert.rejects(endService([missing]).api.getMovementEndStatus(need,endSignal()),{message:'movement_end_unavailable'});
+  await assert.rejects(endService(null,{message:'PRIVATE SQL',code:'42501'}).api.getMovementEndStatus(need,endSignal()),{message:'movement_end_unavailable'});
+});
+test('0057 invalid arguments and aborted calls make no RPC', async () => {
+  for(const value of [null,'bad',[need]]) {const h=endService();await assert.rejects(h.api.requestMovementEnd(value,endSignal()));assert.equal(h.calls.length,0);}
+  for(const reason of ['', ' ', 'x'.repeat(501), 5]) {const h=endService();await assert.rejects(h.api.requestMovementEnd(need,endSignal(),reason));assert.equal(h.calls.length,0);}
+  const h=endService(), abort=new AbortController();abort.abort();
+  await assert.rejects(h.api.confirmMovementEnd(need,abort.signal),{message:'movement_end_unavailable'});assert.equal(h.calls.length,0);
+});
+const createEnd = load('src/state/movementEndController.ts', {}, {AbortController,setTimeout,clearTimeout}).createMovementEndController;
+function endController(initial=endStatus(), overrides={}) {
+  let server=initial;const calls=[];
+  const api={read:async()=>{calls.push('read');return server;},
+    request:async()=>{calls.push('request');return server=endMine;},
+    confirm:async()=>{calls.push('confirm');return server=endDone;},
+    decline:async()=>{calls.push('decline');return server=endStatus();},...overrides};
+  const c=createEnd(need,api);c.activate();return {c,calls};
+}
+function endDeferred(){let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};}
+test('0057 loading reads only; explicit request refreshes and cannot self-confirm or decline',async()=>{
+  const h=endController();await h.c.refresh();assert.deepEqual(h.calls,['read']);
+  await h.c.requestEnd();assert.equal(h.c.getSnapshot().status.endStatus,'awaiting_other_member');
+  await h.c.confirmEnd();await h.c.declineEnd();await h.c.requestEnd();
+  assert.deepEqual(h.calls,['read','request','read']);
+});
+test('0057 other principal can decline, start a fresh request or explicitly confirm',async()=>{
+  const h=endController(endOther);await h.c.refresh();await h.c.requestEnd();assert.deepEqual(h.calls,['read']);
+  await h.c.declineEnd();assert.equal(h.c.getSnapshot().status.endStatus,'no_pending_end_request');
+  await h.c.requestEnd();assert.deepEqual(h.calls,['read','decline','read','request','read']);
+  const k=endController(endOther);await k.c.refresh();await k.c.confirmEnd();
+  assert.equal(k.c.getSnapshot().status.endStatus,'completed');await k.c.requestEnd();await k.c.confirmEnd();await k.c.declineEnd();
+  assert.deepEqual(k.calls,['read','confirm','read']);
+});
+for(const [method,initial,action] of [['requestEnd',endStatus(),'request'],['confirmEnd',endOther,'confirm'],['declineEnd',endOther,'decline']]) {
+  test('0057 duplicate taps guarded synchronously for '+action,async()=>{
+    const pending=endDeferred();let writes=0;
+    const h=endController(initial,{[action]:async()=>{writes++;return pending.promise;}});await h.c.refresh();
+    const first=h.c[method]();await h.c[method]();await h.c.refresh();assert.equal(writes,1);
+    assert.notEqual(h.c.getSnapshot().status.endStatus,'completed');pending.resolve(endDone);await first;
+    assert.equal(h.c.getSnapshot().status.endStatus,initial.endStatus); // refreshed result wins over mutation response
+  });
+}
+test('0057 late initial read cannot overwrite newer same-session mutation',async()=>{
+  const old=endDeferred();let reads=0;
+  const h=endController(endStatus(),{read:async()=>++reads===1?old.promise:reads===2?endStatus():endMine});
+  const pending=h.c.refresh();await h.c.requestEnd();assert.equal(h.calls.length,0); // cannot write before initial read
+  h.c.clear();h.c.activate();await h.c.refresh();await h.c.requestEnd();
+  old.resolve(endStatus());await pending;assert.equal(h.c.getSnapshot().status.endStatus,'awaiting_other_member');
+});
+test('0057 unmount invalidates pending writes and prevents their refresh',async()=>{
+  const pending=endDeferred();const h=endController(endOther,{confirm:async()=>pending.promise});await h.c.refresh();
+  const writing=h.c.confirmEnd();h.c.clear();pending.resolve(endDone);await writing;
+  assert.equal(h.c.getSnapshot().status,null);await h.c.requestEnd();assert.deepEqual(h.calls,['read']);
+});
+test('0057 failed authoritative refresh clears controls and exposes only neutral error state',async()=>{
+  let reads=0;const h=endController(endOther,{read:async()=>{if(++reads>1)throw Error('PRIVATE');return endOther;}});
+  await h.c.refresh();await h.c.confirmEnd();assert.deepEqual(plain(h.c.getSnapshot()),{status:null,busy:false,error:true});
+});
+function endUI(status, busy=false) {
+  const calls=[];const model={state:{status,busy,error:false},refresh:()=>calls.push('read'),requestEnd:()=>calls.push('request'),confirmEnd:()=>calls.push('confirm'),declineEnd:()=>calls.push('decline')};
+  const component=load('src/components/MovementEnd.tsx',{'react-native':{View:'View',Text:'Text',Pressable:'Pressable'},'../hooks/useMovementEnd':{useMovementEnd:n=>{assert.equal(n,need);return model;}}}).MovementEnd;
+  const tree=component({movementNeedId:need});const buttons=[];let text='';
+  function visit(v){if(v==null)return;if(typeof v==='string'){text+=v+' ';return;}if(Array.isArray(v)){v.forEach(visit);return;}if(v.type==='Pressable')buttons.push(v);visit(v.props?.children);}
+  visit(tree);return {calls,buttons,text};
+}
+test('0057 both principal UI states require explicit press and show human consent controls',()=>{
+  for(const role of ['requester','offerer']) {
+    const h=endUI(endStatus());assert.deepEqual(h.calls,[]);assert.match(h.text,/End movement/);h.buttons[0].props.onPress();assert.deepEqual(h.calls,['request'],role);
+    const mine=endUI(endMine);assert.match(mine.text,/Waiting for the other person/);assert.equal(mine.buttons.length,1);
+    const other=endUI(endOther);assert.match(other.text,/Confirm movement ended/);assert.match(other.text,/Not yet/);
+    other.buttons[0].props.onPress();other.buttons[1].props.onPress();assert.deepEqual(other.calls,['confirm','decline']);
+  }
+});
+test('0057 completed and no-travel UI have no active controls or raw technical labels',()=>{
+  const done=endUI(endDone);assert.match(done.text,/Movement completed/);assert.equal(done.buttons.length,1);
+  const noTravel=endUI(endStatus({journeyState:'cancelled',endStatus:'mutual_no_travel',requestedAt:time}));
+  assert.match(noTravel.text,/No travel took place/);assert.doesNotMatch(noTravel.text,/Movement completed/);assert.equal(noTravel.buttons.length,1);
+  for(const h of [done,noTravel,endUI(endMine),endUI(endOther)]) assert.doesNotMatch(h.text,/awaiting_other_member|action_required_from_me|mutual_no_travel/);
+  const busy=endUI(endOther,true);assert.equal(busy.buttons.length,1);assert.equal(busy.buttons[0].props.disabled,true);
+});
+test('0057 client exposes no internal identifiers or navigation and keeps chat unavailable',()=>{
+  for(const p of ['src/services/movementEndService.ts','src/state/movementEndController.ts','src/hooks/useMovementEnd.ts','src/components/MovementEnd.tsx']) {
+    assert.doesNotMatch(fs.readFileSync(p,'utf8'),/journeyId|alignmentId|memberId|settlementId|router.push|router.replace|latitude|longitude/);
+  }
+  const coordination=fs.readFileSync('src/components/MovementCoordination.tsx','utf8');
+  assert.match(coordination,/Chat is not available/);assert.doesNotMatch(coordination,/journey completion controls are not available/);
+  assert.match(coordination,/<MovementEnd movementNeedId={movementNeedId}/);
+});
+
+function endHookHarness() {
+  let auth, app, cleanup, snapshot;const calls=[];
+  const AppState={currentState:'active',addEventListener:(_,fn)=>{app=fn;return {remove(){calls.push('remove');}};}};
+  const api=load('src/hooks/useMovementEnd.ts',{
+    react:{useMemo:fn=>fn(),useCallback:fn=>fn,useSyncExternalStore:(_subscribe,get)=>{snapshot=get;return get();}},
+    'react-native':{AppState},'expo-router':{useFocusEffect:fn=>{cleanup=fn();}},
+    '../lib/supabase':{supabase:{auth:{onAuthStateChange:fn=>{auth=fn;return {data:{subscription:{unsubscribe(){calls.push('unsubscribe');}}}};}}}},
+    '../state/movementEndController':{createMovementEndController:createEnd},
+    '../services/movementEndService':{getMovementEndStatus:async()=>{calls.push('read');return endStatus();},
+      requestMovementEnd:async()=>{calls.push('request');return endMine;},confirmMovementEnd:async()=>{calls.push('confirm');return endDone;},declineMovementEnd:async()=>{calls.push('decline');return endStatus();}},
+  });
+  const model=api.useMovementEnd(need);
+  return {model,calls,state:()=>snapshot(),login:id=>auth('SIGNED_IN',id?{user:{id}}:null),
+    background:()=>{AppState.currentState='background';app();},resume:()=>{AppState.currentState='active';app();},cleanup:()=>cleanup()};
+}
+test('0057 hook foreground, account change and unmount clear state and never write automatically',async()=>{
+  const h=endHookHarness();h.login('requester');await new Promise(setImmediate);assert.equal(h.state().status.endStatus,'no_pending_end_request');
+  h.background();assert.equal(h.state().status,null);h.resume();await new Promise(setImmediate);
+  h.login('offerer');assert.equal(h.state().status,null);await new Promise(setImmediate);
+  h.login(null);assert.equal(h.state().status,null);h.cleanup();await h.model.requestEnd();
+  assert.deepEqual(h.calls,['read','read','read','remove','unsubscribe']);
+});
