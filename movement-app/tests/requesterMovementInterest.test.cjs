@@ -206,6 +206,7 @@ function screen(kind) {
     'react-native': Object.fromEntries(['FlatList', 'Modal', 'Pressable', 'ScrollView', 'Text', 'TextInput', 'View']
       .map(v => [v, v]).concat([['StyleSheet', { create: v => v }]])),
     '../services/authService': { getCurrentSession: async () => ({ user: { id: id(90) } }) },
+    '../components/CompletedMovements': { CompletedMovements: () => null },
     '../services/locationService': {
       searchMovementLocations: async query => ({ suggestions: [{ selectionRequestId: query, selectionProof: query, declaredLabel: `${query} selected` }] }),
       selectMovementLocation: async proof => ({ locationReferenceId: proof, declaredLabel: `${proof} selected` }),
@@ -1623,4 +1624,1134 @@ test('0057 hook foreground, account change and unmount clear state and never wri
   h.login('offerer');assert.equal(h.state().status,null);await new Promise(setImmediate);
   h.login(null);assert.equal(h.state().status,null);h.cleanup();await h.model.requestEnd();
   assert.deepEqual(h.calls,['read','read','read','remove','unsubscribe']);
+});
+
+// 0058: completed travelled movement recovery and settlement visibility.
+const completedRow = (patch = {}) => ({
+  movement_need_id: id(501),
+  origin_area: 'Completed origin',
+  destination_area: 'Completed destination',
+  completed_at: '2026-09-28T12:00:00+00:00',
+  settlement_status: 'pending_amount',
+  settlement_is_for_me: true,
+  settled_at: null,
+  ...patch,
+});
+
+const completedRecovery = (patch = {}) => ({
+  movementNeedId: id(501),
+  originArea: 'Completed origin',
+  destinationArea: 'Completed destination',
+  completedAt: '2026-09-28T12:00:00+00:00',
+  settlementStatus: 'pending_amount',
+  settlementIsForMe: true,
+  settledAt: null,
+  ...patch,
+});
+
+function completedService(data, error = null) {
+  const calls = [];
+
+  const rpc = (...args) => {
+    calls.push(plain(args));
+
+    const result = Promise.resolve({
+      data,
+      error,
+    });
+
+    result.abortSignal = async () => ({
+      data,
+      error,
+    });
+
+    return result;
+  };
+
+  const api = load(
+    'src/services/completedMovementService.ts',
+    {
+      '../lib/supabase': {
+        supabase: {
+          rpc,
+        },
+      },
+    },
+  );
+
+  return {
+    api,
+    calls,
+  };
+}
+
+test('0058 completed recovery service maps exact bounded RPC and safe rows', async () => {
+  const secondRow = completedRow({
+    movement_need_id: id(502),
+    settlement_status: 'settled',
+    settlement_is_for_me: false,
+    settled_at: '2026-09-28T12:01:00+00:00',
+  });
+
+  const h = completedService([
+    completedRow(),
+    secondRow,
+  ]);
+
+  assert.deepEqual(
+    plain(
+      await h.api.listMyCompletedMovementRecoveries(),
+    ),
+    [
+      completedRecovery(),
+      completedRecovery({
+        movementNeedId: id(502),
+        settlementStatus: 'settled',
+        settlementIsForMe: false,
+        settledAt: '2026-09-28T12:01:00+00:00',
+      }),
+    ],
+  );
+
+  await h.api.listMyCompletedMovementRecoveries(2);
+
+  assert.deepEqual(
+    h.calls,
+    [
+      [
+        'list_my_completed_movement_recoveries',
+        {
+          p_limit: 20,
+        },
+      ],
+      [
+        'list_my_completed_movement_recoveries',
+        {
+          p_limit: 2,
+        },
+      ],
+    ],
+  );
+
+  assert.deepEqual(
+    plain(
+      await completedService([])
+        .api
+        .listMyCompletedMovementRecoveries(),
+    ),
+    [],
+  );
+});
+
+test('0058 completed recovery validates limit and aborted calls before network', async () => {
+  let calls = 0;
+
+  const rpc = () => {
+    calls++;
+    return Promise.resolve({
+      data: [],
+      error: null,
+    });
+  };
+
+  const api = load(
+    'src/services/completedMovementService.ts',
+    {
+      '../lib/supabase': {
+        supabase: {
+          rpc,
+        },
+      },
+    },
+  );
+
+  for (const limit of [
+    0,
+    -1,
+    51,
+    1.5,
+    '20',
+    null,
+    NaN,
+    Infinity,
+  ]) {
+    await assert.rejects(
+      api.listMyCompletedMovementRecoveries(limit),
+      {
+        message:
+          'completed_movement_recovery_unavailable',
+      },
+    );
+  }
+
+  const abort = new AbortController();
+  abort.abort();
+
+  await assert.rejects(
+    api.listMyCompletedMovementRecoveries(
+      20,
+      abort.signal,
+    ),
+    {
+      message:
+        'completed_movement_recovery_unavailable',
+    },
+  );
+
+  assert.equal(calls, 0);
+});
+
+test('0058 completed recovery rejects malformed duplicate oversized and private responses', async () => {
+  const row = completedRow();
+
+  const invalid = [
+    null,
+    {},
+    [null],
+    [[]],
+    [{}],
+    [
+      row,
+      row,
+    ],
+    [
+      row,
+      completedRow({
+        movement_need_id: id(502),
+      }),
+    ],
+  ];
+
+  for (const field of Object.keys(row)) {
+    const missing = {
+      ...row,
+    };
+
+    delete missing[field];
+
+    invalid.push([
+      missing,
+    ]);
+  }
+
+  for (const [field, values] of Object.entries({
+    movement_need_id: [
+      'bad',
+      null,
+      1,
+      [
+        id(501),
+      ],
+    ],
+    origin_area: [
+      '',
+      ' ',
+      ' private',
+      'private ',
+      'private\nlabel',
+      'control\u0085label',
+      'x'.repeat(501),
+      1,
+      null,
+    ],
+    destination_area: [
+      '',
+      '\t',
+      'private\nlabel',
+      'control\u007flabel',
+      1,
+      null,
+    ],
+    completed_at: [
+      null,
+      'bad',
+      '2026-09-28',
+      '2026-02-30T12:00:00Z',
+      '2025-02-29T12:00:00Z',
+      '2026-09-28T24:00:00Z',
+      '2026-09-28T12:61:00Z',
+      '2026-09-28T12:00:00',
+      'infinity',
+      123,
+    ],
+    settlement_status: [
+      'unknown',
+      'no_settlement',
+      null,
+      1,
+    ],
+    settlement_is_for_me: [
+      'true',
+      1,
+      null,
+    ],
+  })) {
+    for (const value of values) {
+      invalid.push([
+        {
+          ...row,
+          [field]: value,
+        },
+      ]);
+    }
+  }
+
+  for (const field of [
+    'journey_id',
+    'alignment_id',
+    'movement_offer_id',
+    'settlement_id',
+    'beneficiary_member_id',
+    'member_id',
+    'provider_id',
+    'payment_id',
+    'vehicle_id',
+    'latitude',
+    'longitude',
+    'route_shape',
+  ]) {
+    invalid.push([
+      {
+        ...row,
+        [field]: 'private',
+      },
+    ]);
+  }
+
+  invalid.push([
+    completedRow({
+      settlement_status: 'settled',
+      settled_at: null,
+    }),
+  ]);
+
+  invalid.push([
+    completedRow({
+      settlement_status: 'pending_amount',
+      settled_at: '2026-09-28T12:01:00+00:00',
+    }),
+  ]);
+
+  invalid.push([
+    completedRow({
+      settlement_status: 'pending_settlement',
+      settled_at: '2026-09-28T12:01:00+00:00',
+    }),
+  ]);
+
+  invalid.push([
+    completedRow({
+      settlement_status: 'failed',
+      settled_at: '2026-09-28T12:01:00+00:00',
+    }),
+  ]);
+
+  invalid.push([
+    completedRow({
+      settlement_status: 'settled',
+      settled_at: '2026-09-28T11:59:59+00:00',
+    }),
+  ]);
+
+  for (const data of invalid) {
+    await assert.rejects(
+      completedService(data)
+        .api
+        .listMyCompletedMovementRecoveries(1),
+      {
+        message:
+          'completed_movement_recovery_unavailable',
+      },
+    );
+  }
+});
+
+test('0058 completed recovery accepts canonical statuses and PostgreSQL timestamps', async () => {
+  const cases = [
+    completedRow({
+      completed_at:
+        '2024-02-29T12:00:00Z',
+    }),
+    completedRow({
+      completed_at:
+        '2026-09-28T12:00:00.123456+00:00',
+    }),
+    completedRow({
+      settlement_status:
+        'pending_settlement',
+    }),
+    completedRow({
+      settlement_status:
+        'failed',
+    }),
+    completedRow({
+      settlement_status:
+        'settled',
+      settled_at:
+        '2026-09-28T12:00:01.123456+00:00',
+    }),
+  ];
+
+  for (const row of cases) {
+    const result =
+      await completedService([
+        row,
+      ])
+        .api
+        .listMyCompletedMovementRecoveries();
+
+    assert.equal(
+      result.length,
+      1,
+    );
+  }
+});
+
+test('0058 completed recovery Supabase and transport errors remain generic', async () => {
+  await assert.rejects(
+    completedService(
+      [
+        completedRow(),
+      ],
+      {
+        message:
+          'PRIVATE settlement database detail',
+        code:
+          '42501',
+      },
+    )
+      .api
+      .listMyCompletedMovementRecoveries(),
+    {
+      message:
+        'completed_movement_recovery_unavailable',
+    },
+  );
+
+  const api = load(
+    'src/services/completedMovementService.ts',
+    {
+      '../lib/supabase': {
+        supabase: {
+          rpc() {
+            throw new Error(
+              'PRIVATE transport detail',
+            );
+          },
+        },
+      },
+    },
+  );
+
+  await assert.rejects(
+    api.listMyCompletedMovementRecoveries(),
+    {
+      message:
+        'completed_movement_recovery_unavailable',
+    },
+  );
+});
+
+
+const createCompletedController =
+  load(
+    'src/state/completedMovementController.ts',
+    {},
+    {
+      AbortController,
+      setTimeout,
+      clearTimeout,
+    },
+  ).createCompletedMovementController;
+
+test('0058 controller stays signed out until an account exists and reads only after account activation', async () => {
+  const calls = [];
+
+  const controller =
+    createCompletedController(
+      async (
+        limit,
+        signal,
+      ) => {
+        calls.push({
+          limit,
+          signal,
+        });
+
+        return [
+          completedRecovery(),
+        ];
+      },
+    );
+
+  assert.deepEqual(
+    plain(
+      controller.getSnapshot(),
+    ),
+    {
+      phase:
+        'signed_out',
+      rows: [],
+    },
+  );
+
+  await controller.refresh();
+
+  assert.equal(
+    calls.length,
+    0,
+  );
+
+  controller.activate();
+  controller.setAccount(
+    'account-a',
+  );
+
+  assert.equal(
+    controller.getSnapshot().phase,
+    'loading',
+  );
+
+  await new Promise(
+    setImmediate,
+  );
+
+  assert.equal(
+    calls.length,
+    1,
+  );
+
+  assert.equal(
+    calls[0].limit,
+    20,
+  );
+
+  assert.equal(
+    calls[0].signal.aborted,
+    false,
+  );
+
+  assert.deepEqual(
+    plain(
+      controller.getSnapshot(),
+    ),
+    {
+      phase:
+        'ready',
+      rows: [
+        completedRecovery(),
+      ],
+    },
+  );
+
+  controller.dispose();
+
+  assert.deepEqual(
+    plain(
+      controller.getSnapshot(),
+    ),
+    {
+      phase:
+        'signed_out',
+      rows: [],
+    },
+  );
+});
+
+test('0058 controller aborts old-account reads and ignores stale success', async () => {
+  const first = deferred();
+  const second = deferred();
+
+  const signals = [];
+  let reads = 0;
+
+  const controller =
+    createCompletedController(
+      async (
+        _limit,
+        signal,
+      ) => {
+        signals.push(
+          signal,
+        );
+
+        reads++;
+
+        return reads === 1
+          ? first.promise
+          : second.promise;
+      },
+    );
+
+  controller.activate();
+
+  controller.setAccount(
+    'account-a',
+  );
+
+  assert.equal(
+    reads,
+    1,
+  );
+
+  controller.setAccount(
+    'account-b',
+  );
+
+  assert.equal(
+    reads,
+    2,
+  );
+
+  assert.equal(
+    signals[0].aborted,
+    true,
+  );
+
+  first.resolve([
+    completedRecovery({
+      originArea:
+        'OLD ACCOUNT DATA',
+    }),
+  ]);
+
+  second.resolve([
+    completedRecovery({
+      movementNeedId:
+        id(502),
+      originArea:
+        'New account origin',
+    }),
+  ]);
+
+  await new Promise(
+    setImmediate,
+  );
+
+  const state =
+    controller.getSnapshot();
+
+  assert.equal(
+    state.phase,
+    'ready',
+  );
+
+  assert.equal(
+    state.rows.length,
+    1,
+  );
+
+  assert.equal(
+    state.rows[0].movementNeedId,
+    id(502),
+  );
+
+  assert.equal(
+    state.rows[0].originArea,
+    'New account origin',
+  );
+
+  assert.notEqual(
+    state.rows[0].originArea,
+    'OLD ACCOUNT DATA',
+  );
+});
+
+test('0058 controller dispose aborts pending recovery and blocks late updates', async () => {
+  const pending =
+    deferred();
+
+  let signal;
+
+  const controller =
+    createCompletedController(
+      async (
+        _limit,
+        nextSignal,
+      ) => {
+        signal =
+          nextSignal;
+
+        return pending.promise;
+      },
+    );
+
+  controller.activate();
+
+  controller.setAccount(
+    'account-a',
+  );
+
+  assert.equal(
+    controller.getSnapshot().phase,
+    'loading',
+  );
+
+  controller.dispose();
+
+  assert.equal(
+    signal.aborted,
+    true,
+  );
+
+  pending.resolve([
+    completedRecovery(),
+  ]);
+
+  await new Promise(
+    setImmediate,
+  );
+
+  assert.deepEqual(
+    plain(
+      controller.getSnapshot(),
+    ),
+    {
+      phase:
+        'signed_out',
+      rows: [],
+    },
+  );
+});
+
+
+test('0058 hook clears identity through the controller and performs no write automatically', () => {
+  const calls = [];
+
+  let authCallback;
+  let cleanup;
+
+  const owner = {
+    subscribe() {
+      return () => {};
+    },
+
+    getSnapshot() {
+      return {
+        phase:
+          'signed_out',
+        rows: [],
+      };
+    },
+
+    activate() {
+      calls.push(
+        'activate',
+      );
+    },
+
+    setAccount(account) {
+      calls.push([
+        'account',
+        account,
+      ]);
+    },
+
+    dispose() {
+      calls.push(
+        'dispose',
+      );
+    },
+
+    refresh() {
+      calls.push(
+        'refresh',
+      );
+    },
+  };
+
+  const api =
+    load(
+      'src/hooks/useCompletedMovements.ts',
+      {
+        react: {
+          useMemo:
+            fn => fn(),
+
+          useEffect:
+            fn => {
+              cleanup =
+                fn();
+            },
+
+          useSyncExternalStore:
+            (
+              _subscribe,
+              getSnapshot,
+            ) =>
+              getSnapshot(),
+        },
+
+        '../lib/supabase': {
+          supabase: {
+            auth: {
+              onAuthStateChange(
+                fn,
+              ) {
+                authCallback =
+                  fn;
+
+                return {
+                  data: {
+                    subscription: {
+                      unsubscribe() {
+                        calls.push(
+                          'unsubscribe',
+                        );
+                      },
+                    },
+                  },
+                };
+              },
+            },
+          },
+        },
+
+        '../services/completedMovementService': {
+          listMyCompletedMovementRecoveries:
+            async () => [],
+        },
+
+        '../state/completedMovementController': {
+          createCompletedMovementController:
+            () => owner,
+        },
+      },
+    );
+
+  const model =
+    api.useCompletedMovements();
+
+  assert.deepEqual(
+    calls,
+    [
+      'activate',
+    ],
+  );
+
+  authCallback(
+    'SIGNED_IN',
+    {
+      user: {
+        id:
+          'account-a',
+      },
+    },
+  );
+
+  authCallback(
+    'SIGNED_IN',
+    {
+      user: {
+        id:
+          'account-b',
+      },
+    },
+  );
+
+  authCallback(
+    'SIGNED_OUT',
+    null,
+  );
+
+  assert.deepEqual(
+    calls,
+    [
+      'activate',
+      [
+        'account',
+        'account-a',
+      ],
+      [
+        'account',
+        'account-b',
+      ],
+      [
+        'account',
+        null,
+      ],
+    ],
+  );
+
+  assert.equal(
+    typeof model.refresh,
+    'function',
+  );
+
+  cleanup();
+
+  assert.deepEqual(
+    calls.slice(-2),
+    [
+      'dispose',
+      'unsubscribe',
+    ],
+  );
+
+  assert(
+    !calls.includes(
+      'refresh',
+    ),
+  );
+});
+
+
+function completedUI(
+  state,
+) {
+  const calls = [];
+
+  const component =
+    load(
+      'src/components/CompletedMovements.tsx',
+      {
+        'react-native': {
+          View:
+            'View',
+          Text:
+            'Text',
+          Pressable:
+            'Pressable',
+        },
+
+        '../hooks/useCompletedMovements': {
+          useCompletedMovements:
+            () => ({
+              state,
+              refresh:
+                () => {
+                  calls.push(
+                    'refresh',
+                  );
+                },
+            }),
+        },
+      },
+    )
+      .CompletedMovements;
+
+  const tree =
+    component();
+
+  return {
+    tree,
+    calls,
+    text:
+      text(tree),
+    buttons:
+      nodes(tree)
+        .filter(
+          node =>
+            node.type ===
+            'Pressable',
+        ),
+  };
+}
+
+test('0058 completed movement UI shows human settlement copy without internal identifiers or enums', () => {
+  const offerer =
+    completedUI({
+      phase:
+        'ready',
+      rows: [
+        completedRecovery(),
+      ],
+    });
+
+  assert.match(
+    offerer.text,
+    /Completed movements/,
+  );
+
+  assert.match(
+    offerer.text,
+    /Completed origin/,
+  );
+
+  assert.match(
+    offerer.text,
+    /Completed destination/,
+  );
+
+  assert.match(
+    offerer.text,
+    /Settlement for you/,
+  );
+
+  assert.match(
+    offerer.text,
+    /Pending calculation/,
+  );
+
+  assert.doesNotMatch(
+    offerer.text,
+    /pending_amount|movementNeedId|settlementIsForMe/,
+  );
+
+  assert(
+    !offerer.text.includes(
+      id(501),
+    ),
+  );
+
+  const requester =
+    completedUI({
+      phase:
+        'ready',
+      rows: [
+        completedRecovery({
+          settlementIsForMe:
+            false,
+        }),
+      ],
+    });
+
+  assert.match(
+    requester.text,
+    /Pending calculation for the person who offered the movement/,
+  );
+
+  assert.doesNotMatch(
+    requester.text,
+    /pending_amount/,
+  );
+
+  const settled =
+    completedUI({
+      phase:
+        'ready',
+      rows: [
+        completedRecovery({
+          settlementStatus:
+            'settled',
+          settledAt:
+            '2026-09-28T12:01:00+00:00',
+        }),
+      ],
+    });
+
+  assert.match(
+    settled.text,
+    /Settled/,
+  );
+});
+
+test('0058 completed movement UI loading error empty and refresh states are neutral', () => {
+  const signedOut =
+    completedUI({
+      phase:
+        'signed_out',
+      rows: [],
+    });
+
+  assert.match(
+    signedOut.text,
+    /Sign in to view completed movements/,
+  );
+
+  assert.equal(
+    signedOut.buttons.length,
+    0,
+  );
+
+  const loading =
+    completedUI({
+      phase:
+        'loading',
+      rows: [],
+    });
+
+  assert.match(
+    loading.text,
+    /Loading completed movements/,
+  );
+
+  assert.equal(
+    loading.buttons.length,
+    1,
+  );
+
+  assert.equal(
+    loading.buttons[0].props.disabled,
+    true,
+  );
+
+  const empty =
+    completedUI({
+      phase:
+        'ready',
+      rows: [],
+    });
+
+  assert.match(
+    empty.text,
+    /No completed movements yet/,
+  );
+
+  empty.buttons[0]
+    .props
+    .onPress();
+
+  assert.deepEqual(
+    empty.calls,
+    [
+      'refresh',
+    ],
+  );
+
+  const failed =
+    completedUI({
+      phase:
+        'error',
+      rows: [],
+    });
+
+  assert.match(
+    failed.text,
+    /Completed movements could not be loaded\. Please retry\./,
+  );
+
+  assert.match(
+    failed.text,
+    /Retry completed movements/,
+  );
+
+  assert.doesNotMatch(
+    failed.text,
+    /SQL|database|provider|settlement_id/,
+  );
+});
+
+test('0058 completed recovery stays independently mounted on requester and offerer screens', () => {
+  for (const file of [
+    'src/app/request-movement.tsx',
+    'src/app/offer-movement.tsx',
+  ]) {
+    const source =
+      fs.readFileSync(
+        file,
+        'utf8',
+      );
+
+    assert.match(
+      source,
+      /import \{ CompletedMovements \} from '\.\.\/components\/CompletedMovements';/,
+    );
+
+    assert.match(
+      source,
+      /<CompletedMovements \/>/,
+    );
+  }
+
+  const source =
+    fs.readFileSync(
+      'src/components/CompletedMovements.tsx',
+      'utf8',
+    );
+
+  assert.doesNotMatch(
+    source,
+    /router\.push|router\.replace|journeyId|alignmentId|settlementId|latitude|longitude/,
+  );
 });

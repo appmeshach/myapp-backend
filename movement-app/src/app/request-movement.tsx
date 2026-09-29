@@ -14,6 +14,7 @@ import {
 import { Redirect, router } from 'expo-router';
 
 import { getCurrentSession } from '../services/authService';
+import { CompletedMovements } from '../components/CompletedMovements';
 
 import {
   recoverSelectedLocation,
@@ -798,6 +799,8 @@ useEffect(() => {
       <Text style={styles.description}>
         Tell us where you need to move.
       </Text>
+
+      <CompletedMovements />
 
       {(activeMovementsLoading || !!activeMovementsError || activeMovements.length > 0) && (
         <View style={styles.section}>

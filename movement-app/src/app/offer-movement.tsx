@@ -14,6 +14,7 @@ import {
 import { Redirect, router } from 'expo-router';
 
 import { getCurrentSession } from '../services/authService';
+import { CompletedMovements } from '../components/CompletedMovements';
 
 import {
   recoverSelectedLocation,
@@ -850,6 +851,8 @@ if (route.state === 'ready') {
       <Text style={styles.description}>
         Declare movement you are already making.
       </Text>
+
+      <CompletedMovements />
 
       {(activeMovementsLoading || !!activeMovementsError || activeMovements.length > 0) && (
         <View style={styles.section}>
