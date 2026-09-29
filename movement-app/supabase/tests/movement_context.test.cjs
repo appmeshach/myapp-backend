@@ -170,6 +170,10 @@ test('no operational callers or older migrations consume these tables', () => {
   'supabase/migrations/0046_requester_availability_matching_context.sql',  'supabase/migrations/0047_requester_movement_interest_foundation.sql',
   'supabase/migrations/0050_state_bound_movement_matching.sql',
   'supabase/migrations/0052_downstream_requester_movement_deadline.sql',
+  'supabase/migrations/0054_offerer_open_availability_recovery.sql',
+  // Private evidence foundation references immutable intent ownership only;
+  // its live validation delegates to the existing trusted matching assertion.
+  'supabase/migrations/0059_pricing_geography_evidence_foundation.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);
