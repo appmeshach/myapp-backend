@@ -114,6 +114,58 @@ export async function listMyOffererMovementContinuations(
   }
 }
 
+export type ActiveMovementContinuation = {
+  movementNeedId: string;
+  originArea: string;
+  destinationArea: string;
+  startedAt: string;
+};
+
+export async function listMyActiveMovementContinuations(
+  limit: number = 20,
+): Promise<ActiveMovementContinuation[]> {
+  const safeLabel = (value: unknown): value is string => typeof value === 'string'
+    && !!value.trim() && value.length <= 500 && !/[\u0000-\u001f\u007f-\u009f]/.test(value);
+  const timestamp = (value: unknown): value is string => {
+    if (typeof value !== 'string' || !Number.isFinite(Date.parse(value))) return false;
+    const parts = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.exec(value);
+    if (!parts) return false;
+    const [, year, month, day, hour, minute, second] = parts.map(Number);
+    const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+    const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    return year >= 1 && month >= 1 && month <= 12 && day >= 1 && day <= days[month - 1]
+      && hour < 24 && minute < 60 && second < 60;
+  };
+  try {
+    if (!Number.isInteger(limit) || limit < 1 || limit > 50) throw new Error();
+    const { data, error } = await supabase.rpc(
+      'list_my_active_movement_continuations', { p_limit: limit },
+    );
+    if (error || !Array.isArray(data) || data.length > limit) throw new Error();
+    const keys = ['destination_area', 'movement_need_id', 'origin_area', 'started_at'];
+    const seen = new Set<string>();
+    return data.map((value: unknown): ActiveMovementContinuation => {
+      if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error();
+      const row = value as Record<string, unknown>;
+      const actual = Object.keys(row).sort();
+      if (actual.length !== keys.length || actual.some((key, index) => key !== keys[index])
+        || typeof row.movement_need_id !== 'string'
+        || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(row.movement_need_id)
+        || seen.has(row.movement_need_id.toLowerCase())
+        || !safeLabel(row.origin_area) || !safeLabel(row.destination_area) || !timestamp(row.started_at)) {
+        throw new Error();
+      }
+      seen.add(row.movement_need_id.toLowerCase());
+      return {
+        movementNeedId: row.movement_need_id,
+        originArea: row.origin_area, destinationArea: row.destination_area, startedAt: row.started_at,
+      };
+    });
+  } catch {
+    throw new Error('active_movement_recovery_unavailable');
+  }
+}
+
 interface CreatedMovementNeedRpcRow {
   movement_need_id: string;
 }

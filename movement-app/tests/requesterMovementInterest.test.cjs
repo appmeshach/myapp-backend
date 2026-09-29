@@ -157,6 +157,7 @@ function screen(kind) {
   const values = [], effects = [], calls = [], navigationCalls = [], continuationCalls = [];
   const recoveryCalls = [], declarationCalls = [];
   const offererContinuationCalls = [];
+  const activeMovementCalls = [];
   let cursor = 0, dirty = true, tree, serial = 100, mounted = true;
   const same = (a, b) => a && b && a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
   const react = {
@@ -173,6 +174,7 @@ function screen(kind) {
     } },
   };
   const handlers = {
+    listMyActiveMovementContinuations: async () => [],
     listMyOffererMovementContinuations: async () => [],
     listMyOpenOfferingMovementAvailabilities: async () => [],
     recoverRequesterMovementContinuation: async () => null,
@@ -211,6 +213,10 @@ function screen(kind) {
       recoverSelectedLocation: async () => { throw new Error('unexpected recovery'); },
     },
     '../services/movementService': {
+      listMyActiveMovementContinuations: async (...args) => {
+        activeMovementCalls.push(plain(args));
+        return handlers.listMyActiveMovementContinuations(...args);
+      },
       listMyOffererMovementContinuations: async (...args) => {
         offererContinuationCalls.push(plain(args));
         return handlers.listMyOffererMovementContinuations(...args);
@@ -266,7 +272,7 @@ function screen(kind) {
     list.props.renderItem({ item: list.props.data[0] }).props.onPress(); await settle();
     await press(kind === 'request' ? 'Request this movement' : 'Declare this movement');
   }
-  return { calls, navigationCalls, continuationCalls, recoveryCalls, declarationCalls, offererContinuationCalls, handlers, settle, form, press, button, find,
+  return { calls, navigationCalls, continuationCalls, recoveryCalls, declarationCalls, offererContinuationCalls, activeMovementCalls, handlers, settle, form, press, button, find,
     text: () => text(tree),
     async select(a = availability) { const card = find(n => n.type === 'Pressable' && n.key === a); assert(!card.props.disabled); card.props.onPress(); await settle(); },
     async open() { await press('Test CarBlueSeat capacity: 3'); await press('Make movement available'); },
@@ -1331,3 +1337,132 @@ test('unmounted accepted continuation recovery drops both success and failure', 
     assert.deepEqual(h.navigationCalls, []);
   }
 });
+
+const activeContinuationRow = {
+  movement_need_id: id(301),
+  origin_area: 'Accepted origin', destination_area: 'Accepted destination', started_at: time,
+};
+const activeContinuation = {
+  movementNeedId: id(301),
+  originArea: 'Accepted origin', destinationArea: 'Accepted destination', startedAt: time,
+};
+function activeContinuationService(rpc) {
+  return load('src/services/movementService.ts', { '../lib/supabase': { supabase: { rpc } } });
+}
+test('active movement recovery service maps exact RPC, limit, empty and multiple rows', async () => {
+  const calls = [];
+  const rows = [activeContinuationRow, { ...activeContinuationRow, movement_need_id: id(302) }];
+  const api = activeContinuationService(async (...args) => { calls.push(plain(args)); return { data: rows, error: null }; });
+  assert.deepEqual(plain(await api.listMyActiveMovementContinuations()), [activeContinuation,
+    { ...activeContinuation, movementNeedId: id(302) }]);
+  await api.listMyActiveMovementContinuations(2);
+  assert.deepEqual(calls, [['list_my_active_movement_continuations', { p_limit: 20 }],
+    ['list_my_active_movement_continuations', { p_limit: 2 }]]);
+  assert.deepEqual(plain(await activeContinuationService(async () => ({ data: [], error: null })).listMyActiveMovementContinuations()), []);
+});
+test('active movement recovery invalid limits fail before network', async () => {
+  let calls = 0;
+  const api = activeContinuationService(async () => { calls++; return { data: [], error: null }; });
+  for (const limit of [0, -1, 51, 1.5, '20', null, NaN, Infinity]) {
+    await assert.rejects(api.listMyActiveMovementContinuations(limit),
+      error => error.message === 'active_movement_recovery_unavailable');
+  }
+  assert.equal(calls, 0);
+});
+test('active movement recovery malformed/private/duplicate/oversized rows fail closed', async () => {
+  const row = activeContinuationRow;
+  const invalid = [null, {}, [null], [[]], [{}], [row,row],
+    [row,{ ...row, movement_need_id: id(302) },{ ...row, movement_need_id: id(303) }]];
+  for (const field of Object.keys(row)) {
+    const missing = { ...row }; delete missing[field]; invalid.push([missing]);
+  }
+  for (const [field, values] of Object.entries({
+    movement_need_id: ['bad', null, 1, [id(1)]],
+    started_at: ['bad', '2026-09-28', '2026-02-30T12:00:00Z', '2025-02-29T12:00:00Z',
+      '2026-09-28T24:00:00Z', '2026-09-28T12:61:00Z', '2026-09-28T12:00:00', 'infinity', 123, null],
+    origin_area: ['', '  ', 'private\nlabel', 'control\u0085label', 'x'.repeat(501), 1],
+    destination_area: ['', '\t', null, 'control\u007flabel'],
+  })) for (const value of values) invalid.push([{ ...row, [field]: value }]);
+  for (const field of ['alignment_id','movement_offer_id','member_id','payment_id','provider_id','route_evidence_id','latitude','route_shape']) {
+    invalid.push([{ ...row, [field]: 'private' }]);
+  }
+  const uuidWithLetters = 'abcdef01-0000-4000-8000-000000000001';
+  invalid.push([{ ...row, movement_need_id: uuidWithLetters },{ ...row, movement_need_id: uuidWithLetters.toUpperCase() }]);
+  for (const data of invalid) {
+    await assert.rejects(activeContinuationService(async () => ({ data, error: null })).listMyActiveMovementContinuations(2),
+      error => error.message === 'active_movement_recovery_unavailable');
+  }
+});
+test('active movement recovery accepts real leap-day and PostgreSQL fractional timezone timestamps', async () => {
+  for (const started_at of ['2024-02-29T12:00:00Z','2026-09-28T12:00:00.123456+00:00']) {
+    const api = activeContinuationService(async () => ({ data: [{ ...activeContinuationRow, started_at }], error: null }));
+    assert.equal((await api.listMyActiveMovementContinuations())[0].startedAt, started_at);
+  }
+});
+test('active movement recovery Supabase and transport errors are generic only', async () => {
+  for (const rpc of [async () => ({ data: [activeContinuationRow], error: { message: 'private SQL' } }),
+    async () => { throw new Error('private transport'); }]) {
+    await assert.rejects(activeContinuationService(rpc).listMyActiveMovementContinuations(),
+      error => error.message === 'active_movement_recovery_unavailable');
+  }
+});
+
+for (const kind of ['request','offer']) {
+  test(kind+' active recovery is empty without navigation or writes',async()=>{
+    const h=screen(kind);await h.settle();
+    assert.deepEqual(h.activeMovementCalls,[[]]);
+    assert(!h.text().includes('Your active movements'));
+    assert.deepEqual(h.navigationCalls,[]);assertNoOffererWrites(h);
+  });
+  test(kind+' multiple active movements continue explicitly and preserve prior recovery',async()=>{
+    const h=screen(kind);
+    const rows=[{ movementNeedId:id(401),originArea:'Active origin',destinationArea:'Active destination',startedAt:time },
+      { movementNeedId:id(402),originArea:'Second active origin',destinationArea:'Second active destination',startedAt:time }];
+    h.handlers.listMyActiveMovementContinuations=async()=>rows;
+    h.handlers.recoverRequesterMovementContinuation=async()=>need;
+    h.handlers.listMyOffererMovementContinuations=async()=>[offererContinuation];
+    h.handlers.listMyOpenOfferingMovementAvailabilities=async()=>[recovered];
+    await h.settle();assert(h.text().includes('Movement in progress'));
+    assert(h.text().includes('Second active origin'));assert.deepEqual(h.navigationCalls,[]);
+    if(kind==='request') assert(h.button('Continue to movement verification'));
+    else {assert(h.button('Continue accepted movement 1'));assert(h.text().includes('Total places: 3'));}
+    const before=plain(h.calls);
+    await h.press('Continue active movement 2');await h.press('Continue active movement 1');
+    assert.deepEqual(h.navigationCalls,[
+      {pathname:'./movement-coordination',params:{movementNeedId:id(402)}},
+      {pathname:'./movement-coordination',params:{movementNeedId:id(401)}},
+    ]);
+    assert.deepEqual(h.calls,before);assertNoOffererWrites(h);
+    assert(!h.text().includes(id(401)));
+    if(kind==='offer') {
+      await h.press('Refresh interested requesters');
+      assert.deepEqual(h.calls.at(-1),['listRequesterMovementInterestsForOfferer',{availabilityId:recovered.availabilityId,limit:20}]);
+    }
+  });
+  test(kind+' active recovery failure is neutral and retryable',async()=>{
+    const h=screen(kind);
+    h.handlers.listMyActiveMovementContinuations=async()=>{throw Error('private SQL');};
+    await h.settle();assert(h.text().includes('Active movements could not be loaded. Please retry.'));
+    assert(!h.text().includes('private SQL'));
+    h.handlers.listMyActiveMovementContinuations=async()=>[activeContinuation];
+    await h.press('Retry active movements');assert.equal(h.activeMovementCalls.length,2);
+    assert(h.button('Continue active movement 1'));assert.deepEqual(h.navigationCalls,[]);
+  });
+  test(kind+' late active recovery cannot change a new declaration',async()=>{
+    const h=screen(kind),pending=deferred();h.handlers.listMyActiveMovementContinuations=()=>pending.promise;
+    await h.settle();await h.form();const before=plain(h.calls);
+    pending.resolve([activeContinuation]);await h.settle();
+    assert.deepEqual(h.calls,before);assert(h.button('Continue active movement 1'));
+    assert.deepEqual(h.navigationCalls,[]);
+    if(kind==='offer') assert(h.button('Make movement available'));
+    else { await h.select();assert(h.button("I'm interested")); }
+  });
+  test(kind+' unmounted active recovery ignores success and failure',async()=>{
+    for(const fail of [false,true]) {
+      const h=screen(kind),pending=deferred();h.handlers.listMyActiveMovementContinuations=()=>pending.promise;
+      await h.settle();h.unmount();
+      if(fail)pending.reject(Error('private SQL'));else pending.resolve([activeContinuation]);
+      await h.settle();assert.deepEqual(h.navigationCalls,[]);
+    }
+  });
+}

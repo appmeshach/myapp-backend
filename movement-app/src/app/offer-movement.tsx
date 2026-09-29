@@ -36,6 +36,8 @@ import {
 import {
   createMovementOffer,
   createMovementOfferFromInterest,
+  listMyActiveMovementContinuations,
+  type ActiveMovementContinuation,
   discoverMaskedMovementNeeds,
   listMyOffererMovementContinuations,
   type OffererMovementContinuation,
@@ -195,6 +197,27 @@ export default function OfferMovementScreen() {
     useState<string | null>(null);
 
   const mounted = useRef(true);
+  const [activeMovements, setActiveMovements] = useState<ActiveMovementContinuation[]>([]);
+  const [activeMovementsLoading, setActiveMovementsLoading] = useState(false);
+  const [activeMovementsError, setActiveMovementsError] = useState('');
+  const [activeMovementsRetry, setActiveMovementsRetry] = useState(0);
+  useEffect(() => {
+    if (!signedIn) return;
+    let active = true;
+    setActiveMovementsLoading(true);
+    setActiveMovementsError('');
+    void listMyActiveMovementContinuations().then(rows => {
+      if (!active) return;
+      setActiveMovements(rows);
+      setActiveMovementsLoading(false);
+    }).catch(() => {
+      if (!active) return;
+      setActiveMovementsLoading(false);
+      setActiveMovementsError('Active movements could not be loaded. Please retry.');
+    });
+    return () => { active = false; };
+  }, [signedIn, activeMovementsRetry]);
+
   const recoveryVersion = useRef(0);
   const [recoveredAvailabilities, setRecoveredAvailabilities] =
     useState<RecoveredOfferingMovementAvailability[]>([]);
@@ -827,6 +850,35 @@ if (route.state === 'ready') {
       <Text style={styles.description}>
         Declare movement you are already making.
       </Text>
+
+      {(activeMovementsLoading || !!activeMovementsError || activeMovements.length > 0) && (
+        <View style={styles.section}>
+          <Text style={styles.label}>Your active movements</Text>
+          {activeMovementsLoading && <Text>Loading active movements...</Text>}
+          {!!activeMovementsError && <>
+            <Text>{activeMovementsError}</Text>
+            <Pressable accessibilityRole="button" disabled={activeMovementsLoading}
+              onPress={() => setActiveMovementsRetry(value => value + 1)}>
+              <Text>Retry active movements</Text>
+            </Pressable>
+          </>}
+          {activeMovements.map((row, index) => (
+            <View key={row.movementNeedId} style={styles.section}>
+              <Text>{row.originArea}{' ? '}{row.destinationArea}</Text>
+              <Text>Movement in progress</Text>
+              <Text>Started: {new Date(row.startedAt).toLocaleString()}</Text>
+              <Pressable accessibilityRole="button" accessibilityLabel={`Continue active movement ${index + 1}`}
+                style={styles.primaryButton}
+                onPress={() => router.push({
+                  pathname: './movement-coordination',
+                  params: { movementNeedId: row.movementNeedId },
+                })}>
+                <Text style={styles.primaryButtonText}>Continue movement</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      )}
 
       {(continuationsLoading || !!continuationsError || continuations.length > 0) && (
         <View style={styles.section}>
