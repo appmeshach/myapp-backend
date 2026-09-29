@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 
-import { Redirect } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 
 import { getCurrentSession } from '../services/authService';
 
@@ -37,6 +37,8 @@ import {
   createMovementOffer,
   createMovementOfferFromInterest,
   discoverMaskedMovementNeeds,
+  listMyOffererMovementContinuations,
+  type OffererMovementContinuation,
 } from '../services/movementService';
 import { listRequesterMovementInterestsForOfferer } from '../services/requesterMovementInterestService';
 
@@ -201,6 +203,29 @@ export default function OfferMovementScreen() {
   const [recoveryLoading, setRecoveryLoading] = useState(false);
   const [recoveryError, setRecoveryError] = useState('');
   const [recoveryRetry, setRecoveryRetry] = useState(0);
+
+  const [continuations, setContinuations] = useState<OffererMovementContinuation[]>([]);
+  const [continuationsLoading, setContinuationsLoading] = useState(false);
+  const [continuationsError, setContinuationsError] = useState('');
+  const [continuationsRetry, setContinuationsRetry] = useState(0);
+
+  useEffect(() => {
+    if (!signedIn) return;
+    let active = true;
+    setContinuationsLoading(true);
+    setContinuationsError('');
+    void listMyOffererMovementContinuations().then(rows => {
+      if (!active || !mounted.current) return;
+      setContinuations(rows);
+      setContinuationsLoading(false);
+    }).catch(() => {
+      if (!active || !mounted.current) return;
+      setContinuationsLoading(false);
+      setContinuationsError('Accepted movements could not be loaded. Please retry.');
+    });
+    // Each retry owns its response. This state never changes availability or declaration state.
+    return () => { active = false; };
+  }, [signedIn, continuationsRetry]);
 
   useEffect(() => {
     mounted.current = true;
@@ -802,6 +827,39 @@ if (route.state === 'ready') {
       <Text style={styles.description}>
         Declare movement you are already making.
       </Text>
+
+      {(continuationsLoading || !!continuationsError || continuations.length > 0) && (
+        <View style={styles.section}>
+          <Text style={styles.label}>Movements waiting for you</Text>
+          {continuationsLoading && <Text style={styles.help}>Loading accepted movements...</Text>}
+          {!!continuationsError && (
+            <>
+              <Text style={styles.message}>{continuationsError}</Text>
+              <Pressable accessibilityRole="button" disabled={continuationsLoading}
+                onPress={() => { setContinuationsRetry(value => value + 1); }} style={styles.button}>
+                <Text style={styles.buttonText}>Retry accepted movements</Text>
+              </Pressable>
+            </>
+          )}
+          {continuations.map((row, index) => (
+            <View key={row.movementNeedId} style={styles.optionCard}>
+              <Text style={styles.optionTitle}>{row.originArea}{' → '}{row.destinationArea}</Text>
+              <Text>{row.alignmentStatus === 'activated'
+                ? 'Ready to continue' : 'Verification and activation needed'}</Text>
+              <Text style={styles.help}>{new Date(row.createdAt).toLocaleString()}</Text>
+              <Pressable accessibilityRole="button" accessibilityLabel={`Continue accepted movement ${index + 1}`}
+                onPress={() => {
+                  router.push({
+                    pathname: './movement-verification',
+                    params: { movementNeedId: row.movementNeedId },
+                  });
+                }} style={styles.primaryButton}>
+                <Text style={styles.primaryButtonText}>Continue</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      )}
 
       {recoveryLoading && <Text style={styles.help}>Loading your active offered movements...</Text>}
       {!!recoveryError && (

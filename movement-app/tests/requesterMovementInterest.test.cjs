@@ -156,6 +156,7 @@ const inboxRow = { interestId: interest, movementNeedId: need, availabilityId: a
 function screen(kind) {
   const values = [], effects = [], calls = [], navigationCalls = [], continuationCalls = [];
   const recoveryCalls = [], declarationCalls = [];
+  const offererContinuationCalls = [];
   let cursor = 0, dirty = true, tree, serial = 100, mounted = true;
   const same = (a, b) => a && b && a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
   const react = {
@@ -172,6 +173,7 @@ function screen(kind) {
     } },
   };
   const handlers = {
+    listMyOffererMovementContinuations: async () => [],
     listMyOpenOfferingMovementAvailabilities: async () => [],
     recoverRequesterMovementContinuation: async () => null,
     recoverLatestActiveMovementNeed: async () => need,
@@ -209,6 +211,10 @@ function screen(kind) {
       recoverSelectedLocation: async () => { throw new Error('unexpected recovery'); },
     },
     '../services/movementService': {
+      listMyOffererMovementContinuations: async (...args) => {
+        offererContinuationCalls.push(plain(args));
+        return handlers.listMyOffererMovementContinuations(...args);
+      },
       recoverRequesterMovementContinuation: async (...args) => {
         continuationCalls.push(plain(args));
         return handlers.recoverRequesterMovementContinuation(...args);
@@ -260,7 +266,7 @@ function screen(kind) {
     list.props.renderItem({ item: list.props.data[0] }).props.onPress(); await settle();
     await press(kind === 'request' ? 'Request this movement' : 'Declare this movement');
   }
-  return { calls, navigationCalls, continuationCalls, recoveryCalls, declarationCalls, handlers, settle, form, press, button, find,
+  return { calls, navigationCalls, continuationCalls, recoveryCalls, declarationCalls, offererContinuationCalls, handlers, settle, form, press, button, find,
     text: () => text(tree),
     async select(a = availability) { const card = find(n => n.type === 'Pressable' && n.key === a); assert(!card.props.disabled); card.props.onPress(); await settle(); },
     async open() { await press('Test CarBlueSeat capacity: 3'); await press('Make movement available'); },
@@ -1149,6 +1155,178 @@ test('unmounted offerer recovery never updates state', async () => {
     await h.settle(); h.unmount();
     if (fail) pending.reject(new Error('private SQL'));
     else pending.resolve([recovered]);
+    await h.settle();
+    assert.deepEqual(h.navigationCalls, []);
+  }
+});
+
+
+const offererContinuationRow = {
+  movement_need_id: id(301), alignment_status: 'awaiting_activation_payment',
+  origin_area: 'Accepted origin', destination_area: 'Accepted destination', created_at: time,
+};
+const offererContinuation = {
+  movementNeedId: id(301), alignmentStatus: 'awaiting_activation_payment',
+  originArea: 'Accepted origin', destinationArea: 'Accepted destination', createdAt: time,
+};
+function offererContinuationService(rpc) {
+  return load('src/services/movementService.ts', { '../lib/supabase': { supabase: { rpc } } });
+}
+test('offerer continuation service maps exact RPC, limit, empty and multiple rows', async () => {
+  const calls = [];
+  const rows = [offererContinuationRow, { ...offererContinuationRow, movement_need_id: id(302), alignment_status: 'activated' }];
+  const api = offererContinuationService(async (...args) => { calls.push(plain(args)); return { data: rows, error: null }; });
+  assert.deepEqual(plain(await api.listMyOffererMovementContinuations()), [offererContinuation,
+    { ...offererContinuation, movementNeedId: id(302), alignmentStatus: 'activated' }]);
+  await api.listMyOffererMovementContinuations(2);
+  assert.deepEqual(calls, [['list_my_offerer_movement_continuations', { p_limit: 20 }],
+    ['list_my_offerer_movement_continuations', { p_limit: 2 }]]);
+  assert.deepEqual(plain(await offererContinuationService(async () => ({ data: [], error: null })).listMyOffererMovementContinuations()), []);
+});
+test('offerer continuation invalid limits fail before network', async () => {
+  let calls = 0;
+  const api = offererContinuationService(async () => { calls++; return { data: [], error: null }; });
+  for (const limit of [0, -1, 51, 1.5, '20', null, NaN, Infinity]) {
+    await assert.rejects(api.listMyOffererMovementContinuations(limit),
+      error => error.message === 'offerer_movement_continuation_recovery_unavailable');
+  }
+  assert.equal(calls, 0);
+});
+test('offerer continuation malformed/private/duplicate/oversized rows fail closed', async () => {
+  const row = offererContinuationRow;
+  const invalid = [null, {}, [null], [[]], [{}], [row,row],
+    [row,{ ...row, movement_need_id: id(302) },{ ...row, movement_need_id: id(303) }]];
+  for (const field of Object.keys(row)) {
+    const missing = { ...row }; delete missing[field]; invalid.push([missing]);
+  }
+  for (const [field, values] of Object.entries({
+    movement_need_id: ['bad', null, 1, [id(1)]],
+    alignment_status: ['in_progress','completed','cancelled','failed','unknown',null],
+    created_at: ['bad', '2026-09-28', '2026-02-30T12:00:00Z', '2025-02-29T12:00:00Z',
+      '2026-09-28T24:00:00Z', '2026-09-28T12:61:00Z', '2026-09-28T12:00:00', 'infinity', 123, null],
+    origin_area: ['', '  ', 'private\nlabel', 'control\u0085label', 'x'.repeat(501), 1],
+    destination_area: ['', '\t', null, 'control\u007flabel'],
+  })) for (const value of values) invalid.push([{ ...row, [field]: value }]);
+  for (const field of ['alignment_id','movement_offer_id','member_id','payment_id','provider_id','route_evidence_id','latitude','route_shape']) {
+    invalid.push([{ ...row, [field]: 'private' }]);
+  }
+  const uuidWithLetters = 'abcdef01-0000-4000-8000-000000000001';
+  invalid.push([{ ...row, movement_need_id: uuidWithLetters },{ ...row, movement_need_id: uuidWithLetters.toUpperCase() }]);
+  for (const data of invalid) {
+    await assert.rejects(offererContinuationService(async () => ({ data, error: null })).listMyOffererMovementContinuations(2),
+      error => error.message === 'offerer_movement_continuation_recovery_unavailable');
+  }
+});
+test('offerer continuation accepts real leap-day and PostgreSQL fractional timezone timestamps', async () => {
+  for (const created_at of ['2024-02-29T12:00:00Z','2026-09-28T12:00:00.123456+00:00']) {
+    const api = offererContinuationService(async () => ({ data: [{ ...offererContinuationRow, created_at }], error: null }));
+    assert.equal((await api.listMyOffererMovementContinuations())[0].createdAt, created_at);
+  }
+});
+test('offerer continuation Supabase and transport errors are generic only', async () => {
+  for (const rpc of [async () => ({ data: [offererContinuationRow], error: { message: 'private SQL' } }),
+    async () => { throw new Error('private transport'); }]) {
+    await assert.rejects(offererContinuationService(rpc).listMyOffererMovementContinuations(),
+      error => error.message === 'offerer_movement_continuation_recovery_unavailable');
+  }
+});
+function assertNoOffererWrites(h) {
+  assert.deepEqual(h.declarationCalls, []);
+  assert(!h.calls.some(c => ['createMovementOffer','createMovementOfferFromInterest','openOfferingMovementAvailability','acceptMovementOffer'].includes(c[0])));
+  // Unstubbed dependencies fail the harness, including payment/verification/journey APIs.
+}
+test('zero accepted offerer continuations makes no writes or navigation', async () => {
+  const h = screen('offer'); await h.settle();
+  assert.deepEqual(h.offererContinuationCalls, [[]]);
+  assert(!h.text().includes('Movements waiting for you'));
+  assert.deepEqual(h.navigationCalls, []);
+  assertNoOffererWrites(h);
+});
+test('one accepted offerer continuation needs explicit Continue and exposes only human copy', async () => {
+  const h = screen('offer');
+  h.handlers.listMyOffererMovementContinuations = async () => [offererContinuation];
+  await h.settle();
+  assert(h.text().includes('Movements waiting for you'));
+  assert(h.text().includes('Accepted origin'));
+  assert(h.text().includes('Verification and activation needed'));
+  assert(!h.text().includes('awaiting_activation_payment'));
+  assert(!h.text().includes(offererContinuation.movementNeedId));
+  assert(!h.text().includes('alignmentId'));
+  assert(!h.text().includes('movementOfferId'));
+  assert.deepEqual(h.navigationCalls, []);
+  assertNoOffererWrites(h);
+  await h.press('Continue accepted movement 1');
+  assert.deepEqual(h.navigationCalls, [{ pathname: './movement-verification', params: { movementNeedId: id(301) } }]);
+  assertNoOffererWrites(h);
+});
+test('multiple accepted continuations coexist with open availabilities and preserve selected inbox', async () => {
+  const h = screen('offer');
+  h.handlers.listMyOffererMovementContinuations = async () => [offererContinuation,
+    { ...offererContinuation, movementNeedId: id(302), alignmentStatus: 'activated', originArea: 'Second accepted origin' }];
+  h.handlers.listMyOpenOfferingMovementAvailabilities = async () => [recovered,
+    { ...recovered, availabilityId: id(204), totalPlaces: 2 }];
+  await h.settle();
+  assert(h.text().includes('Your active offered movements'));
+  assert(h.text().includes('Ready to continue'));
+  assert(h.text().includes('Second accepted origin'));
+  assert.deepEqual(h.navigationCalls, []);
+  await h.press('Select active offered movement 2');
+  const before = plain(h.calls);
+  await h.press('Continue accepted movement 2');
+  await h.press('Continue accepted movement 1');
+  assert.deepEqual(h.navigationCalls, [
+    { pathname: './movement-verification', params: { movementNeedId: id(302) } },
+    { pathname: './movement-verification', params: { movementNeedId: id(301) } },
+  ]);
+  assert.deepEqual(h.calls, before);
+  assert(h.text().includes('Total places: 2'));
+  assert.equal(h.button('Select active offered movement 2').props.accessibilityState.selected, true);
+  await h.press('Refresh interested requesters');
+  assert.deepEqual(h.calls.at(-1), ['listRequesterMovementInterestsForOfferer', { availabilityId: id(204), limit: 20 }]);
+  assertNoOffererWrites(h);
+});
+test('accepted continuation failure is neutral, retryable, and independent of open recovery', async () => {
+  const h = screen('offer');
+  h.handlers.listMyOpenOfferingMovementAvailabilities = async () => [recovered];
+  h.handlers.listMyOffererMovementContinuations = async () => { throw new Error('private SQL alignment details'); };
+  await h.settle();
+  assert(h.text().includes('Accepted movements could not be loaded. Please retry.'));
+  assert(!h.text().includes('private SQL'));
+  assert(h.text().includes('Total places: 3'));
+  const before = plain(h.calls);
+  h.handlers.listMyOffererMovementContinuations = async () => [offererContinuation];
+  await h.press('Retry accepted movements');
+  assert.equal(h.offererContinuationCalls.length, 2);
+  assert.equal(h.recoveryCalls.length, 1);
+  assert(h.button('Continue accepted movement 1'));
+  assert.deepEqual(h.calls, before);
+  assert.deepEqual(h.navigationCalls, []);
+  assertNoOffererWrites(h);
+});
+test('late accepted recovery leaves a same-session declaration and opened availability intact', async () => {
+  const h = screen('offer'), pending = deferred();
+  h.handlers.listMyOffererMovementContinuations = () => pending.promise;
+  await h.settle(); await h.form();
+  h.find(n => n.type === 'Pressable' && n.key === id(31)).props.onPress(); await h.settle();
+  await h.press('Make movement available');
+  const before = plain(h.calls);
+  pending.resolve([offererContinuation]); await h.settle();
+  assert(h.button('Continue accepted movement 1'));
+  assert.deepEqual(h.calls, before);
+  assert.equal(h.declarationCalls.length, 1);
+  assert(h.text().includes('Your movement is now available.'));
+  assert.equal(h.find(n => n.type === 'TextInput' && n.props.accessibilityLabel === 'Movement origin').props.value, 'Origin selected');
+  await h.press('Refresh interested requesters');
+  assert.deepEqual(h.calls.at(-1), ['listRequesterMovementInterestsForOfferer', { availabilityId: availability, limit: 20 }]);
+  assert.deepEqual(h.navigationCalls, []);
+});
+test('unmounted accepted continuation recovery drops both success and failure', async () => {
+  for (const fail of [false,true]) {
+    const h = screen('offer'), pending = deferred();
+    h.handlers.listMyOffererMovementContinuations = () => pending.promise;
+    await h.settle(); h.unmount();
+    if (fail) pending.reject(new Error('private SQL'));
+    else pending.resolve([offererContinuation]);
     await h.settle();
     assert.deepEqual(h.navigationCalls, []);
   }
