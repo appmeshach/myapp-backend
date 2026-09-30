@@ -100,6 +100,46 @@ export interface RecordedRouteMatchEvidence {
   routeMatchEvidenceExpiresAt: string | null;
 }
 
+export interface PricingClassificationContext {
+  routeMatchEvidenceId: string;
+  routeMatchEvidenceVersion: number;
+
+  movementNeedId: string;
+
+  offeringMovementIntentId: string;
+  offeringIntentVersion: number;
+
+  routeEvidenceId: string;
+  routeEvidenceVersion: number;
+
+  routeShapeFormat:
+    'geojson_linestring_v1';
+
+  routeShape: {
+    type: 'LineString';
+    coordinates: number[][];
+  };
+
+  calculatedRouteShapeLengthMeters: number;
+
+  requesterOriginPositionAlongRouteMeters: number;
+  requesterDestinationPositionAlongRouteMeters: number;
+
+  requesterOriginClosestRoute:
+    TrustedRouteCoordinate;
+
+  requesterDestinationClosestRoute:
+    TrustedRouteCoordinate;
+
+  routeOrder:
+    | 'forward'
+    | 'same_position'
+    | 'reverse';
+
+  routeMatchEvidenceExpiresAt:
+    string | null;
+}
+
 export interface RouteProviderQuotaResult {
   admitted: boolean;
   retryAfterSeconds: number;
@@ -166,6 +206,14 @@ export interface RouteBackend {
     availabilityId: string,
     signal: AbortSignal,
   ): Promise<TrustedMatchingContext | null>;
+
+  getPricingClassificationContext(
+    routeMatchEvidenceId: string,
+    expectedRouteMatchEvidenceVersion: number,
+    expectedRouteEvidenceId: string,
+    expectedRouteEvidenceVersion: number,
+    signal: AbortSignal,
+  ): Promise<PricingClassificationContext | null>;
 
   recordTrustedRouteMatchEvidence(
     input: {

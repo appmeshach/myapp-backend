@@ -1,6 +1,7 @@
 import { readBounded } from './face-orchestration.ts';
 
 import type {
+  PricingClassificationContext,
   RecordedRouteEvidence,
   RecordedRouteMatchEvidence,
   RouteBackend,
@@ -43,6 +44,9 @@ const RPC_REQUESTER_AVAILABILITY_MATCHING_CONTEXT =
 const RPC_RECORD_ROUTE_MATCH =
   'record_trusted_route_match_evidence_for_server';
 
+const RPC_PRICING_CLASSIFICATION_CONTEXT =
+  'get_pricing_classification_context_for_server';
+
 const ALLOWED_RPCS = new Set([
   RPC_ROUTE_CONTEXT,
   RPC_ROUTE_CLAIM,
@@ -52,6 +56,7 @@ const ALLOWED_RPCS = new Set([
   RPC_AUTHORIZED_MATCHING_CONTEXT,
   RPC_REQUESTER_AVAILABILITY_MATCHING_CONTEXT,
   RPC_RECORD_ROUTE_MATCH,
+  RPC_PRICING_CLASSIFICATION_CONTEXT,
 ]);
 
 function serverSecret(): string {
@@ -1344,6 +1349,288 @@ export function createRouteBackend(
       );
     },
 
+
+    async getPricingClassificationContext(
+      routeMatchEvidenceId,
+      expectedRouteMatchEvidenceVersion,
+      expectedRouteEvidenceId,
+      expectedRouteEvidenceVersion,
+      signal,
+    ): Promise<
+      PricingClassificationContext | null
+    > {
+      if (
+        !UUID.test(routeMatchEvidenceId)
+        || !UUID.test(expectedRouteEvidenceId)
+      ) {
+        throw new Error('Unavailable');
+      }
+
+      const routeMatchVersion =
+        positiveSafeInteger(
+          expectedRouteMatchEvidenceVersion,
+        );
+
+      const routeEvidenceVersion =
+        positiveSafeInteger(
+          expectedRouteEvidenceVersion,
+        );
+
+      if (
+        routeMatchVersion === null
+        || routeEvidenceVersion === null
+      ) {
+        throw new Error('Unavailable');
+      }
+
+      signal.throwIfAborted();
+
+      const body =
+        await rpc(
+          RPC_PRICING_CLASSIFICATION_CONTEXT,
+          {
+            p_route_match_evidence_id:
+              routeMatchEvidenceId,
+
+            p_expected_route_match_evidence_version:
+              routeMatchVersion,
+
+            p_expected_route_evidence_id:
+              expectedRouteEvidenceId,
+
+            p_expected_route_evidence_version:
+              routeEvidenceVersion,
+          },
+          signal,
+        );
+
+      const row =
+        exactlyOneRow(body);
+
+      if (!row) {
+        return null;
+      }
+
+      const returnedRouteMatchVersion =
+        positiveSafeInteger(
+          row.route_match_evidence_version,
+        );
+
+      const offeringIntentVersion =
+        positiveSafeInteger(
+          row.offering_intent_version,
+        );
+
+      const returnedRouteEvidenceVersion =
+        positiveSafeInteger(
+          row.route_evidence_version,
+        );
+
+      const calculatedRouteShapeLengthMeters =
+        positiveSafeInteger(
+          row.calculated_route_shape_length_meters,
+        );
+
+      const requesterOriginPosition =
+        nonNegativeSafeInteger(
+          row
+            .requester_origin_position_along_route_meters,
+        );
+
+      const requesterDestinationPosition =
+        nonNegativeSafeInteger(
+          row
+            .requester_destination_position_along_route_meters,
+        );
+
+      const requesterOriginLatitude =
+        finiteCoordinate(
+          row
+            .requester_origin_closest_route_latitude,
+          -90,
+          90,
+        );
+
+      const requesterOriginLongitude =
+        finiteCoordinate(
+          row
+            .requester_origin_closest_route_longitude,
+          -180,
+          180,
+        );
+
+      const requesterDestinationLatitude =
+        finiteCoordinate(
+          row
+            .requester_destination_closest_route_latitude,
+          -90,
+          90,
+        );
+
+      const requesterDestinationLongitude =
+        finiteCoordinate(
+          row
+            .requester_destination_closest_route_longitude,
+          -180,
+          180,
+        );
+
+      const routeShape =
+        trustedLineString(
+          row.route_shape,
+        );
+
+      const expiresAt =
+        nullableIso(
+          row.route_match_evidence_expires_at,
+        );
+
+      if (
+        typeof row.route_match_evidence_id
+          !== 'string'
+        || row.route_match_evidence_id
+          !== routeMatchEvidenceId
+        || !UUID.test(
+          row.route_match_evidence_id,
+        )
+        || returnedRouteMatchVersion === null
+        || returnedRouteMatchVersion
+          !== routeMatchVersion
+
+        || typeof row.movement_need_id
+          !== 'string'
+        || !UUID.test(
+          row.movement_need_id,
+        )
+
+        || typeof row.offering_movement_intent_id
+          !== 'string'
+        || !UUID.test(
+          row.offering_movement_intent_id,
+        )
+        || offeringIntentVersion === null
+
+        || typeof row.route_evidence_id
+          !== 'string'
+        || row.route_evidence_id
+          !== expectedRouteEvidenceId
+        || !UUID.test(
+          row.route_evidence_id,
+        )
+        || returnedRouteEvidenceVersion === null
+        || returnedRouteEvidenceVersion
+          !== routeEvidenceVersion
+
+        || row.route_shape_format
+          !== 'geojson_linestring_v1'
+        || routeShape === null
+
+        || calculatedRouteShapeLengthMeters
+          === null
+
+        || requesterOriginPosition === null
+        || requesterDestinationPosition === null
+        || requesterOriginPosition
+          > calculatedRouteShapeLengthMeters
+        || requesterDestinationPosition
+          > calculatedRouteShapeLengthMeters
+
+        || requesterOriginLatitude === null
+        || requesterOriginLongitude === null
+        || requesterDestinationLatitude === null
+        || requesterDestinationLongitude === null
+
+        || ![
+          'forward',
+          'same_position',
+          'reverse',
+        ].includes(
+          String(row.route_order),
+        )
+
+        || expiresAt === undefined
+      ) {
+        return null;
+      }
+
+      if (
+        (
+          row.route_order === 'forward'
+          && requesterOriginPosition
+            >= requesterDestinationPosition
+        )
+        || (
+          row.route_order === 'same_position'
+          && requesterOriginPosition
+            !== requesterDestinationPosition
+        )
+        || (
+          row.route_order === 'reverse'
+          && requesterOriginPosition
+            <= requesterDestinationPosition
+        )
+      ) {
+        return null;
+      }
+
+      return {
+        routeMatchEvidenceId:
+          row.route_match_evidence_id,
+
+        routeMatchEvidenceVersion:
+          returnedRouteMatchVersion,
+
+        movementNeedId:
+          row.movement_need_id,
+
+        offeringMovementIntentId:
+          row.offering_movement_intent_id,
+
+        offeringIntentVersion,
+
+        routeEvidenceId:
+          row.route_evidence_id,
+
+        routeEvidenceVersion:
+          returnedRouteEvidenceVersion,
+
+        routeShapeFormat:
+          'geojson_linestring_v1',
+
+        routeShape,
+
+        calculatedRouteShapeLengthMeters,
+
+        requesterOriginPositionAlongRouteMeters:
+          requesterOriginPosition,
+
+        requesterDestinationPositionAlongRouteMeters:
+          requesterDestinationPosition,
+
+        requesterOriginClosestRoute: {
+          latitude:
+            requesterOriginLatitude,
+          longitude:
+            requesterOriginLongitude,
+        },
+
+        requesterDestinationClosestRoute: {
+          latitude:
+            requesterDestinationLatitude,
+          longitude:
+            requesterDestinationLongitude,
+        },
+
+        routeOrder:
+          row.route_order as
+            | 'forward'
+            | 'same_position'
+            | 'reverse',
+
+        routeMatchEvidenceExpiresAt:
+          expiresAt,
+      };
+    },
 
 
     async recordTrustedRouteMatchEvidence(
