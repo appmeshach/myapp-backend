@@ -1,0 +1,52 @@
+{
+  "tooling_version": 1,
+  "mode": "production-contract-only",
+  "production_execution_enabled": false,
+  "dataset_family": "overture",
+  "dataset_release": "2026-09-23.1",
+  "schema_version": "v2.0.0",
+  "theme": "transportation",
+  "feature_types": ["segment", "connector"],
+  "segment_subtype": "road",
+  "coverage_crs": "EPSG:4326",
+  "selection": "bbox-prefilter-exact-polygon-intersection-whole-segments-and-referenced-connectors",
+  "boundary": {
+    "jurisdiction_country_code": "NG",
+    "jurisdiction_name": "Lagos State",
+    "administrative_level": "state",
+    "input_required": true,
+    "approved_source_required": true,
+    "accepted_formats": ["GeoJSON"],
+    "buffer_meters": 0
+  },
+  "source_templates": {
+    "segment": "s3://overturemaps-us-west-2/release/2026-09-23.1/theme=transportation/type=segment/*",
+    "connector": "s3://overturemaps-us-west-2/release/2026-09-23.1/theme=transportation/type=connector/*"
+  },
+  "source_access": {
+    "stage": "acquisition-only",
+    "anonymous_public_access": true,
+    "allow_operator_remote_url_override": false,
+    "allow_latest_release_alias": false
+  },
+  "build": {
+    "stage": "offline-only",
+    "preserve_whole_segment_geometry": true,
+    "connector_selection": "exact-distinct-references-from-selected-segments",
+    "clip_geometry": false
+  },
+  "artifacts": [
+    "segments.parquet",
+    "connectors.parquet",
+    "manifest.json",
+    "manifest.sha256",
+    "source-inventory.json",
+    "build-spec.json",
+    "boundary.geojson",
+    "boundary-provenance.json",
+    "verification-report.json"
+  ],
+  "duckdb_version": "v1.5.6",
+  "source_license": "ODbL",
+  "source_attribution": "Overture Maps Foundation; © OpenStreetMap contributors (https://www.openstreetmap.org/copyright); contains TomTom data."
+}
