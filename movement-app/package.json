@@ -45,7 +45,11 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "typecheck:edge": "tsc --project supabase/functions/tsconfig.json",
-    "test:photos": "node --test supabase/tests/post_activation_photo.test.mjs tests/profilePhotoService.test.cjs"
+    "test:photos": "node --test supabase/tests/post_activation_photo.test.mjs tests/profilePhotoService.test.cjs",
+    "transport-geography:build": "node scripts/transport-geography/build-extract.cjs",
+    "transport-geography:verify": "node scripts/transport-geography/verify-extract.cjs",
+    "test:transport-geography": "node --test tests/transportGeographyExtract.test.cjs",
+    "test:transport-geography:integration": "node -e \"process.env.TRANSPORT_GEOGRAPHY_INTEGRATION='1'; require('./tests/transportGeographyExtract.test.cjs')\""
   },
   "private": true
 }

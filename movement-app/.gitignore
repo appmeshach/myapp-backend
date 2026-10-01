@@ -45,3 +45,10 @@ example
 /android
 
 supabase/.temp/
+
+# Operator-generated transport geography fixtures (never production releases)
+/tmp/transport-geography/
+**/.transport-geography-fixture-*/
+
+# Local research artifact, not an extraction fixture
+/0063-lagos-overture-roads.parquet

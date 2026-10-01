@@ -1,0 +1,18 @@
+{
+  "tooling_version": 1,
+  "mode": "local-fixture-only",
+  "dataset_family": "overture",
+  "dataset_release": "2026-09-23.1",
+  "schema_version": "v2.0.0",
+  "theme": "transportation",
+  "feature_types": ["segment", "connector"],
+  "segment_subtype": "road",
+  "coverage_crs": "EPSG:4326",
+  "coverage_bbox": { "xmin": 0, "ymin": 0, "xmax": 2, "ymax": 2 },
+  "selection": "bbox-prefilter-exact-intersection-whole-segments-and-referenced-connectors",
+  "source_license": "ODbL",
+  "source_attribution": "Overture Maps Foundation; © OpenStreetMap contributors (https://www.openstreetmap.org/copyright); contains TomTom data.",
+  "duckdb_version": "v1.5.6",
+  "max_input_bytes": 1048576,
+  "max_input_rows": 1000
+}
