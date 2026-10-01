@@ -80,8 +80,8 @@ test('component mutations and delete blocked; construction serialized against pa
 test('RLS, service read-only, no client policies and no helper execution leaks',()=>{
   for(const table of ['financial_agreements','financial_components'])
     assert(sql.includes('ALTER TABLE private.'+table+' ENABLE ROW LEVEL SECURITY;'));
-  assert.match(sql,/REVOKE ALL ON private.financial_agreements,private.financial_components\s+FROM PUBLIC,anon,authenticated,service_role/);
-  assert.match(sql,/GRANT SELECT ON private.financial_agreements,private.financial_components TO service_role/);
+  assert.match(sql,/REVOKE ALL ON private\.financial_agreements,private\.financial_components\s+FROM PUBLIC,anon,authenticated,service_role/);
+  assert.match(sql,/GRANT SELECT ON private\.financial_agreements,private\.financial_components TO service_role/);
   assert.doesNotMatch(sql,/CREATE POLICY|GRANT (?:ALL|INSERT|UPDATE|DELETE|EXECUTE)/);
   for(const name of ['protect_financial_agreement','protect_financial_component','validate_financial_agreement']) {
     assert.match(body(name),/SECURITY DEFINER SET search_path = ''/);
@@ -145,14 +145,15 @@ test('deferred validator only reads final state, cannot recursively enqueue muta
   assert.doesNotMatch(sql,/CREATE (?:CONSTRAINT )?TRIGGER[\s\S]*?ON public\./);
 });
 
-test('pre-0020 migrations and operational callers do not consume the agreement tables',()=>{
+test('pre-0020 migrations and unreviewed operational callers do not consume the agreement tables',()=>{
   function walk(dir) {
     return fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(dir+'/'+e.name):[dir+'/'+e.name]);
   }
   for(const file of [...walk('supabase/migrations'),...walk('src'),...walk('supabase/functions')]) {
-    // 0021's private, non-operational proposal validators reference the 0020
-    // tables for linkage integrity. Its separate suite enforces no live hooks.
+    // 0021's private proposal validators and 0064's private wallet ledger are
+    // separately reviewed, non-client consumers of the 0020 linkage contract.
     if(file.includes('/0020_') || file==='supabase/migrations/0021_financial_proposal_foundation.sql'
+      || file==='supabase/migrations/0064_wallet_ledger_foundation.sql'
       || !/\.(sql|ts|tsx)$/.test(file)) continue;
     assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\bfinancial_agreements\b|\bfinancial_components\b/,file);
   }
