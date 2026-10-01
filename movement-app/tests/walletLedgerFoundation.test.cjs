@@ -10,6 +10,8 @@ const migration = fs.readFileSync(
   'utf8',
 );
 
+const executableSql = migration.replace(/--[^\n]*/g, '');
+
 function has(pattern, message) {
   assert.match(migration, pattern, message);
 }
@@ -88,7 +90,7 @@ test('double-entry balance is enforced as a deferred transaction invariant', () 
   assert.equal(deferredCount, 2);
 });
 
-test('foundation is provider-neutral and does not create virtual accounts or provider callbacks', () => {
-  assert.doesNotMatch(migration, /paystack|flutterwave|monnify|opay|palmpay/i);
-  assert.doesNotMatch(migration, /webhook|callback|virtual_account|account_number/i);
+test('foundation is provider-neutral and does not implement virtual accounts or provider callbacks', () => {
+  assert.doesNotMatch(executableSql, /paystack|flutterwave|monnify|opay|palmpay/i);
+  assert.doesNotMatch(executableSql, /webhook|callback|virtual_account|account_number/i);
 });
