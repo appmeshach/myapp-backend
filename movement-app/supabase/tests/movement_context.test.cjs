@@ -174,6 +174,11 @@ test('no operational callers or older migrations consume these tables', () => {
   // Private evidence foundation references immutable intent ownership only;
   // its live validation delegates to the existing trusted matching assertion.
   'supabase/migrations/0059_pricing_geography_evidence_foundation.sql',
+
+  // 0072 is the separately reviewed trusted producer for the 0022
+  // movement-context snapshot tables. It may consume and write those tables;
+  // all other later migrations and operational callers remain prohibited.
+  'supabase/migrations/0072_trusted_movement_context_snapshot_producer.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);
