@@ -158,7 +158,7 @@ BEGIN
   FOREACH kind IN ARRAY ARRAY['requester_platform_charge','offering_platform_charge','movement_contribution_settlement'] LOOP
     PERFORM pg_temp.wallet_probe('0064 component required '||kind,format('INSERT INTO private.wallet_transactions(transaction_kind,currency,idempotency_key,alignment_id) VALUES(%L,''NGN'',''audit-component'',gen_random_uuid())',kind),'23514');
   END LOOP;
-  PERFORM pg_temp.wallet_probe('0064 LIMITATION nonzero account can be closed',format('UPDATE private.wallet_accounts SET status=''closed'' WHERE id=%L; SET CONSTRAINTS ALL IMMEDIATE',available),'00000');
+  PERFORM pg_temp.wallet_probe('0068 nonzero account closure rejected',format('UPDATE private.wallet_accounts SET status=''closed'' WHERE id=%L; SET CONSTRAINTS ALL IMMEDIATE',available),'23514');
   PERFORM pg_temp.wallet_probe('0064 LIMITATION second posting to same account rejected',format('INSERT INTO private.wallet_postings(transaction_id,account_id,direction,amount_minor) VALUES(%L,%L,''debit'',1)',tx,available),'23505');
 END $$;
 
