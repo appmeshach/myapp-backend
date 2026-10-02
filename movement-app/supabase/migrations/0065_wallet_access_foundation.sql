@@ -59,9 +59,9 @@ BEGIN
   SELECT
     count(*)::integer,
     count(*) FILTER (WHERE a.status='active')::integer,
-    max(a.id) FILTER (WHERE a.account_kind='member_available'),
-    max(a.id) FILTER (WHERE a.account_kind='member_held'),
-    max(a.id) FILTER (WHERE a.account_kind='member_withdrawable')
+    min(a.id::text) FILTER (WHERE a.account_kind='member_available')::uuid,
+    min(a.id::text) FILTER (WHERE a.account_kind='member_held')::uuid,
+    min(a.id::text) FILTER (WHERE a.account_kind='member_withdrawable')::uuid
   INTO v_total, v_active, v_available, v_held, v_withdrawable
   FROM private.wallet_accounts a
   WHERE a.member_id = p_member_id
