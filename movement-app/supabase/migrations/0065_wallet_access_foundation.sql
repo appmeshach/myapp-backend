@@ -15,8 +15,8 @@ CREATE FUNCTION public.ensure_ngn_wallet_accounts_for_server(
   p_member_id uuid
 )
 RETURNS TABLE (
-  member_id uuid,
-  currency text,
+  wallet_member_id uuid,
+  wallet_currency text,
   available_account_id uuid,
   held_account_id uuid,
   withdrawable_account_id uuid
