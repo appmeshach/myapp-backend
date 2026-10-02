@@ -234,14 +234,35 @@ test('exact helper inventory and no operational mutations or policies', () => {
     ['private.financial_proposals', 'private.financial_proposal_travellers']);
 });
 
-test('operational callers and other migrations do not consume proposal tables', () => {
+test('only the reviewed 0070 migration may extend proposal tables; operational callers still do not consume them', () => {
   function walk(dir) {
     return fs.readdirSync(dir, { withFileTypes: true }).flatMap(e =>
       e.isDirectory() ? walk(`${dir}/${e.name}`) : [`${dir}/${e.name}`]);
   }
-  for (const file of [...walk('supabase/migrations'), ...walk('src'), ...walk('supabase/functions')]) {
-    if (file === migrationPath || !/\.(sql|ts|tsx)$/.test(file)) continue;
-    assert.doesNotMatch(fs.readFileSync(file, 'utf8'), /\bfinancial_proposals\b|\bfinancial_proposal_travellers\b/, file);
+
+  const allowedMigrationPaths = new Set([
+    migrationPath,
+    'supabase/migrations/0070_financial_proposal_quote_binding_foundation.sql',
+  ]);
+
+  for (const file of walk('supabase/migrations')) {
+    if (allowedMigrationPaths.has(file) || !/\.sql$/.test(file)) continue;
+
+    assert.doesNotMatch(
+      fs.readFileSync(file, 'utf8'),
+      /\bfinancial_proposals\b|\bfinancial_proposal_travellers\b/,
+      `${file} must not consume proposal tables without a separately reviewed forward migration`,
+    );
+  }
+
+  for (const file of [...walk('src'), ...walk('supabase/functions')]) {
+    if (!/\.(sql|ts|tsx)$/.test(file)) continue;
+
+    assert.doesNotMatch(
+      fs.readFileSync(file, 'utf8'),
+      /\bfinancial_proposals\b|\bfinancial_proposal_travellers\b/,
+      `${file} must not directly consume private proposal tables`,
+    );
   }
 });
 
