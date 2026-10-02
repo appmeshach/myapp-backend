@@ -2,6 +2,11 @@
 
 This milestone adds the first safe access layer on top of migration 0064.
 
+Migration **0067** makes the provisioning implementation match the fail-closed
+contract below. The original 0065 implementation inserted missing accounts before
+checking completeness and could therefore repair partial wallets. Deployed
+migrations 0001–0066 remain unchanged.
+
 It intentionally does **not** move real money.
 
 ## What it adds
@@ -10,6 +15,24 @@ It intentionally does **not** move real money.
   - service-role only;
   - idempotently provisions exactly three NGN member accounts: available, held, and withdrawable;
   - refuses missing members, partial account sets, or closed account sets.
+
+After 0067, provisioning locks the member row for update, then locks and checks
+all existing NGN accounts for that member before any insert. Zero accounts allow
+creation of the three required active kinds. Exactly three active accounts, one
+per required kind, return their existing IDs without insertion. Every other
+existing state fails with `23514`; no missing account is filled in and no closed
+account is reopened. Existing unique indexes and account constraints also prevent
+duplicate or invalid kinds from being created.
+
+The signature, return columns, SECURITY DEFINER/empty search path, and service-only
+execution remain unchanged. The member lock serializes simultaneous provisioning
+and follows the same member-first order as the 0066 top-up gate. Concurrency is
+validated at READ COMMITTED, the normal RPC isolation level; callers using higher
+isolation levels must handle PostgreSQL serialization retries.
+
+The correction does not change `get_my_wallet_balance()` or any money operation.
+See [wallet foundation behavioral audit](wallet-foundation-behavior-audit.md) for
+the local PostgreSQL results, known limitations, and repeatable commands.
 
 - `get_my_wallet_balance()`
   - authenticated-member only;

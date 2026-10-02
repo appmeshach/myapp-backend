@@ -22,8 +22,9 @@ is created. The available balance must remain nonnegative and within bigint rang
 An unprovisioned member receives the three accounts through the existing 0065
 provisioning function. 0066 first rejects an existing partial or closed NGN wallet;
 it does not allow the provisioning function to fill in a partial wallet. (The
-0065 implementation can fill missing accounts despite the stronger statement in
-its original documentation.) Missing members fail. A system clearing account is
+original 0065 implementation could fill missing accounts despite the stronger
+statement in its documentation; 0067 corrects the reusable provisioning function
+itself. The 0066 precheck remains unchanged.) Missing members fail. A system clearing account is
 created idempotently using the existing partial unique index; an existing closed
 clearing account fails instead of being reopened or duplicated.
 
