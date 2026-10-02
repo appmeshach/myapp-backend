@@ -38,9 +38,25 @@ test('provisioning validates member and fails closed for closed or partial walle
 });
 
 test('provisioning is service-role only and exposes no client wallet writer', () => {
-  has(/REVOKE ALL ON FUNCTION public\.ensure_ngn_wallet_accounts_for_server\(uuid\)[\s\S]*FROM PUBLIC, anon, authenticated, service_role/i);
-  has(/GRANT EXECUTE ON FUNCTION public\.ensure_ngn_wallet_accounts_for_server\(uuid\)[\s\S]*TO service_role/i);
-  assert.doesNotMatch(executableSql, /GRANT EXECUTE ON FUNCTION public\.ensure_ngn_wallet_accounts_for_server\(uuid\)[\s\S]*TO authenticated/i);
+  const aclStart = executableSql.indexOf(
+    'REVOKE ALL ON FUNCTION public.ensure_ngn_wallet_accounts_for_server(uuid)',
+  );
+  const aclEnd = executableSql.indexOf(
+    'CREATE FUNCTION public.get_my_wallet_balance()',
+    aclStart,
+  );
+  assert(aclStart >= 0 && aclEnd > aclStart, 'provisioning ACL block');
+  const provisioningAcl = executableSql.slice(aclStart, aclEnd);
+
+  assert.match(
+    provisioningAcl,
+    /REVOKE ALL ON FUNCTION public\.ensure_ngn_wallet_accounts_for_server\(uuid\)\s+FROM PUBLIC, anon, authenticated, service_role;/i,
+  );
+  assert.match(
+    provisioningAcl,
+    /GRANT EXECUTE ON FUNCTION public\.ensure_ngn_wallet_accounts_for_server\(uuid\)\s+TO service_role;/i,
+  );
+  assert.doesNotMatch(provisioningAcl, /TO authenticated/i);
 });
 
 test('member balance projection authenticates from auth uid and never accepts a member id', () => {
