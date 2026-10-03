@@ -179,6 +179,8 @@ test('no operational callers or older migrations consume these tables', () => {
   // movement-context snapshot tables. It may consume and write those tables;
   // all other later migrations and operational callers remain prohibited.
   'supabase/migrations/0072_trusted_movement_context_snapshot_producer.sql',
+  // 0073 is the reviewed private proposal/snapshot integrity consumer.
+  'supabase/migrations/0073_financial_proposal_movement_context_binding_foundation.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);
