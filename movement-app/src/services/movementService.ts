@@ -2,6 +2,8 @@ import { supabase } from '../lib/supabase';
 import {
   AcceptedAlignment,
   MovementFundingStatus,
+  FundedMovementActivation,
+  MovementActivationReadiness,
   FinancialProposalOffererConsent,
   FinancialProposalRequesterMaterialization,
   AcceptFinancialProposalAsOffererInput,
@@ -739,4 +741,50 @@ export async function getPostActivationVehicle(
     vehicleDisplayName: row.vehicle_display_name,
     plateNumber: row.plate_number,
   };
+}
+
+function activationTimestamp(value: unknown): value is string {
+  if (typeof value !== 'string' || !Number.isFinite(Date.parse(value))) return false;
+  const m=/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,9})?(?:Z|[+-](\d{2}):(\d{2}))$/.exec(value);
+  if (!m) return false;
+  const year=Number(m[1]),month=Number(m[2]),day=Number(m[3]);
+  const leap=year%4===0 && (year%100!==0 || year%400===0);
+  const days=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31];
+  return year>=1 && month>=1 && month<=12 && day>=1 && day<=days[month-1]
+    && Number(m[4])<24 && Number(m[5])<60 && Number(m[6])<60 && (!m[7] || (Number(m[7])<24 && Number(m[8])<60));
+}
+function parseMovementActivation(data: unknown, agreementId: string, version: number, projection: boolean): MovementActivationReadiness {
+  if (!Array.isArray(data) || data.length!==1 || !data[0] || typeof data[0]!=='object' || Array.isArray(data[0])) throw new Error();
+  const r=data[0] as Record<string,unknown>;
+  const keys=['activated_at','agreement_version','alignment_id','alignment_status','financial_agreement_id'];
+  if (projection) keys.push('activation_status');keys.sort();
+  const actual=Object.keys(r).sort();
+  if (actual.length!==keys.length || actual.some((k,i)=>k!==keys[i])
+    || !fundingUuid(r.financial_agreement_id) || r.financial_agreement_id.toLowerCase()!==agreementId.toLowerCase()
+    || !fundingUuid(r.alignment_id) || r.agreement_version!==version) throw new Error();
+  const historical=r.alignment_status==='activated' || r.alignment_status==='in_progress' || r.alignment_status==='completed' || r.alignment_status==='cancelled';
+  const state=projection?r.activation_status:'activated';
+  if (state==='activated') {if (!historical || !activationTimestamp(r.activated_at)) throw new Error();}
+  else if (!projection || !['funding_required','identity_required','ready_to_activate'].includes(state as string)
+    || r.alignment_status!=='awaiting_activation_payment' || r.activated_at!==null) throw new Error();
+  return {financialAgreementId:r.financial_agreement_id,agreementVersion:version,alignmentId:r.alignment_id,
+    alignmentStatus:r.alignment_status as MovementActivationReadiness['alignmentStatus'],activationStatus:state as MovementActivationReadiness['activationStatus'],activatedAt:r.activated_at as string|null};
+}
+export async function activateMyFundedMovement(financialAgreementId: string, expectedAgreementVersion: number): Promise<FundedMovementActivation> {
+  try {
+    if (!fundingUuid(financialAgreementId) || !Number.isInteger(expectedAgreementVersion) || expectedAgreementVersion<1 || expectedAgreementVersion>2147483647) throw new Error();
+    const {data,error}=await supabase.rpc('activate_my_funded_movement',{p_financial_agreement_id:financialAgreementId,p_expected_agreement_version:expectedAgreementVersion});
+    if (error) throw new Error();
+    const result=parseMovementActivation(data,financialAgreementId,expectedAgreementVersion,false);
+    return {financialAgreementId:result.financialAgreementId,agreementVersion:result.agreementVersion,alignmentId:result.alignmentId,
+      alignmentStatus:result.alignmentStatus as FundedMovementActivation['alignmentStatus'],activatedAt:result.activatedAt as string};
+  } catch {throw new Error('movement_activation_unavailable');}
+}
+export async function getMyMovementActivationStatus(financialAgreementId: string, expectedAgreementVersion: number): Promise<MovementActivationReadiness> {
+  try {
+    if (!fundingUuid(financialAgreementId) || !Number.isInteger(expectedAgreementVersion) || expectedAgreementVersion<1 || expectedAgreementVersion>2147483647) throw new Error();
+    const {data,error}=await supabase.rpc('get_my_movement_activation_status',{p_financial_agreement_id:financialAgreementId,p_expected_agreement_version:expectedAgreementVersion});
+    if (error) throw new Error();
+    return parseMovementActivation(data,financialAgreementId,expectedAgreementVersion,true);
+  } catch {throw new Error('movement_activation_unavailable');}
 }

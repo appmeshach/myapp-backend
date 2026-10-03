@@ -13,7 +13,7 @@ export function ActivationPaymentCard({ movementNeedId, onContinueJourney }: {
     {!model.signedIn ? <Text>Sign in to continue activation.</Text> : <>
       <Text accessibilityLiveRegion="polite">{paymentCopy[model.state]}</Text>
       <Text>Your live face check applies to you only. The platform checks whether activation can proceed.</Text>
-      {model.state === 'payment_provider_unavailable' && <Text>Payment setup is not available in this build yet. You can try again later.</Text>}
+      {model.state === 'payment_provider_unavailable' && <Text>Activation setup is not available in this build yet. You can try again later.</Text>}
       {model.state !== 'activated' && <Pressable accessibilityRole="button" disabled={busy || !model.active}
         accessibilityState={{ disabled: busy || !model.active }} onPress={() => { void model.start(); }}
         style={{ padding: 14, backgroundColor: '#203e51', borderRadius: 8, opacity: busy ? 0.45 : 1 }}>
