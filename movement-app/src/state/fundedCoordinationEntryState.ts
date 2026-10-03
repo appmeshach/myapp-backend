@@ -21,7 +21,7 @@ export function createFundedCoordinationEntryController(
         const result = await request(need, abort.signal);
         if (disposed || abort.signal.aborted) return;
         if (result.movementNeedId.toLowerCase() !== need.toLowerCase()
-          || result.journeyState !== 'not_started' || result.coordinationReady !== true) throw new Error();
+          || (result.journeyState !== 'not_started' && result.journeyState !== 'in_progress') || result.coordinationReady !== true) throw new Error();
         publish('idle');
         if (!disposed && !abort.signal.aborted) onReady();
       } catch {

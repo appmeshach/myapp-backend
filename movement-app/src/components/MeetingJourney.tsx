@@ -15,8 +15,8 @@ export function MeetingJourney({ movementNeedId }: { movementNeedId: string }) {
       {s.canEditMeetingPoint && <PlaceEditor key={s.meetingPointRevision ?? 'new'} text={s.meetingPointText ?? ''} save={model.save} />}
       <Text style={{ fontSize: 20 }}>Journey</Text>
       <Text>{s.journeyState === 'in_progress' ? 'Journey started' : s.journeyState === 'completed' ? 'Journey completed' : s.startRequestedAt ? 'Waiting for start confirmation' : 'Journey has not started.'}</Text>
-      {s.canRequestStart && <Pressable accessibilityRole="button" onPress={() => { void model.requestStart(); }}><Text>Start journey</Text></Pressable>}
-      {s.canConfirmStart && <Pressable accessibilityRole="button" onPress={() => { void model.confirmStart(); }}><Text>Confirm start</Text></Pressable>}
+      {s.canRequestStart && <Pressable accessibilityRole="button" onPress={() => { void model.requestStart(); }}><Text>Request movement start</Text></Pressable>}
+      {s.canConfirmStart && <Pressable accessibilityRole="button" onPress={() => { void model.confirmStart(); }}><Text>Confirm movement start</Text></Pressable>}
     </> : <Text>Meeting point and journey status unavailable.</Text>}
     {model.state.error && <Text accessibilityLiveRegion="polite">{model.state.error === 'conflict' ? 'The meeting point changed. Refresh before trying again.' : 'Unable to update coordination. Refresh and try again.'}</Text>}
     <Pressable accessibilityRole="button" disabled={model.state.busy} onPress={() => { void model.refresh(); }}><Text>Refresh meeting point and journey</Text></Pressable>
