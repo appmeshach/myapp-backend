@@ -193,6 +193,30 @@ export type PostActivationPerson = {
   profilePhotoExpiresAt: string | null;
 };
 
+export type SafeFinancialProposal = {
+  proposalId: string;
+  proposalVersion: number;
+  proposalStatus: 'current' | 'superseded';
+  createdAt: string;
+  expiresAt: string;
+  callerRole: 'requester' | 'offerer';
+  currency: string;
+  quotedPlatformFeeTotalMinor: number;
+  quotedMovementContributionMinor: number;
+  originArea: string;
+  destinationArea: string;
+  earliestDepartureAt: string;
+  latestDepartureAt: string | null;
+  peopleCount: number;
+  seatsOffered: number;
+  vehicleSeatCapacity: number;
+  proposedPickupArea: string | null;
+  proposedDropoffArea: string | null;
+  estimatedArrivalMinutes: number | null;
+  offeringAcceptedAt: string | null;
+  requesterAcceptedAt: string | null;
+};
+
 export type PostActivationVehicle = {
   vehicleDisplayName: string;
   plateNumber: string;

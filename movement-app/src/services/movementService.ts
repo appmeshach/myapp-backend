@@ -8,7 +8,79 @@ import {
   MaskedMovementOffer,
   PostActivationPerson,
   PostActivationVehicle,
+  SafeFinancialProposal,
 } from '../types/movement';
+
+export async function getMyFinancialProposal(financialProposalId: string): Promise<SafeFinancialProposal | null> {
+  const uuid = (v: unknown): v is string => typeof v === 'string'
+    && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(v);
+  const integer = (v: unknown, min: number): v is number => typeof v === 'number'
+    && Number.isSafeInteger(v) && v >= min;
+  const label = (v: unknown): v is string => typeof v === 'string'
+    && !!v.trim() && v.length <= 500 && !/[\u0000-\u001f\u007f-\u009f]/.test(v);
+  const timestamp = (v: unknown): v is string => {
+    if (typeof v !== 'string' || !Number.isFinite(Date.parse(v))) return false;
+    const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|([+-])(\d{2}):(\d{2}))$/.exec(v);
+    if (!match) return false;
+    const year = Number(match[1]), month = Number(match[2]), day = Number(match[3]);
+    const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+    const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    return year >= 1 && month >= 1 && month <= 12 && day >= 1 && day <= days[month - 1]
+      && Number(match[4]) < 24 && Number(match[5]) < 60 && Number(match[6]) < 60
+      && (!match[7] || (Number(match[8]) < 24 && Number(match[9]) < 60));
+  };
+  try {
+    if (!uuid(financialProposalId)) throw new Error();
+    const { data, error } = await supabase.rpc('get_my_financial_proposal', {
+      p_financial_proposal_id: financialProposalId,
+    });
+    if (error || !Array.isArray(data) || data.length > 1) throw new Error();
+    if (data.length === 0) return null;
+    const value: unknown = data[0];
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error();
+    const r = value as Record<string, unknown>;
+    const keys = ['proposal_id','proposal_version','proposal_status','created_at','expires_at','caller_role','currency',
+      'quoted_platform_fee_total_minor','quoted_movement_contribution_minor','origin_area','destination_area',
+      'earliest_departure_at','latest_departure_at','people_count','seats_offered','vehicle_seat_capacity',
+      'proposed_pickup_area','proposed_dropoff_area','estimated_arrival_minutes','offering_accepted_at','requester_accepted_at'].sort();
+    const actual = Object.keys(r).sort();
+    if (actual.length !== keys.length || actual.some((k, i) => k !== keys[i])
+      || !uuid(r.proposal_id) || r.proposal_id.toLowerCase() !== financialProposalId.toLowerCase()
+      || !integer(r.proposal_version, 1) || r.proposal_version > 2147483647
+      || (r.proposal_status !== 'current' && r.proposal_status !== 'superseded')
+      || (r.caller_role !== 'requester' && r.caller_role !== 'offerer')
+      || typeof r.currency !== 'string' || !/^[A-Z]{3}$/.test(r.currency)
+      || !integer(r.quoted_platform_fee_total_minor, 0) || !integer(r.quoted_movement_contribution_minor, 0)
+      || !label(r.origin_area) || !label(r.destination_area)
+      || !timestamp(r.created_at) || !timestamp(r.expires_at) || Date.parse(r.expires_at) <= Date.parse(r.created_at)
+      || !timestamp(r.earliest_departure_at)
+      || (r.latest_departure_at !== null && (!timestamp(r.latest_departure_at) || Date.parse(r.latest_departure_at) < Date.parse(r.earliest_departure_at)))
+      || !integer(r.people_count, 1) || !integer(r.seats_offered, 1) || !integer(r.vehicle_seat_capacity, 1)
+      || r.people_count > r.seats_offered || r.seats_offered > r.vehicle_seat_capacity || r.vehicle_seat_capacity > 12
+      || (r.proposed_pickup_area !== null && !label(r.proposed_pickup_area))
+      || (r.proposed_dropoff_area !== null && !label(r.proposed_dropoff_area))
+      || (r.estimated_arrival_minutes !== null && (!integer(r.estimated_arrival_minutes, 0) || r.estimated_arrival_minutes > 2147483647))) throw new Error();
+    for (const key of ['offering_accepted_at','requester_accepted_at']) {
+      if (r[key] !== null && (!timestamp(r[key]) || Date.parse(r[key]) < Date.parse(r.created_at)
+        || Date.parse(r[key]) >= Date.parse(r.expires_at))) throw new Error();
+    }
+    if (r.requester_accepted_at !== null && (r.offering_accepted_at === null
+      || Date.parse(r.requester_accepted_at as string) < Date.parse(r.offering_accepted_at as string))) throw new Error();
+    return {
+      proposalId: r.proposal_id, proposalVersion: r.proposal_version, proposalStatus: r.proposal_status,
+      createdAt: r.created_at, expiresAt: r.expires_at, callerRole: r.caller_role, currency: r.currency,
+      quotedPlatformFeeTotalMinor: r.quoted_platform_fee_total_minor, quotedMovementContributionMinor: r.quoted_movement_contribution_minor,
+      originArea: r.origin_area, destinationArea: r.destination_area, earliestDepartureAt: r.earliest_departure_at,
+      latestDepartureAt: r.latest_departure_at as string | null, peopleCount: r.people_count,
+      seatsOffered: r.seats_offered, vehicleSeatCapacity: r.vehicle_seat_capacity,
+      proposedPickupArea: r.proposed_pickup_area as string | null, proposedDropoffArea: r.proposed_dropoff_area as string | null,
+      estimatedArrivalMinutes: r.estimated_arrival_minutes as number | null,
+      offeringAcceptedAt: r.offering_accepted_at as string | null, requesterAcceptedAt: r.requester_accepted_at as string | null,
+    };
+  } catch {
+    throw new Error('financial_proposal_unavailable');
+  }
+}
 
 export interface CreateMovementNeedInput {
   requestId: string;
