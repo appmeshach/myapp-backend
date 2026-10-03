@@ -156,6 +156,7 @@ test('pre-0020 migrations and unreviewed operational callers do not consume the 
       || file==='supabase/migrations/0064_wallet_ledger_foundation.sql'
       || file==='supabase/migrations/0077_financial_proposal_requester_materialization.sql'
       || file==='supabase/migrations/0078_requester_movement_funding_hold.sql'
+      || file==='supabase/migrations/0079_funded_movement_activation.sql'
       || !/\.(sql|ts|tsx)$/.test(file)) continue;
     assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\bfinancial_agreements\b|\bfinancial_components\b/,file);
   }

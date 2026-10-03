@@ -4,10 +4,10 @@ export type PaymentViewState = ActivationPaymentState | 'idle' | 'preparing_acti
 export const paymentCopy: Record<PaymentViewState, string> = {
   idle: 'Prepare activation', preparing_activation: 'Preparing activation',
   activation_not_ready: 'Activation is not ready yet.',
-  payment_provider_unavailable: 'Payment setup unavailable.',
+  payment_provider_unavailable: 'Activation setup unavailable.',
   payment_pending: 'Payment in progress.', activated: 'Movement activated.',
   authentication_required: 'Sign in to continue.', network_unavailable: 'Connection unavailable. Try again.',
-  payment_unavailable: 'Payment setup unavailable. Try again.',
+  payment_unavailable: 'Activation setup unavailable. Try again.',
 };
 
 // Screen owners must cancel on blur/background/account change and dispose on

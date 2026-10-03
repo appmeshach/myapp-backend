@@ -258,3 +258,19 @@ export type MovementFundingStatus = {
   currency: 'NGN';
   fullyHeldAt: string | null;
 };
+
+export type FundedMovementActivation = {
+  financialAgreementId: string;
+  agreementVersion: number;
+  alignmentId: string;
+  alignmentStatus: 'activated' | 'in_progress' | 'completed' | 'cancelled';
+  activatedAt: string;
+};
+export type MovementActivationReadiness = {
+  financialAgreementId: string;
+  agreementVersion: number;
+  alignmentId: string;
+  alignmentStatus: 'awaiting_activation_payment' | FundedMovementActivation['alignmentStatus'];
+  activationStatus: 'funding_required' | 'identity_required' | 'ready_to_activate' | 'activated';
+  activatedAt: string | null;
+};
