@@ -191,6 +191,8 @@ test('no operational callers or older migrations consume these tables', () => {
     'supabase/migrations/0079_funded_movement_activation.sql',
     // 0080 validates exact funded coordination without consuming live capacity.
     'supabase/migrations/0080_funded_movement_coordination_entry.sql',
+    // 0081 validates historical funded start without live capacity consumption.
+    'supabase/migrations/0081_financial_movement_start.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);

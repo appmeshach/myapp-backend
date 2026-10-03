@@ -791,7 +791,7 @@ export async function getMyMovementActivationStatus(financialAgreementId: string
 
 export type FundedCoordinationEntry = {
   movementNeedId: string;
-  journeyState: 'not_started';
+  journeyState: 'not_started' | 'in_progress';
   coordinationReady: true;
 };
 
@@ -806,8 +806,8 @@ export async function openMyFundedMovementCoordination(movementNeedId: string, s
     if (!row || typeof row !== 'object' || Array.isArray(row)
       || Object.keys(row).sort().join(',') !== keys.join(',')
       || !fundingUuid(row.movement_need_id) || row.movement_need_id.toLowerCase() !== movementNeedId.toLowerCase()
-      || row.journey_state !== 'not_started' || row.coordination_ready !== true) throw new Error();
-    return { movementNeedId: row.movement_need_id, journeyState: 'not_started', coordinationReady: true };
+      || (row.journey_state !== 'not_started' && row.journey_state !== 'in_progress') || row.coordination_ready !== true) throw new Error();
+    return { movementNeedId: row.movement_need_id, journeyState: row.journey_state, coordinationReady: true };
   } catch { throw new Error('movement_coordination_unavailable'); }
 }
 

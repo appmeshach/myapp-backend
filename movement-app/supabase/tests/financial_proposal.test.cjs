@@ -255,6 +255,8 @@ test('only reviewed 0070, 0073, 0074, 0075 and 0076 migrations may consume propo
     'supabase/migrations/0079_funded_movement_activation.sql',
     // 0080 validates exact funded coordination without consuming live capacity.
     'supabase/migrations/0080_funded_movement_coordination_entry.sql',
+    // 0081 validates historical funded start without live capacity consumption.
+    'supabase/migrations/0081_financial_movement_start.sql',
   ]);
 
   for (const file of walk('supabase/migrations')) {

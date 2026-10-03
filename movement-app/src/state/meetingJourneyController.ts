@@ -3,8 +3,8 @@ export type MeetingState = { status: MeetingJourneyStatus | null; busy: boolean;
 export type MeetingApi = {
   read(need: string, signal: AbortSignal): Promise<MeetingJourneyStatus | null>;
   set(need: string, text: string, revision: number | null, signal: AbortSignal): Promise<MeetingJourneyStatus | null>;
-  request(need: string, signal: AbortSignal): Promise<MeetingJourneyStatus | null>;
-  confirm(need: string, signal: AbortSignal): Promise<MeetingJourneyStatus | null>;
+  request(need: string, signal: AbortSignal, authority: MeetingJourneyStatus['startAuthority']): Promise<MeetingJourneyStatus | null>;
+  confirm(need: string, signal: AbortSignal, authority: MeetingJourneyStatus['startAuthority']): Promise<MeetingJourneyStatus | null>;
 };
 export function createMeetingController(need: string, api: MeetingApi) {
   let state: MeetingState = { status: null, busy: false, error: null };
@@ -15,11 +15,14 @@ export function createMeetingController(need: string, api: MeetingApi) {
     if (!active || state.busy) return;
     if (action === 'set' && !state.status?.canEditMeetingPoint || action === 'request' && !state.status?.canRequestStart || action === 'confirm' && !state.status?.canConfirmStart) return;
     const revision = state.status?.meetingPointRevision ?? null;
+    const authority = state.status?.startAuthority;
+    if ((action === 'request' || action === 'confirm') && authority !== 'funded' && authority !== 'legacy') return;
     const token = ++generation; const abort = request = new AbortController();
     publish({ status: null, busy: true, error: null });
     const timer = setTimeout(() => { if (generation === token) { generation++; abort.abort(); publish({ status: null, busy: false, error: 'unavailable' }); } }, 30_000);
     try {
-      const result = action === 'set' ? await api.set(need, text ?? '', revision, abort.signal) : await api[action](need, abort.signal);
+      const result = action === 'set' ? await api.set(need, text ?? '', revision, abort.signal)
+        : action === 'read' ? await api.read(need, abort.signal) : await api[action](need, abort.signal, authority!);
       if (active && token === generation && !abort.signal.aborted) publish({ status: result, busy: false, error: result ? null : 'unavailable' });
     } catch (e) { if (active && token === generation && !abort.signal.aborted) publish({ status: null, busy: false, error: e instanceof Error && e.message === 'conflict' ? 'conflict' : 'unavailable' }); }
     finally { clearTimeout(timer); }
