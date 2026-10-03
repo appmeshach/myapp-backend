@@ -249,6 +249,8 @@ test('only reviewed 0070, 0073, 0074, 0075 and 0076 migrations may consume propo
     'supabase/migrations/0075_safe_financial_proposal_projection.sql',
     // 0076 validates exact snapshot provenance for member consent only.
     'supabase/migrations/0076_financial_proposal_offerer_consent.sql',
+    // 0077 materializes the exact consented proposal using trusted provenance.
+    'supabase/migrations/0077_financial_proposal_requester_materialization.sql',
   ]);
 
   for (const file of walk('supabase/migrations')) {

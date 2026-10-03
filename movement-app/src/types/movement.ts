@@ -235,3 +235,15 @@ export type FinancialProposalOffererConsent = {
   movementOfferId: string;
   offeringAcceptedAt: string;
 };
+
+export type FinancialProposalRequesterMaterialization = {
+  proposalId: string;
+  proposalVersion: number;
+  proposalStatus: 'current';
+  movementOfferId: string;
+  alignmentId: string;
+  alignmentStatus: 'awaiting_activation_payment' | 'activated' | 'in_progress' | 'completed' | 'cancelled';
+  financialAgreementId: string;
+  requesterAcceptedAt: string;
+  materializedAt: string;
+};

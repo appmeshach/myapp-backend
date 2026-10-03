@@ -154,6 +154,7 @@ test('pre-0020 migrations and unreviewed operational callers do not consume the 
     // separately reviewed, non-client consumers of the 0020 linkage contract.
     if(file.includes('/0020_') || file==='supabase/migrations/0021_financial_proposal_foundation.sql'
       || file==='supabase/migrations/0064_wallet_ledger_foundation.sql'
+      || file==='supabase/migrations/0077_financial_proposal_requester_materialization.sql'
       || !/\.(sql|ts|tsx)$/.test(file)) continue;
     assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\bfinancial_agreements\b|\bfinancial_components\b/,file);
   }
