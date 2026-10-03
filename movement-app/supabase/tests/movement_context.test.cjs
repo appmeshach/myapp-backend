@@ -181,6 +181,8 @@ test('no operational callers or older migrations consume these tables', () => {
   'supabase/migrations/0072_trusted_movement_context_snapshot_producer.sql',
   // 0073 is the reviewed private proposal/snapshot integrity consumer.
   'supabase/migrations/0073_financial_proposal_movement_context_binding_foundation.sql',
+  // 0074 derives proposals and their exact roster from the trusted snapshot.
+  'supabase/migrations/0074_trusted_financial_proposal_issuer.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);
