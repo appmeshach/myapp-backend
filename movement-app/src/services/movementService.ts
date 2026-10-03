@@ -788,3 +788,41 @@ export async function getMyMovementActivationStatus(financialAgreementId: string
     return parseMovementActivation(data,financialAgreementId,expectedAgreementVersion,true);
   } catch {throw new Error('movement_activation_unavailable');}
 }
+
+export type FundedCoordinationEntry = {
+  movementNeedId: string;
+  journeyState: 'not_started';
+  coordinationReady: true;
+};
+
+export async function openMyFundedMovementCoordination(movementNeedId: string, signal?: AbortSignal): Promise<FundedCoordinationEntry> {
+  try {
+    if (!fundingUuid(movementNeedId) || signal?.aborted) throw new Error();
+    const transport = supabase.rpc('open_my_funded_movement_coordination', { p_movement_need_id: movementNeedId });
+    const { data, error } = await (signal ? transport.abortSignal(signal) : transport);
+    if (error || signal?.aborted || !Array.isArray(data) || data.length !== 1) throw new Error();
+    const row = data[0] as Record<string, unknown>;
+    const keys = ['coordination_ready', 'journey_state', 'movement_need_id'];
+    if (!row || typeof row !== 'object' || Array.isArray(row)
+      || Object.keys(row).sort().join(',') !== keys.join(',')
+      || !fundingUuid(row.movement_need_id) || row.movement_need_id.toLowerCase() !== movementNeedId.toLowerCase()
+      || row.journey_state !== 'not_started' || row.coordination_ready !== true) throw new Error();
+    return { movementNeedId: row.movement_need_id, journeyState: 'not_started', coordinationReady: true };
+  } catch { throw new Error('movement_coordination_unavailable'); }
+}
+
+export async function getMyFundedMovementCoordinationReadiness(movementNeedId: string, signal?: AbortSignal): Promise<boolean | null> {
+  try {
+    if (!fundingUuid(movementNeedId) || signal?.aborted) throw new Error();
+    const transport = supabase.rpc('get_my_funded_movement_coordination_readiness', { p_movement_need_id: movementNeedId });
+    const { data, error } = await (signal ? transport.abortSignal(signal) : transport);
+    if (error || signal?.aborted || !Array.isArray(data) || data.length > 1) throw new Error();
+    if (data.length === 0) return null;
+    const row = data[0] as Record<string, unknown>;
+    if (!row || typeof row !== 'object' || Array.isArray(row)
+      || Object.keys(row).sort().join(',') !== 'funded_activated,movement_need_id'
+      || !fundingUuid(row.movement_need_id) || row.movement_need_id.toLowerCase() !== movementNeedId.toLowerCase()
+      || typeof row.funded_activated !== 'boolean') throw new Error();
+    return row.funded_activated;
+  } catch { throw new Error('movement_coordination_unavailable'); }
+}

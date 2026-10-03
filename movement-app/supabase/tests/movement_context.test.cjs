@@ -189,6 +189,8 @@ test('no operational callers or older migrations consume these tables', () => {
     'supabase/migrations/0077_financial_proposal_requester_materialization.sql',
     // 0079 binds activation evidence to the immutable materialized roster.
     'supabase/migrations/0079_funded_movement_activation.sql',
+    // 0080 validates exact funded coordination without consuming live capacity.
+    'supabase/migrations/0080_funded_movement_coordination_entry.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);
