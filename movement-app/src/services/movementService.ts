@@ -1,6 +1,8 @@
 import { supabase } from '../lib/supabase';
 import {
   AcceptedAlignment,
+  FinancialProposalOffererConsent,
+  AcceptFinancialProposalAsOffererInput,
   AlignmentStatusSummary,
   CreatedMovementOffer,
   CreateMovementOfferInput,
@@ -10,6 +12,49 @@ import {
   PostActivationVehicle,
   SafeFinancialProposal,
 } from '../types/movement';
+
+export async function acceptMyFinancialProposalAsOfferer(
+  input: AcceptFinancialProposalAsOffererInput,
+): Promise<FinancialProposalOffererConsent> {
+  const uuid = (v: unknown): v is string => typeof v === 'string'
+    && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(v);
+  const timestamp = (v: unknown): v is string => {
+    if (typeof v !== 'string' || !Number.isFinite(Date.parse(v))) return false;
+    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-](\d{2}):(\d{2}))$/.exec(v);
+    if (!m) return false;
+    const year = Number(m[1]), month = Number(m[2]), day = Number(m[3]);
+    const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+    const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    return year >= 1 && month >= 1 && month <= 12 && day >= 1 && day <= days[month - 1]
+      && Number(m[4]) < 24 && Number(m[5]) < 60 && Number(m[6]) < 60
+      && (!m[7] || (Number(m[7]) < 24 && Number(m[8]) < 60));
+  };
+  try {
+    if (!input || !uuid(input.financialProposalId) || !uuid(input.movementOfferId)
+      || !Number.isInteger(input.expectedProposalVersion) || input.expectedProposalVersion < 1
+      || input.expectedProposalVersion > 2147483647) throw new Error();
+    const { data, error } = await supabase.rpc('accept_my_financial_proposal_as_offerer', {
+      p_financial_proposal_id: input.financialProposalId,
+      p_expected_proposal_version: input.expectedProposalVersion,
+      p_movement_offer_id: input.movementOfferId,
+    });
+    if (error || !Array.isArray(data) || data.length !== 1) throw new Error();
+    const value: unknown = data[0];
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error();
+    const r = value as Record<string, unknown>;
+    const keys = ['movement_offer_id','offering_accepted_at','proposal_id','proposal_status','proposal_version'];
+    const actual = Object.keys(r).sort();
+    if (actual.length !== keys.length || actual.some((key, i) => key !== keys[i])
+      || !uuid(r.proposal_id) || r.proposal_id.toLowerCase() !== input.financialProposalId.toLowerCase()
+      || r.proposal_version !== input.expectedProposalVersion || r.proposal_status !== 'current'
+      || !uuid(r.movement_offer_id) || r.movement_offer_id.toLowerCase() !== input.movementOfferId.toLowerCase()
+      || !timestamp(r.offering_accepted_at)) throw new Error();
+    return { proposalId: r.proposal_id, proposalVersion: input.expectedProposalVersion,
+      proposalStatus: 'current', movementOfferId: r.movement_offer_id, offeringAcceptedAt: r.offering_accepted_at };
+  } catch {
+    throw new Error('financial_proposal_consent_unavailable');
+  }
+}
 
 export async function getMyFinancialProposal(financialProposalId: string): Promise<SafeFinancialProposal | null> {
   const uuid = (v: unknown): v is string => typeof v === 'string'

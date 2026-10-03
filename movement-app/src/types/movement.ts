@@ -221,3 +221,17 @@ export type PostActivationVehicle = {
   vehicleDisplayName: string;
   plateNumber: string;
 };
+
+export type AcceptFinancialProposalAsOffererInput = {
+  financialProposalId: string;
+  expectedProposalVersion: number;
+  movementOfferId: string;
+};
+
+export type FinancialProposalOffererConsent = {
+  proposalId: string;
+  proposalVersion: number;
+  proposalStatus: 'current';
+  movementOfferId: string;
+  offeringAcceptedAt: string;
+};

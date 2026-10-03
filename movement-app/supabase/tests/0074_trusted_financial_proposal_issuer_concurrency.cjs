@@ -153,7 +153,17 @@ async function constructorBeforeEligibility(kind) {
   const mutation = kind === 'acceptance' ? accept(f) :
     `SELECT id FROM public.movement_needs WHERE id='${f.need}' FOR UPDATE; UPDATE public.movement_participants SET status='invited' WHERE movement_need_id='${f.need}' AND role='invited_participant';`;
   const pending = outcome(b.send(mutation)); await blocked(a, b); await a.send('COMMIT;');
-  checkResult(await pending, true); await b.send('COMMIT;');
+  // 0076 deliberately cuts legacy acceptance over for financially managed
+  // needs. Preserve the original expectation on pre-0076 clones, and prove
+  // rejection (with no operational writes) when the cutover is installed.
+  const cutover = kind === 'acceptance' && target("SELECT to_regprocedure('public.accept_my_financial_proposal_as_offerer(uuid,integer,uuid)') IS NOT NULL;") === 't';
+  const result = await pending;
+  checkResult(result, !cutover);
+  if (cutover) {
+    assert.match(result.error, /financial requester materialization/);
+    assert.equal(target(`SELECT status FROM public.movement_offers WHERE id='${f.movement_offer}';`), 'pending');
+    assert.equal(target(`SELECT count(*) FROM public.alignments WHERE movement_need_id='${f.need}';`), '0');
+  } else await b.send('COMMIT;');
   target(`SELECT private.assert_financial_proposal_snapshot_roster(id) FROM private.financial_proposals WHERE movement_context_snapshot_id='${f.snapshot_id}';`);
   assert.equal(proposalCount(f), '1'); noDeadlock(a, b); a.close(); b.close();
   console.log('PASS constructor before ' + kind + ': actual need lock wait, historical binding survives');
