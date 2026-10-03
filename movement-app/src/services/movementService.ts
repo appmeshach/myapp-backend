@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase';
 import {
   AcceptedAlignment,
   FinancialProposalOffererConsent,
+  FinancialProposalRequesterMaterialization,
   AcceptFinancialProposalAsOffererInput,
   AlignmentStatusSummary,
   CreatedMovementOffer,
@@ -12,6 +13,56 @@ import {
   PostActivationVehicle,
   SafeFinancialProposal,
 } from '../types/movement';
+
+export async function acceptMyFinancialProposalAsRequester(
+  financialProposalId: string, expectedProposalVersion: number,
+): Promise<FinancialProposalRequesterMaterialization> {
+  const uuid = (v: unknown): v is string => typeof v === 'string'
+    && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(v);
+  const timestamp = (v: unknown): v is string => {
+    if (typeof v !== 'string' || !Number.isFinite(Date.parse(v))) return false;
+    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,9})?(?:Z|[+-](\d{2}):(\d{2}))$/.exec(v);
+    if (!m) return false;
+    const year = Number(m[1]), month = Number(m[2]), day = Number(m[3]);
+    const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+    const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    return year >= 1 && month >= 1 && month <= 12 && day >= 1 && day <= days[month - 1]
+      && Number(m[4]) < 24 && Number(m[5]) < 60 && Number(m[6]) < 60
+      && (!m[7] || (Number(m[7]) < 24 && Number(m[8]) < 60));
+  };
+  const instant = (v: string): bigint => {
+    const fraction = /\.(\d+)/.exec(v)?.[1] ?? '';
+    return BigInt(Date.parse(v.replace(/\.\d+/, ''))) * 1000000n
+      + BigInt(fraction.padEnd(9, '0'));
+  };
+  try {
+    if (!uuid(financialProposalId) || !Number.isInteger(expectedProposalVersion)
+      || expectedProposalVersion < 1 || expectedProposalVersion > 2147483647) throw new Error();
+    const { data, error } = await supabase.rpc('accept_my_financial_proposal_as_requester', {
+      p_financial_proposal_id: financialProposalId, p_expected_proposal_version: expectedProposalVersion,
+    });
+    if (error || !Array.isArray(data) || data.length !== 1) throw new Error();
+    const value: unknown = data[0];
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error();
+    const r = value as Record<string, unknown>;
+    const keys = ['alignment_id','alignment_status','financial_agreement_id','materialized_at',
+      'movement_offer_id','proposal_id','proposal_status','proposal_version','requester_accepted_at'];
+    const actual = Object.keys(r).sort();
+    if (actual.length !== keys.length || actual.some((key, i) => key !== keys[i])
+      || !uuid(r.proposal_id) || r.proposal_id.toLowerCase() !== financialProposalId.toLowerCase()
+      || r.proposal_version !== expectedProposalVersion || r.proposal_status !== 'current'
+      || !uuid(r.movement_offer_id) || !uuid(r.alignment_id) || !uuid(r.financial_agreement_id)
+      || (r.alignment_status !== 'awaiting_activation_payment' && r.alignment_status !== 'activated'
+        && r.alignment_status !== 'in_progress' && r.alignment_status !== 'completed' && r.alignment_status !== 'cancelled')
+      || !timestamp(r.requester_accepted_at) || !timestamp(r.materialized_at)
+      || instant(r.materialized_at) < instant(r.requester_accepted_at)) throw new Error();
+    return { proposalId: r.proposal_id, proposalVersion: expectedProposalVersion, proposalStatus: 'current',
+      movementOfferId: r.movement_offer_id, alignmentId: r.alignment_id, alignmentStatus: r.alignment_status,
+      financialAgreementId: r.financial_agreement_id, requesterAcceptedAt: r.requester_accepted_at, materializedAt: r.materialized_at };
+  } catch {
+    throw new Error('financial_proposal_materialization_unavailable');
+  }
+}
 
 export async function acceptMyFinancialProposalAsOfferer(
   input: AcceptFinancialProposalAsOffererInput,

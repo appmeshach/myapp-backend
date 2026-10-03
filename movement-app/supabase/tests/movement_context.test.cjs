@@ -185,6 +185,8 @@ test('no operational callers or older migrations consume these tables', () => {
   'supabase/migrations/0074_trusted_financial_proposal_issuer.sql',
   // 0076 validates exact snapshot provenance for member consent only.
   'supabase/migrations/0076_financial_proposal_offerer_consent.sql',
+    // 0077 materializes the exact consented proposal using trusted provenance.
+    'supabase/migrations/0077_financial_proposal_requester_materialization.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);
