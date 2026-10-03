@@ -234,7 +234,7 @@ test('exact helper inventory and no operational mutations or policies', () => {
     ['private.financial_proposals', 'private.financial_proposal_travellers']);
 });
 
-test('only the reviewed 0070 migration may extend proposal tables; operational callers still do not consume them', () => {
+test('only reviewed 0070 and 0073 migrations may extend proposal tables; operational callers still do not consume them', () => {
   function walk(dir) {
     return fs.readdirSync(dir, { withFileTypes: true }).flatMap(e =>
       e.isDirectory() ? walk(`${dir}/${e.name}`) : [`${dir}/${e.name}`]);
@@ -243,6 +243,8 @@ test('only the reviewed 0070 migration may extend proposal tables; operational c
   const allowedMigrationPaths = new Set([
     migrationPath,
     'supabase/migrations/0070_financial_proposal_quote_binding_foundation.sql',
+    // 0073 is the reviewed private proposal/snapshot integrity consumer.
+    'supabase/migrations/0073_financial_proposal_movement_context_binding_foundation.sql',
   ]);
 
   for (const file of walk('supabase/migrations')) {
