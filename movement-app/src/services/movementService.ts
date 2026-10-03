@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 import {
   AcceptedAlignment,
+  MovementFundingStatus,
   FinancialProposalOffererConsent,
   FinancialProposalRequesterMaterialization,
   AcceptFinancialProposalAsOffererInput,
@@ -13,6 +14,57 @@ import {
   PostActivationVehicle,
   SafeFinancialProposal,
 } from '../types/movement';
+
+function fundingUuid(v: unknown): v is string {
+  return typeof v === 'string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(v);
+}
+function parseMovementFunding(data: unknown, agreementId: string, version?: number): MovementFundingStatus {
+  if (!Array.isArray(data) || data.length !== 1) throw new Error();
+  const r: unknown = data[0];
+  if (!r || typeof r !== 'object' || Array.isArray(r)) throw new Error();
+  const x = r as Record<string, unknown>;
+  const keys = ['agreement_version','alignment_id','currency','financial_agreement_id','fully_held_at','funding_status','held_minor','required_minor'];
+  const actual = Object.keys(x).sort();
+  const integer = (v: unknown): v is number => typeof v === 'number' && Number.isSafeInteger(v) && v >= 0;
+  if (actual.length !== keys.length || actual.some((k,i) => k !== keys[i])
+    || !fundingUuid(x.financial_agreement_id) || x.financial_agreement_id.toLowerCase() !== agreementId.toLowerCase()
+    || !fundingUuid(x.alignment_id) || !integer(x.agreement_version) || x.agreement_version < 1 || x.agreement_version > 2147483647
+    || (version !== undefined && x.agreement_version !== version)
+    || x.currency !== 'NGN' || !integer(x.required_minor) || !integer(x.held_minor)
+    || (x.funding_status !== 'held' && x.funding_status !== 'not_held')) throw new Error();
+  if (x.funding_status === 'not_held') {
+    if (x.held_minor !== 0 || x.fully_held_at !== null) throw new Error();
+  } else {
+    if (x.held_minor !== x.required_minor || typeof x.fully_held_at !== 'string' || !Number.isFinite(Date.parse(x.fully_held_at))) throw new Error();
+    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,9})?(?:Z|[+-](\d{2}):(\d{2}))$/.exec(x.fully_held_at);
+    if (!m) throw new Error();
+    const y=Number(m[1]), month=Number(m[2]), day=Number(m[3]);
+    const leap=y%4===0 && (y%100!==0 || y%400===0);
+    const days=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31];
+    if (y<1 || month<1 || month>12 || day<1 || day>days[month-1] || Number(m[4])>23 || Number(m[5])>59 || Number(m[6])>59
+      || (m[7] && (Number(m[7])>23 || Number(m[8])>59))) throw new Error();
+  }
+  return { financialAgreementId:x.financial_agreement_id, agreementVersion:x.agreement_version, alignmentId:x.alignment_id,
+    fundingStatus:x.funding_status, requiredMinor:x.required_minor, heldMinor:x.held_minor, currency:'NGN', fullyHeldAt:x.fully_held_at as string|null };
+}
+export async function holdMyMovementFunds(financialAgreementId: string, expectedAgreementVersion: number): Promise<MovementFundingStatus> {
+  try {
+    if (!fundingUuid(financialAgreementId) || !Number.isInteger(expectedAgreementVersion) || expectedAgreementVersion<1 || expectedAgreementVersion>2147483647) throw new Error();
+    const {data,error}=await supabase.rpc('hold_my_movement_funds',{p_financial_agreement_id:financialAgreementId,p_expected_agreement_version:expectedAgreementVersion});
+    if (error) throw new Error();
+    const result=parseMovementFunding(data,financialAgreementId,expectedAgreementVersion);
+    if (result.fundingStatus !== 'held') throw new Error();
+    return result;
+  } catch { throw new Error('movement_funding_unavailable'); }
+}
+export async function getMyMovementFundingStatus(financialAgreementId: string): Promise<MovementFundingStatus> {
+  try {
+    if (!fundingUuid(financialAgreementId)) throw new Error();
+    const {data,error}=await supabase.rpc('get_my_movement_funding_status',{p_financial_agreement_id:financialAgreementId});
+    if (error) throw new Error();
+    return parseMovementFunding(data,financialAgreementId);
+  } catch { throw new Error('movement_funding_unavailable'); }
+}
 
 export async function acceptMyFinancialProposalAsRequester(
   financialProposalId: string, expectedProposalVersion: number,

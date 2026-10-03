@@ -247,3 +247,14 @@ export type FinancialProposalRequesterMaterialization = {
   requesterAcceptedAt: string;
   materializedAt: string;
 };
+
+export type MovementFundingStatus = {
+  financialAgreementId: string;
+  agreementVersion: number;
+  alignmentId: string;
+  fundingStatus: 'not_held' | 'held';
+  requiredMinor: number;
+  heldMinor: number;
+  currency: 'NGN';
+  fullyHeldAt: string | null;
+};
