@@ -21,7 +21,7 @@ test('all historical migration normalized contents match the first audit scope',
  assert.equal(historical,'488e25e92fe84140b1300dbc8a58a3db6e7de21256a08dc01f4c9c5c4109d223');
 });
 test('paused completion bytes are exactly preserved',()=>{
- assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'supabase/migrations/0083_financial_movement_completion.sql'))).digest('hex'),'c9df4dedc931b090b0615fc79c4af3bfc5cd51af66b28b05d42229d4e428a976');
+ assert.equal(crypto.createHash('sha256').update(require('./support/historicalMigrationBytes.cjs').historicalMigrationBytes('0083_financial_movement_completion.sql')).digest('hex'),'c9df4dedc931b090b0615fc79c4af3bfc5cd51af66b28b05d42229d4e428a976');
 });
 test('resolved private writers exclude direct API table and column writes',()=>{
  const resolved=evidence.rows.filter(r=>r.final_origin!=='D');

@@ -1,0 +1,41 @@
+ M src/components/CompletedMovements.tsx
+ M tests/migrationNumbering.test.cjs
+ M tests/requesterMovementInterest.test.cjs
+ M tests/temporalHardeningAudit.test.cjs
+ M tests/trustedTemporalEvidenceHardening.test.cjs
+?? ../gseller-app/
+?? ../gtransport-app/
+?? ../gzone-app/
+?? 0061-manual-review.txt
+?? 0062-behavioral-test-review.txt
+?? 0062-input-contract-review.txt
+?? 0062-route-contracts-review.txt
+?? 0062-runtime-review.txt
+?? docs/0059-pricing-geography-concurrency-results.json
+?? docs/0059-pricing-geography-sql-results.txt
+?? docs/0060-pricing-geography-concurrency-results.json
+?? docs/0084-completed-movement-reputation.md
+?? docs/0084-focused-results.txt
+?? docs/0084-full-node-results.txt
+?? docs/0084-git-status.txt
+?? docs/0084-integrity.json
+?? docs/MOVEMENT_SYSTEM_SPEC.md
+?? src/app/register-vehicle.tsx
+?? src/components/CompletedMovementReputation.tsx
+?? src/hooks/useCompletedMovementReputation.ts
+?? src/services/completedMovementReputationService.ts
+?? src/state/completedMovementReputationController.ts
+?? supabase/.branches/
+?? supabase/migrations/0084_completed_movement_reputation.sql
+?? supabase/tests/0084_completed_movement_reputation_audit.cjs
+?? supabase/tests/0084_completed_movement_reputation_behavior.cjs
+?? supabase/tests/0084_completed_movement_reputation_compatibility.cjs
+?? supabase/tests/0084_completed_movement_reputation_concurrency.cjs
+?? supabase/tests/0084_completed_movement_reputation_harness.cjs
+?? supabase/tests/0084_completed_movement_reputation_settlement_regression.cjs
+?? supabase/tests/0084_completed_movement_reputation_test.sql
+?? tests/completedMovementReputation.test.cjs
+?? tests/support/
+?? transport-geography-tooling-corrected-review.txt
+?? transport-geography-tooling-full-review.txt
+?? transport-geography-tooling-review.txt

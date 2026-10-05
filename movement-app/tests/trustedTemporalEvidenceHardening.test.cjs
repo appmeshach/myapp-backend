@@ -46,7 +46,7 @@ test('historical migrations normalized contents and paused completion unchanged'
   ).join('\n')
  ).digest('hex');
  assert.equal(historical,'488e25e92fe84140b1300dbc8a58a3db6e7de21256a08dc01f4c9c5c4109d223');
- assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'supabase/migrations/0083_financial_movement_completion.sql'))).digest('hex'),'c9df4dedc931b090b0615fc79c4af3bfc5cd51af66b28b05d42229d4e428a976');
+ assert.equal(crypto.createHash('sha256').update(require('./support/historicalMigrationBytes.cjs').historicalMigrationBytes('0083_financial_movement_completion.sql')).digest('hex'),'c9df4dedc931b090b0615fc79c4af3bfc5cd51af66b28b05d42229d4e428a976');
 });
 test('source-only clone preserves ACLs and always cleans up independently',()=>{
  const h=read('supabase/tests/0082_trusted_temporal_evidence_hardening_harness.cjs');assert.match(h,/--format=custom/);assert.match(h,/DEFAULT ACL/);assert.match(h,/--use-list=/);assert.doesNotMatch(h,/--no-acl/);assert.match(h,/TEMPLATE template0/);assert.match(h,/DROP DATABASE/);assert.match(h,/finally\{try\{command\(\['rm'/);assert.match(h,/Application data\/catalog\/ACL\/RLS\/history unchanged/);
