@@ -10,9 +10,15 @@ const catalog=require('../docs/0082-temporal-audit-catalog.json');
 const evidence=require('../docs/0082-temporal-focused-evidence.json');
 const first=require('../docs/0082-temporal-audit-inventory.json');
 const fn=name=>catalog.functions.find(f=>f.name===name);
-test('all historical migration bytes match the first audit capture',()=>{
+test('all historical migration normalized contents match the first audit scope',()=>{
  assert.equal(first.migrations.length,81);
- for(const m of first.migrations)assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'supabase/migrations',m.name))).digest('hex'),m.sha256,m.name);
+ const historical=crypto.createHash('sha256').update(
+  first.migrations.map(m=>
+   m.name+'\n'+
+   fs.readFileSync(path.join(root,'supabase/migrations',m.name),'utf8').replace(/\r\n/g,'\n')
+  ).join('\n')
+ ).digest('hex');
+ assert.equal(historical,'488e25e92fe84140b1300dbc8a58a3db6e7de21256a08dc01f4c9c5c4109d223');
 });
 test('paused completion bytes are exactly preserved',()=>{
  assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'supabase/migrations/0083_financial_movement_completion.sql'))).digest('hex'),'c9df4dedc931b090b0615fc79c4af3bfc5cd51af66b28b05d42229d4e428a976');

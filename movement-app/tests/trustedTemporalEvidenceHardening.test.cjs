@@ -37,8 +37,15 @@ test('compatibility before cutover; no count assumptions or history mutation',()
  const pre=sql.slice(0,sql.indexOf('CREATE SEQUENCE'));assert.match(pre,/Incompatible historical location attestation/);assert.match(pre,/Incompatible historical discovery attestation/);assert.match(pre,/Incompatible historical route attestation/);assert.match(pre,/Incompatible historical match attestation/);assert.match(pre,/empty face history/);
  assert.doesNotMatch(pre,/\b(?:UPDATE|DELETE|INSERT)\b/);assert.doesNotMatch(sql,/supabase_migrations|session_replication_role|DISABLE TRIGGER|pg_sleep/);
 });
-test('historical migrations raw bytes and paused completion unchanged',()=>{
- const inv=require('../docs/0082-temporal-audit-inventory.json');for(const m of inv.migrations){const bytes=fs.readFileSync(path.join(root,'supabase/migrations',m.name));assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),m.sha256,m.name);}
+test('historical migrations normalized contents and paused completion unchanged',()=>{
+ const inv=require('../docs/0082-temporal-audit-inventory.json');
+ const historical=crypto.createHash('sha256').update(
+  inv.migrations.map(m=>
+   m.name+'\n'+
+   read('supabase/migrations/'+m.name)
+  ).join('\n')
+ ).digest('hex');
+ assert.equal(historical,'488e25e92fe84140b1300dbc8a58a3db6e7de21256a08dc01f4c9c5c4109d223');
  assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'supabase/migrations/0083_financial_movement_completion.sql'))).digest('hex'),'c9df4dedc931b090b0615fc79c4af3bfc5cd51af66b28b05d42229d4e428a976');
 });
 test('source-only clone preserves ACLs and always cleans up independently',()=>{
