@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "sourceSha": "75cba03be6dc31d9869861ba53e50623d9756028d2b0be281ddac903d3b15351",
+  "logs": [
+    "0080 concurrency mode: installed; installed definitions checked against source",
+    "PASS duplicate rollback=false principals=false; actual blocking, one exact graph, unchanged wallet",
+    "PASS duplicate rollback=false principals=true; actual blocking, one exact graph, unchanged wallet",
+    "PASS duplicate rollback=true principals=true; actual blocking, one exact graph, unchanged wallet",
+    "PASS activation replay first=false; actual blocking, one exact graph, unchanged wallet",
+    "PASS activation replay first=true; actual blocking, one exact graph, unchanged wallet",
+    "PASS projection waits creation commit; actual blocking, one exact graph, unchanged wallet",
+    "PASS authorized reveal waits entry; actual blocking, one exact graph, unchanged wallet",
+    "PASS concurrent profile revocation compatible; historical activation preserved",
+    "PASS trusted timestamp after alignment wait; actual blocking, one exact graph, unchanged wallet",
+    "PASS alignment inconsistency rejects after wait; actual blocking, one exact graph, unchanged wallet",
+    "PASS offer inconsistency rejects after wait; actual blocking, one exact graph, unchanged wallet",
+    "PASS journey inconsistency rejects after wait; actual blocking, one exact graph, unchanged wallet",
+    "PASS financial legacy start rejects before locking a busy alignment",
+    "PASS readiness waits exact entry commit; actual blocking, one exact graph, unchanged wallet",
+    "PASS meeting point waits construction canonical lock order; actual blocking, one exact graph, unchanged wallet",
+    "PASS consent-preserving agreement supersession entryFirst=false; actual blocking, one exact graph, unchanged wallet",
+    "PASS consent-preserving agreement supersession entryFirst=true; actual blocking, one exact graph, unchanged wallet",
+    "PASS queued reveal/entry/agreement writers; three actual blocking proofs; no deadlock",
+    "PASS 18 coordination concurrency scenarios; 18 actual blocking proofs; no deadlock",
+    "PASS disposable database cleanup",
+    "PASS application database fingerprint unchanged"
+  ]
+}

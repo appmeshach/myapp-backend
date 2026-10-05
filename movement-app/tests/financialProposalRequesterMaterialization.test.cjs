@@ -186,11 +186,12 @@ test('parser rejects cardinality, private extras, missing fields and mismatched 
  for(const k of ['movement_offer_id','alignment_id','financial_agreement_id'])
   await assert.rejects(service({data:[{...row,[k]:'bad'}],error:null}).accept(id,2),/financial_proposal_materialization_unavailable/);
 });
-test('timestamp calendars and acceptance/materialization order fail closed',async()=>{
+test('timestamp calendars fail closed; server-validated regressed materialization is accepted',async()=>{
  for(const change of [{requester_accepted_at:null},{materialized_at:'infinity'},{materialized_at:'2026-02-30T10:00:00Z'},
-  {materialized_at:'2026-10-02T09:59:00Z'},{requester_accepted_at:'2026-10-02'},{materialized_at:'2026-10-02T24:00:00Z'}])
+  {requester_accepted_at:'2026-10-02'},{materialized_at:'2026-10-02T24:00:00Z'}])
   await assert.rejects(service({data:[{...row,...change}],error:null}).accept(id,2),/financial_proposal_materialization_unavailable/);
- await assert.rejects(service({data:[{...row,materialized_at:'2026-10-02T10:00:00.123455+00:00'}],error:null}).accept(id,2),/financial_proposal_materialization_unavailable/);
+ for(const materialized_at of [row.requester_accepted_at,'2026-10-02T10:00:00.118118+00:00'])
+  assert.equal((await service({data:[{...row,materialized_at}],error:null}).accept(id,2)).materializedAt,materialized_at);
 });
 test('exact client retries preserve evidence; raw transport/DB errors never leak',async()=>{
  const s=service();assert.equal(JSON.stringify(await s.accept(id,2)),JSON.stringify(await s.accept(id,2)));

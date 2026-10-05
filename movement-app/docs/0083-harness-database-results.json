@@ -1,0 +1,19 @@
+{
+  "note": "Summary of actual tool executions; no automatic retry of installed behavioral/concurrency failures.",
+  "behavior": { "mode": "installed", "executions": 50, "variants": 100, "normalChecksPerExecution": 75, "zeroChecksPerExecution": 74, "checks": 7450, "failed": 0, "fingerprintUnchanged": true },
+  "concurrency": [
+    { "run": 1, "mode": "installed", "scenarios": 25, "blockingProofs": 27, "deadlocks": 0, "cleanup": true, "fingerprintUnchanged": true },
+    { "run": 2, "mode": "installed", "scenarios": 25, "blockingProofs": 27, "deadlocks": 0, "cleanup": true, "fingerprintUnchanged": true },
+    { "run": 3, "mode": "installed", "scenarios": 25, "blockingProofs": 27, "deadlocks": 0, "cleanup": true, "fingerprintUnchanged": true }
+  ],
+  "source": { "sequence": ["through-0081", "0082", "0083"], "temporalOnlyFunctions": 32, "completionFunctions": 12, "catalogVerified": true, "behaviorChecks": [75, 74], "cleanup": true, "fingerprintUnchanged": true },
+  "developmentSourceHarnessFailuresFixed": [
+    "Four-schema clone omitted Storage platform prerequisites needed by historical replay.",
+    "Cloned Movement Storage policies needed complete historical inventory before replay.",
+    "Source temporal ACL verification incorrectly assumed extra installed service_role grants.",
+    "Source legacy denial fixture used roles without historical EXECUTE rights; fixed using existing owner helper for revoked journey RPCs and authenticated mutual-end callers.",
+    "Generic role-switch fixture deliberately rejects postgres; source owner calls now use a narrow pg_temp helper."
+  ],
+  "allDevelopmentSourceFailuresCleanedUp": true,
+  "productionDefectsFound": false
+}

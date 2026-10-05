@@ -106,7 +106,7 @@ async function legacyAndStartRace(){
  const f=fresh(),a=new Session(),b=new Session();await a.begin();await b.begin();await a.send(activate(f));
  // These paths fail BEFORE lock acquisition: no payment authority and no journey.
  const r=await outcome(b.send(`SET LOCAL ROLE service_role; SELECT public.create_alignment_activation_payment('${f.alignment}',1,'NGN','arbitrary-provider');`));check(r,false,'23514');
- const c=new Session();await c.begin();const start=await outcome(c.send(`SELECT set_config('request.jwt.claim.sub','${f.offerer}',true); SET LOCAL ROLE authenticated; SELECT * FROM public.request_my_movement_start('${f.need}');`));check(start,false,'42501');
+ const c=new Session();await c.begin();const start=await outcome(c.send(`SELECT set_config('request.jwt.claim.sub','${f.offerer}',true); SET LOCAL ROLE authenticated; SELECT * FROM public.request_my_movement_start('${f.need}');`));check(start,false,'23514');assert.match(start.error,/Financial coordination lifecycle unavailable/);
  await a.send('COMMIT;');facts(f,true);noDeadlock(a,b,c);a.close();b.close();c.close();console.log('PASS legacy payment and start attempts fail closed concurrently before locks');
 }
 function legacyPendingSeed(){

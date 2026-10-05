@@ -5,7 +5,8 @@ const {inspect}=require('./0081_financial_movement_start_harness.cjs');
 const {query,snapshot}=require('./0074_trusted_financial_proposal_issuer_behavior.cjs');
 const read=p=>fs.readFileSync(path.join(__dirname,p),'utf8').replace(/\r\n/g,'\n');
 const migration=read('../migrations/0081_financial_movement_start.sql');
-const migrationBody=migration.replace(/^BEGIN;\s*/,'').replace(/COMMIT;\s*$/,'');
+const historicalMigrationBody=migration.replace(/^BEGIN;\s*/,'').replace(/COMMIT;\s*$/,'');
+const migrationBody=require('./final_movement_regression_catalog.cjs').finalSourceBody(81);
 const live=read('0081_financial_movement_start_test.sql');
 function fixtures(zero=false) {
  // Recovery needs trusted broad discovery labels, absent from the older
@@ -35,5 +36,5 @@ function main() {
   console.log('PASS 0081 behavioral variant zero='+zero);
  }} finally {assert.equal(query('postgres',snapshot),before,'0081 application data/catalog/ACL/RLS/history fully restored');console.log('PASS application fingerprint unchanged');}
 }
-module.exports={fixtures,migrationBody};
+module.exports={fixtures,migrationBody,historicalMigrationBody};
 if(require.main===module)try{main();}catch(e){console.error(e.stack);process.exitCode=1;}

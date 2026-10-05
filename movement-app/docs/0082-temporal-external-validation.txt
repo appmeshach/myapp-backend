@@ -1,0 +1,85 @@
+Read-only catalog/compatibility capture: PASS; application fingerprint unchanged.
+Focused audit portable tests: 18 passed, 0 failed, 0 skipped.
+TypeScript: not rerun; no TS changed. No full Node/behavioral/concurrency required or run.
+Historical raw per-file integrity: all 81 SHA-256 hashes match first audit.
+Historical normalized SHA-256: 488e25e92fe84140b1300dbc8a58a3db6e7de21256a08dc01f4c9c5c4109d223
+Completion SHA-256: c9df4dedc931b090b0615fc79c4af3bfc5cd51af66b28b05d42229d4e428a976
+git diff --check: PASS (exit 0); changed untracked files also no-index checked with CRLF-aware whitespace rules.
+Local compatibility: {"match_rows":0,"route_rows":0,"selection_rows":0,"resolution_rows":0,"match_incompatible":0,"route_incompatible":0,"resolution_incompatible":0}
+Local face counts: {"attempts":0,"activation_faces":0}
+Remote compatibility/data/face counts: not queried; must verify before deployment.
+No production SQL changes, installation, migration history writes, rename, stage, commit, push or remote changes.
+
+Files changed this audit:
+supabase/tests/0082_financial_movement_completion_settlement_stress.cjs
+docs/0082-temporal-audit-catalog.json
+docs/0082-temporal-focused-review.md
+docs/0082-temporal-external-model.cjs
+docs/0082-temporal-external-model.json
+docs/0082-temporal-external-review.md
+tests/temporalHardeningAudit.test.cjs
+docs/0082-temporal-external-validation.txt
+
+Complete git status --short:
+ M src/components/MeetingJourney.tsx
+ M src/services/meetingJourneyService.ts
+ M src/services/movementService.ts
+ M src/state/fundedCoordinationEntryState.ts
+ M supabase/tests/0048_offerer_interest_inbox.test.cjs
+ M supabase/tests/financial_agreement.test.cjs
+ M supabase/tests/financial_proposal.test.cjs
+ M supabase/tests/movement_context.test.cjs
+ M tests/financialMovementStart.test.cjs
+ M tests/fundedMovementCoordinationEntry.test.cjs
+ M tests/meetingJourney.test.cjs
+?? ../gseller-app/
+?? ../gtransport-app/
+?? ../gzone-app/
+?? 0061-manual-review.txt
+?? 0062-behavioral-test-review.txt
+?? 0062-input-contract-review.txt
+?? 0062-route-contracts-review.txt
+?? 0062-runtime-review.txt
+?? docs/0059-pricing-geography-concurrency-results.json
+?? docs/0059-pricing-geography-sql-results.txt
+?? docs/0060-pricing-geography-concurrency-results.json
+?? docs/0082-constraint-mode-fix.md
+?? docs/0082-discovery-area-investigation.md
+?? docs/0082-discovery-area-stress-result.json
+?? docs/0082-fixture-timestamp-verification.md
+?? docs/0082-forensic-review.md
+?? docs/0082-proposal-evidence-investigation.md
+?? docs/0082-temporal-audit-catalog.json
+?? docs/0082-temporal-audit-inventory.cjs
+?? docs/0082-temporal-audit-inventory.json
+?? docs/0082-temporal-audit-origins.md
+?? docs/0082-temporal-external-model.cjs
+?? docs/0082-temporal-external-model.json
+?? docs/0082-temporal-external-review.md
+?? docs/0082-temporal-external-validation.txt
+?? docs/0082-temporal-focused-audit.cjs
+?? docs/0082-temporal-focused-evidence.json
+?? docs/0082-temporal-focused-review.md
+?? docs/0082-temporal-focused-validation.txt
+?? docs/0082-temporal-focused-writers.md
+?? docs/0082-temporal-hardening-audit.md
+?? docs/MOVEMENT_SYSTEM_SPEC.md
+?? docs/financial-movement-completion.md
+?? src/app/register-vehicle.tsx
+?? src/components/FundedCompletion.tsx
+?? src/hooks/useFundedCompletion.ts
+?? src/services/fundedCompletionService.ts
+?? src/state/fundedCompletionController.ts
+?? supabase/.branches/
+?? supabase/migrations/0082_financial_movement_completion.sql
+?? supabase/tests/0082_financial_movement_completion_behavior.cjs
+?? supabase/tests/0082_financial_movement_completion_concurrency.cjs
+?? supabase/tests/0082_financial_movement_completion_constraint_mode_probe.cjs
+?? supabase/tests/0082_financial_movement_completion_harness.cjs
+?? supabase/tests/0082_financial_movement_completion_settlement_stress.cjs
+?? supabase/tests/0082_financial_movement_completion_test.sql
+?? tests/financialMovementCompletion.test.cjs
+?? tests/temporalHardeningAudit.test.cjs
+?? transport-geography-tooling-corrected-review.txt
+?? transport-geography-tooling-full-review.txt
+?? transport-geography-tooling-review.txt

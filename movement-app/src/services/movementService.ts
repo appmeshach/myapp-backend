@@ -84,11 +84,6 @@ export async function acceptMyFinancialProposalAsRequester(
       && Number(m[4]) < 24 && Number(m[5]) < 60 && Number(m[6]) < 60
       && (!m[7] || (Number(m[7]) < 24 && Number(m[8]) < 60));
   };
-  const instant = (v: string): bigint => {
-    const fraction = /\.(\d+)/.exec(v)?.[1] ?? '';
-    return BigInt(Date.parse(v.replace(/\.\d+/, ''))) * 1000000n
-      + BigInt(fraction.padEnd(9, '0'));
-  };
   try {
     if (!uuid(financialProposalId) || !Number.isInteger(expectedProposalVersion)
       || expectedProposalVersion < 1 || expectedProposalVersion > 2147483647) throw new Error();
@@ -108,8 +103,7 @@ export async function acceptMyFinancialProposalAsRequester(
       || !uuid(r.movement_offer_id) || !uuid(r.alignment_id) || !uuid(r.financial_agreement_id)
       || (r.alignment_status !== 'awaiting_activation_payment' && r.alignment_status !== 'activated'
         && r.alignment_status !== 'in_progress' && r.alignment_status !== 'completed' && r.alignment_status !== 'cancelled')
-      || !timestamp(r.requester_accepted_at) || !timestamp(r.materialized_at)
-      || instant(r.materialized_at) < instant(r.requester_accepted_at)) throw new Error();
+      || !timestamp(r.requester_accepted_at) || !timestamp(r.materialized_at)) throw new Error();
     return { proposalId: r.proposal_id, proposalVersion: expectedProposalVersion, proposalStatus: 'current',
       movementOfferId: r.movement_offer_id, alignmentId: r.alignment_id, alignmentStatus: r.alignment_status,
       financialAgreementId: r.financial_agreement_id, requesterAcceptedAt: r.requester_accepted_at, materializedAt: r.materialized_at };
@@ -211,11 +205,10 @@ export async function getMyFinancialProposal(financialProposalId: string): Promi
       || (r.proposed_dropoff_area !== null && !label(r.proposed_dropoff_area))
       || (r.estimated_arrival_minutes !== null && (!integer(r.estimated_arrival_minutes, 0) || r.estimated_arrival_minutes > 2147483647))) throw new Error();
     for (const key of ['offering_accepted_at','requester_accepted_at']) {
-      if (r[key] !== null && (!timestamp(r[key]) || Date.parse(r[key]) < Date.parse(r.created_at)
+      if (r[key] !== null && (!timestamp(r[key])
         || Date.parse(r[key]) >= Date.parse(r.expires_at))) throw new Error();
     }
-    if (r.requester_accepted_at !== null && (r.offering_accepted_at === null
-      || Date.parse(r.requester_accepted_at as string) < Date.parse(r.offering_accepted_at as string))) throw new Error();
+    if (r.requester_accepted_at !== null && r.offering_accepted_at === null) throw new Error();
     return {
       proposalId: r.proposal_id, proposalVersion: r.proposal_version, proposalStatus: r.proposal_status,
       createdAt: r.created_at, expiresAt: r.expires_at, callerRole: r.caller_role, currency: r.currency,
@@ -791,7 +784,7 @@ export async function getMyMovementActivationStatus(financialAgreementId: string
 
 export type FundedCoordinationEntry = {
   movementNeedId: string;
-  journeyState: 'not_started' | 'in_progress';
+  journeyState: 'not_started' | 'in_progress' | 'completed';
   coordinationReady: true;
 };
 
@@ -806,7 +799,7 @@ export async function openMyFundedMovementCoordination(movementNeedId: string, s
     if (!row || typeof row !== 'object' || Array.isArray(row)
       || Object.keys(row).sort().join(',') !== keys.join(',')
       || !fundingUuid(row.movement_need_id) || row.movement_need_id.toLowerCase() !== movementNeedId.toLowerCase()
-      || (row.journey_state !== 'not_started' && row.journey_state !== 'in_progress') || row.coordination_ready !== true) throw new Error();
+      || (row.journey_state !== 'not_started' && row.journey_state !== 'in_progress' && row.journey_state !== 'completed') || row.coordination_ready !== true) throw new Error();
     return { movementNeedId: row.movement_need_id, journeyState: row.journey_state, coordinationReady: true };
   } catch { throw new Error('movement_coordination_unavailable'); }
 }

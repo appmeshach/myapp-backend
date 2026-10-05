@@ -1,0 +1,3337 @@
+{
+  "boundary": "Installed functions plus direct table/column privileges. Writer regex is a review aid; trigger definitions and explicit no-API-write proof accompany each classification. External backend code/import execution is not inferred.",
+  "reviewed_D": 56,
+  "resolved_D": 14,
+  "remaining_D": [
+    "private.alignment_activation_payments.created_at",
+    "private.alignment_activation_payments.succeeded_at",
+    "private.alignment_activation_payments.updated_at",
+    "private.journey_meeting_points.updated_at",
+    "private.member_profile_shares.created_at",
+    "private.member_profile_shares.expires_at",
+    "private.member_profile_shares.revoked_at",
+    "private.movement_funding_holds.fully_held_at",
+    "private.movement_settlements.created_at",
+    "private.movement_settlements.settled_at",
+    "private.mutual_no_travel_closures.closed_at",
+    "private.mutual_no_travel_closures.first_consented_at",
+    "private.mutual_no_travel_closures.invalidated_start_requested_at",
+    "private.transport_geography_datasets.registered_at",
+    "public.alignments.activated_at",
+    "public.alignments.created_at",
+    "public.alignments.updated_at",
+    "public.journey_reviews.created_at",
+    "public.journeys.completed_at",
+    "public.journeys.completion_requested_at",
+    "public.journeys.created_at",
+    "public.journeys.end_confirmed_at",
+    "public.journeys.end_requested_at",
+    "public.journeys.start_requested_at",
+    "public.journeys.started_at",
+    "public.journeys.updated_at",
+    "public.member_media.created_at",
+    "public.member_vehicle_access.created_at",
+    "public.members.created_at",
+    "public.members.updated_at",
+    "public.movement_needs.created_at",
+    "public.movement_needs.earliest_departure_at",
+    "public.movement_needs.latest_departure_at",
+    "public.movement_needs.updated_at",
+    "public.movement_offers.created_at",
+    "public.movement_offers.updated_at",
+    "public.movement_participants.created_at",
+    "public.movement_participants.invited_at",
+    "public.movement_participants.responded_at",
+    "public.movement_participants.updated_at",
+    "public.vehicles.created_at",
+    "public.vehicles.updated_at"
+  ],
+  "rows": [
+    {
+      "field": "private.alignment_activation_payments.created_at",
+      "default": "now()",
+      "writers": [
+        "create_alignment_activation_payment(uuid,bigint,text,text)",
+        "mark_alignment_activation_payment_succeeded(uuid,text)"
+      ],
+      "triggers": [
+        {
+          "function": "private.reject_financial_activation_payment()",
+          "definition": "CREATE TRIGGER reject_financial_activation_payment BEFORE INSERT OR UPDATE ON private.alignment_activation_payments FOR EACH ROW EXECUTE FUNCTION private.reject_financial_activation_payment()"
+        },
+        {
+          "function": "private.require_face_ready_payment_insert()",
+          "definition": "CREATE TRIGGER require_face_ready_payment_insert BEFORE INSERT ON private.alignment_activation_payments FOR EACH ROW EXECUTE FUNCTION private.require_face_ready_payment_insert()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.alignment_activation_payments",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.alignment_activation_payments",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.alignment_activation_payments",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "private.alignment_activation_payments.succeeded_at",
+      "default": null,
+      "writers": [
+        "create_alignment_activation_payment(uuid,bigint,text,text)",
+        "mark_alignment_activation_payment_succeeded(uuid,text)"
+      ],
+      "triggers": [
+        {
+          "function": "private.reject_financial_activation_payment()",
+          "definition": "CREATE TRIGGER reject_financial_activation_payment BEFORE INSERT OR UPDATE ON private.alignment_activation_payments FOR EACH ROW EXECUTE FUNCTION private.reject_financial_activation_payment()"
+        },
+        {
+          "function": "private.require_face_ready_payment_insert()",
+          "definition": "CREATE TRIGGER require_face_ready_payment_insert BEFORE INSERT ON private.alignment_activation_payments FOR EACH ROW EXECUTE FUNCTION private.require_face_ready_payment_insert()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.alignment_activation_payments",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.alignment_activation_payments",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.alignment_activation_payments",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "private.alignment_activation_payments.updated_at",
+      "default": "now()",
+      "writers": [
+        "create_alignment_activation_payment(uuid,bigint,text,text)",
+        "mark_alignment_activation_payment_succeeded(uuid,text)"
+      ],
+      "triggers": [
+        {
+          "function": "private.reject_financial_activation_payment()",
+          "definition": "CREATE TRIGGER reject_financial_activation_payment BEFORE INSERT OR UPDATE ON private.alignment_activation_payments FOR EACH ROW EXECUTE FUNCTION private.reject_financial_activation_payment()"
+        },
+        {
+          "function": "private.require_face_ready_payment_insert()",
+          "definition": "CREATE TRIGGER require_face_ready_payment_insert BEFORE INSERT ON private.alignment_activation_payments FOR EACH ROW EXECUTE FUNCTION private.require_face_ready_payment_insert()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.alignment_activation_payments",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.alignment_activation_payments",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.alignment_activation_payments",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "private.journey_meeting_points.updated_at",
+      "default": "now()",
+      "writers": [
+        "set_my_movement_meeting_point(uuid,text,bigint)"
+      ],
+      "triggers": [
+        {
+          "function": "private.protect_funded_start_meeting_point()",
+          "definition": "CREATE TRIGGER protect_funded_start_meeting_point BEFORE INSERT OR DELETE OR UPDATE ON private.journey_meeting_points FOR EACH ROW EXECUTE FUNCTION private.protect_funded_start_meeting_point()"
+        },
+        {
+          "function": "private.protect_funded_start_meeting_point()",
+          "definition": "CREATE TRIGGER protect_funded_start_meeting_point_truncate BEFORE TRUNCATE ON private.journey_meeting_points FOR EACH STATEMENT EXECUTE FUNCTION private.protect_funded_start_meeting_point()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.journey_meeting_points",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.journey_meeting_points",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.journey_meeting_points",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "private.location_provider_quota_buckets.updated_at",
+      "default": null,
+      "writers": [
+        "private.consume_location_provider_quota_at(uuid,text,timestamp with time zone)"
+      ],
+      "triggers": [],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.location_provider_quota_buckets",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.location_provider_quota_buckets",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.location_provider_quota_buckets",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "A",
+      "reason": "Public wrapper passes NULL server_time; inaccessible private helper samples DB clock, derives UTC windows. Test/owner helper supports explicit time."
+    },
+    {
+      "field": "private.location_provider_quota_buckets.window_start",
+      "default": null,
+      "writers": [
+        "private.consume_location_provider_quota_at(uuid,text,timestamp with time zone)"
+      ],
+      "triggers": [],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.location_provider_quota_buckets",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.location_provider_quota_buckets",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.location_provider_quota_buckets",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "A",
+      "reason": "Public wrapper passes NULL server_time; inaccessible private helper samples DB clock, derives UTC windows. Test/owner helper supports explicit time."
+    },
+    {
+      "field": "private.member_profile_shares.created_at",
+      "default": "now()",
+      "writers": [
+        "create_my_profile_share()",
+        "revoke_my_profile_share(text)"
+      ],
+      "triggers": [],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.member_profile_shares",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.member_profile_shares",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.member_profile_shares",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "private.member_profile_shares.expires_at",
+      "default": null,
+      "writers": [
+        "create_my_profile_share()",
+        "revoke_my_profile_share(text)"
+      ],
+      "triggers": [],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.member_profile_shares",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.member_profile_shares",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.member_profile_shares",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "private.member_profile_shares.revoked_at",
+      "default": null,
+      "writers": [
+        "create_my_profile_share()",
+        "revoke_my_profile_share(text)"
+      ],
+      "triggers": [],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.member_profile_shares",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.member_profile_shares",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.member_profile_shares",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "private.movement_funding_holds.fully_held_at",
+      "default": null,
+      "writers": [
+        "hold_my_movement_funds(uuid,integer)"
+      ],
+      "triggers": [
+        {
+          "function": "private.protect_wallet_ledger_row()",
+          "definition": "CREATE TRIGGER protect_movement_funding_holds BEFORE DELETE OR UPDATE OR TRUNCATE ON private.movement_funding_holds FOR EACH STATEMENT EXECUTE FUNCTION private.protect_wallet_ledger_row()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.movement_funding_holds",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.movement_funding_holds",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.movement_funding_holds",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Sole writer hold_my_movement_funds: positive path C = greatest persisted hold transaction stamps; zero path A = fresh DB sample. Fully traced but mixed A/C, cannot label entire field only C."
+    },
+    {
+      "field": "private.movement_location_references.expires_at",
+      "default": null,
+      "writers": [
+        "record_location_resolution_for_server(uuid,uuid,text,text,text,text,text,numeric,numeric,timestamp with time zone,timestamp with time zone)",
+        "record_selected_location_for_member(uuid,text,text,text)",
+        "record_verified_selected_location_for_server(uuid,uuid,text,text,text,text,timestamp with time zone,timestamp with time zone)"
+      ],
+      "triggers": [
+        {
+          "function": "private.protect_movement_context_record()",
+          "definition": "CREATE TRIGGER protect_movement_location_reference BEFORE INSERT OR DELETE OR UPDATE ON private.movement_location_references FOR EACH ROW EXECUTE FUNCTION private.protect_movement_context_record()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.movement_location_references",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.movement_location_references",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.movement_location_references",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "B",
+      "reason": "Selection inserts NULL. Resolved expiry accepts p_expires_at bounded by source lifetime; externally influenced even though DB caps it."
+    },
+    {
+      "field": "private.movement_settlements.created_at",
+      "default": "now()",
+      "writers": [
+        "confirm_movement_end(uuid)",
+        "request_movement_end(uuid,text)"
+      ],
+      "triggers": [
+        {
+          "function": "private.reject_financial_legacy_settlement()",
+          "definition": "CREATE TRIGGER reject_financial_legacy_settlement BEFORE INSERT OR UPDATE ON private.movement_settlements FOR EACH ROW EXECUTE FUNCTION private.reject_financial_legacy_settlement()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.movement_settlements",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.movement_settlements",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.movement_settlements",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "private.movement_settlements.settled_at",
+      "default": null,
+      "writers": [
+        "confirm_movement_end(uuid)",
+        "request_movement_end(uuid,text)"
+      ],
+      "triggers": [
+        {
+          "function": "private.reject_financial_legacy_settlement()",
+          "definition": "CREATE TRIGGER reject_financial_legacy_settlement BEFORE INSERT OR UPDATE ON private.movement_settlements FOR EACH ROW EXECUTE FUNCTION private.reject_financial_legacy_settlement()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.movement_settlements",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.movement_settlements",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.movement_settlements",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "private.mutual_no_travel_closures.closed_at",
+      "default": null,
+      "writers": [
+        "private.close_mutual_no_travel(uuid)"
+      ],
+      "triggers": [],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.mutual_no_travel_closures",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.mutual_no_travel_closures",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.mutual_no_travel_closures",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Legacy/mixed path not admitted to active-path hardening scope without more proof."
+    },
+    {
+      "field": "private.mutual_no_travel_closures.first_consented_at",
+      "default": null,
+      "writers": [
+        "private.close_mutual_no_travel(uuid)"
+      ],
+      "triggers": [],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.mutual_no_travel_closures",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.mutual_no_travel_closures",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.mutual_no_travel_closures",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Legacy/mixed path not admitted to active-path hardening scope without more proof."
+    },
+    {
+      "field": "private.mutual_no_travel_closures.invalidated_start_requested_at",
+      "default": null,
+      "writers": [
+        "private.close_mutual_no_travel(uuid)"
+      ],
+      "triggers": [],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.mutual_no_travel_closures",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.mutual_no_travel_closures",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.mutual_no_travel_closures",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Legacy/mixed path not admitted to active-path hardening scope without more proof."
+    },
+    {
+      "field": "private.offering_movement_availability.created_at",
+      "default": "clock_timestamp()",
+      "writers": [
+        "private.accept_movement_offer_legacy_internal(uuid)",
+        "open_offering_movement_availability(uuid,uuid,uuid,integer)"
+      ],
+      "triggers": [
+        {
+          "function": "private.protect_offering_movement_availability()",
+          "definition": "CREATE TRIGGER protect_offering_movement_availability BEFORE INSERT OR DELETE OR UPDATE ON private.offering_movement_availability FOR EACH ROW EXECUTE FUNCTION private.protect_offering_movement_availability()"
+        },
+        {
+          "function": "private.validate_offering_movement_availability()",
+          "definition": "CREATE TRIGGER validate_offering_movement_availability AFTER INSERT ON private.offering_movement_availability FOR EACH ROW EXECUTE FUNCTION private.validate_offering_movement_availability()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.offering_movement_availability",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.offering_movement_availability",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.offering_movement_availability",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "A",
+      "reason": "open_offering_movement_availability omits creation timestamp; protect trigger copies it on insert and owns update clock. No API table/column writes."
+    },
+    {
+      "field": "private.offering_movement_availability.expires_at",
+      "default": null,
+      "writers": [
+        "private.accept_movement_offer_legacy_internal(uuid)",
+        "open_offering_movement_availability(uuid,uuid,uuid,integer)"
+      ],
+      "triggers": [
+        {
+          "function": "private.protect_offering_movement_availability()",
+          "definition": "CREATE TRIGGER protect_offering_movement_availability BEFORE INSERT OR DELETE OR UPDATE ON private.offering_movement_availability FOR EACH ROW EXECUTE FUNCTION private.protect_offering_movement_availability()"
+        },
+        {
+          "function": "private.validate_offering_movement_availability()",
+          "definition": "CREATE TRIGGER validate_offering_movement_availability AFTER INSERT ON private.offering_movement_availability FOR EACH ROW EXECUTE FUNCTION private.validate_offering_movement_availability()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.offering_movement_availability",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.offering_movement_availability",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.offering_movement_availability",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "C",
+      "reason": "open_offering_movement_availability uses LEAST persisted intent earliest/expiry and route expiry."
+    },
+    {
+      "field": "private.offering_movement_availability.updated_at",
+      "default": "clock_timestamp()",
+      "writers": [
+        "private.accept_movement_offer_legacy_internal(uuid)",
+        "open_offering_movement_availability(uuid,uuid,uuid,integer)"
+      ],
+      "triggers": [
+        {
+          "function": "private.protect_offering_movement_availability()",
+          "definition": "CREATE TRIGGER protect_offering_movement_availability BEFORE INSERT OR DELETE OR UPDATE ON private.offering_movement_availability FOR EACH ROW EXECUTE FUNCTION private.protect_offering_movement_availability()"
+        },
+        {
+          "function": "private.validate_offering_movement_availability()",
+          "definition": "CREATE TRIGGER validate_offering_movement_availability AFTER INSERT ON private.offering_movement_availability FOR EACH ROW EXECUTE FUNCTION private.validate_offering_movement_availability()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.offering_movement_availability",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.offering_movement_availability",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.offering_movement_availability",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "A",
+      "reason": "open_offering_movement_availability omits creation timestamp; protect trigger copies it on insert and owns update clock. No API table/column writes."
+    },
+    {
+      "field": "private.offering_movement_intents.expires_at",
+      "default": null,
+      "writers": [
+        "create_offering_movement_intent(uuid,uuid,uuid,timestamp with time zone,timestamp with time zone)"
+      ],
+      "triggers": [
+        {
+          "function": "private.enforce_movement_planning_horizon()",
+          "definition": "CREATE TRIGGER enforce_offering_intent_planning_horizon BEFORE INSERT ON private.offering_movement_intents FOR EACH ROW EXECUTE FUNCTION private.enforce_movement_planning_horizon()"
+        },
+        {
+          "function": "private.validate_offering_movement_intent()",
+          "definition": "CREATE CONSTRAINT TRIGGER offering_intent_complete AFTER INSERT ON private.offering_movement_intents DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION private.validate_offering_movement_intent()"
+        },
+        {
+          "function": "private.protect_movement_context_record()",
+          "definition": "CREATE TRIGGER protect_offering_movement_intent BEFORE INSERT OR DELETE OR UPDATE ON private.offering_movement_intents FOR EACH ROW EXECUTE FUNCTION private.protect_movement_context_record()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.offering_movement_intents",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.offering_movement_intents",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.offering_movement_intents",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "A",
+      "reason": "Only installed RPC inserts NULL; no caller expiry argument. NULL denotes no independent intent expiry; no dated event asserted."
+    },
+    {
+      "field": "private.offering_route_evidence.expires_at",
+      "default": null,
+      "writers": [
+        "record_offering_route_evidence_for_server(uuid,text,text,text,text,jsonb,bigint,bigint,timestamp with time zone,timestamp with time zone)"
+      ],
+      "triggers": [
+        {
+          "function": "private.validate_offering_route_evidence()",
+          "definition": "CREATE CONSTRAINT TRIGGER offering_route_evidence_complete AFTER INSERT ON private.offering_route_evidence DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION private.validate_offering_route_evidence()"
+        },
+        {
+          "function": "private.protect_offering_route_evidence()",
+          "definition": "CREATE TRIGGER protect_offering_route_evidence BEFORE INSERT OR DELETE OR UPDATE ON private.offering_route_evidence FOR EACH ROW EXECUTE FUNCTION private.protect_offering_route_evidence()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.offering_route_evidence",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.offering_route_evidence",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.offering_route_evidence",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "B",
+      "reason": "p_expires_at bounded by intent/endpoints; caller can choose authoritative shorter expiry."
+    },
+    {
+      "field": "private.requester_movement_interests.created_at",
+      "default": "clock_timestamp()",
+      "writers": [
+        "create_requester_movement_interest(uuid,uuid,uuid,uuid)",
+        "withdraw_requester_movement_interest(uuid)"
+      ],
+      "triggers": [
+        {
+          "function": "private.protect_requester_movement_interest()",
+          "definition": "CREATE TRIGGER protect_requester_movement_interest BEFORE INSERT OR DELETE OR UPDATE ON private.requester_movement_interests FOR EACH ROW EXECUTE FUNCTION private.protect_requester_movement_interest()"
+        },
+        {
+          "function": "private.validate_requester_movement_interest()",
+          "definition": "CREATE TRIGGER validate_requester_movement_interest AFTER INSERT ON private.requester_movement_interests FOR EACH ROW EXECUTE FUNCTION private.validate_requester_movement_interest()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.requester_movement_interests",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.requester_movement_interests",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.requester_movement_interests",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "A",
+      "reason": "create_requester_movement_interest omits creation timestamp; protect trigger owns update timestamp. No API table/column writes."
+    },
+    {
+      "field": "private.requester_movement_interests.expires_at",
+      "default": null,
+      "writers": [
+        "create_requester_movement_interest(uuid,uuid,uuid,uuid)",
+        "withdraw_requester_movement_interest(uuid)"
+      ],
+      "triggers": [
+        {
+          "function": "private.protect_requester_movement_interest()",
+          "definition": "CREATE TRIGGER protect_requester_movement_interest BEFORE INSERT OR DELETE OR UPDATE ON private.requester_movement_interests FOR EACH ROW EXECUTE FUNCTION private.protect_requester_movement_interest()"
+        },
+        {
+          "function": "private.validate_requester_movement_interest()",
+          "definition": "CREATE TRIGGER validate_requester_movement_interest AFTER INSERT ON private.requester_movement_interests FOR EACH ROW EXECUTE FUNCTION private.validate_requester_movement_interest()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.requester_movement_interests",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.requester_movement_interests",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.requester_movement_interests",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "C",
+      "reason": "create_requester_movement_interest uses LEAST persisted availability/match expiry."
+    },
+    {
+      "field": "private.requester_movement_interests.updated_at",
+      "default": "clock_timestamp()",
+      "writers": [
+        "create_requester_movement_interest(uuid,uuid,uuid,uuid)",
+        "withdraw_requester_movement_interest(uuid)"
+      ],
+      "triggers": [
+        {
+          "function": "private.protect_requester_movement_interest()",
+          "definition": "CREATE TRIGGER protect_requester_movement_interest BEFORE INSERT OR DELETE OR UPDATE ON private.requester_movement_interests FOR EACH ROW EXECUTE FUNCTION private.protect_requester_movement_interest()"
+        },
+        {
+          "function": "private.validate_requester_movement_interest()",
+          "definition": "CREATE TRIGGER validate_requester_movement_interest AFTER INSERT ON private.requester_movement_interests FOR EACH ROW EXECUTE FUNCTION private.validate_requester_movement_interest()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.requester_movement_interests",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.requester_movement_interests",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.requester_movement_interests",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "A",
+      "reason": "create_requester_movement_interest omits creation timestamp; protect trigger owns update timestamp. No API table/column writes."
+    },
+    {
+      "field": "private.route_provider_quota_buckets.updated_at",
+      "default": null,
+      "writers": [
+        "private.consume_route_provider_quota_at(uuid,timestamp with time zone)"
+      ],
+      "triggers": [],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.route_provider_quota_buckets",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.route_provider_quota_buckets",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.route_provider_quota_buckets",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "A",
+      "reason": "Public wrapper passes NULL server_time; inaccessible private helper samples DB clock, derives UTC windows. Test/owner helper supports explicit time."
+    },
+    {
+      "field": "private.route_provider_quota_buckets.window_start",
+      "default": null,
+      "writers": [
+        "private.consume_route_provider_quota_at(uuid,timestamp with time zone)"
+      ],
+      "triggers": [],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.route_provider_quota_buckets",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.route_provider_quota_buckets",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.route_provider_quota_buckets",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "A",
+      "reason": "Public wrapper passes NULL server_time; inaccessible private helper samples DB clock, derives UTC windows. Test/owner helper supports explicit time."
+    },
+    {
+      "field": "private.transport_geography_datasets.registered_at",
+      "default": "clock_timestamp()",
+      "writers": [],
+      "triggers": [
+        {
+          "function": "private.protect_transport_geography_dataset()",
+          "definition": "CREATE TRIGGER prevent_transport_geography_dataset_removal BEFORE DELETE OR TRUNCATE ON private.transport_geography_datasets FOR EACH STATEMENT EXECUTE FUNCTION private.protect_transport_geography_dataset()"
+        },
+        {
+          "function": "private.protect_transport_geography_dataset()",
+          "definition": "CREATE TRIGGER protect_transport_geography_dataset BEFORE INSERT OR UPDATE ON private.transport_geography_datasets FOR EACH ROW EXECUTE FUNCTION private.protect_transport_geography_dataset()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.transport_geography_datasets",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.transport_geography_datasets",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.transport_geography_datasets",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "D",
+      "reason": "No installed INSERT writer found; backend import/migration authority unresolved."
+    },
+    {
+      "field": "private.trusted_route_match_evidence.expires_at",
+      "default": null,
+      "writers": [
+        "record_trusted_route_match_evidence_for_server(uuid,uuid,uuid,integer,bigint,bigint,bigint,bigint,bigint,numeric,numeric,numeric,numeric,timestamp with time zone,timestamp with time zone)"
+      ],
+      "triggers": [
+        {
+          "function": "private.protect_trusted_route_match_evidence()",
+          "definition": "CREATE TRIGGER protect_trusted_route_match_evidence BEFORE INSERT OR DELETE OR UPDATE ON private.trusted_route_match_evidence FOR EACH ROW EXECUTE FUNCTION private.protect_trusted_route_match_evidence()"
+        },
+        {
+          "function": "private.validate_trusted_route_match_evidence()",
+          "definition": "CREATE CONSTRAINT TRIGGER trusted_route_match_evidence_complete AFTER INSERT ON private.trusted_route_match_evidence DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION private.validate_trusted_route_match_evidence()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "private.trusted_route_match_evidence",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "private.trusted_route_match_evidence",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "private.trusted_route_match_evidence",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        }
+      ],
+      "final_origin": "B",
+      "reason": "p_expires_at bounded by persisted dependencies; caller can choose shorter expiry."
+    },
+    {
+      "field": "public.alignments.activated_at",
+      "default": null,
+      "writers": [
+        "private.accept_movement_offer_legacy_internal(uuid)",
+        "private.close_mutual_no_travel(uuid)",
+        "activate_my_funded_movement(uuid,integer)",
+        "confirm_journey_completion(uuid)",
+        "confirm_journey_start(uuid)",
+        "confirm_movement_end(uuid)",
+        "confirm_my_funded_movement_start(uuid)",
+        "create_alignment_activation_payment(uuid,bigint,text,text)",
+        "mark_alignment_activation_payment_succeeded(uuid,text)",
+        "request_movement_end(uuid,text)"
+      ],
+      "triggers": [
+        {
+          "function": "private.validate_funded_start_graph()",
+          "definition": "CREATE CONSTRAINT TRIGGER funded_start_alignment_complete AFTER UPDATE ON public.alignments DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION private.validate_funded_start_graph()"
+        },
+        {
+          "function": "private.protect_financial_coordination_alignment()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_alignment BEFORE DELETE OR UPDATE ON public.alignments FOR EACH ROW EXECUTE FUNCTION private.protect_financial_coordination_alignment()"
+        },
+        {
+          "function": "private.protect_no_travel_alignment()",
+          "definition": "CREATE TRIGGER protect_no_travel_alignment BEFORE UPDATE OF status ON public.alignments FOR EACH ROW EXECUTE FUNCTION private.protect_no_travel_alignment()"
+        },
+        {
+          "function": "private.require_alignment_face_verification()",
+          "definition": "CREATE TRIGGER require_alignment_face_verification BEFORE INSERT OR UPDATE OF status, movement_need_id, movement_offer_id, member_needing_movement_id, offering_member_id ON public.alignments FOR EACH ROW EXECUTE FUNCTION private.require_alignment_face_verification()"
+        },
+        {
+          "function": "private.require_alignment_vehicle_plate()",
+          "definition": "CREATE TRIGGER require_alignment_vehicle_plate BEFORE INSERT OR UPDATE OF movement_offer_id, movement_need_id, offering_member_id, status ON public.alignments FOR EACH ROW EXECUTE FUNCTION private.require_alignment_vehicle_plate()"
+        },
+        {
+          "function": "private.require_funded_alignment_activation()",
+          "definition": "CREATE TRIGGER require_funded_alignment_activation BEFORE UPDATE ON public.alignments FOR EACH ROW EXECUTE FUNCTION private.require_funded_alignment_activation()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_alignments BEFORE UPDATE ON public.alignments FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        },
+        {
+          "function": "create_journey_on_alignment_activation()",
+          "definition": "CREATE TRIGGER trg_create_journey_on_alignment_activation AFTER UPDATE ON public.alignments FOR EACH ROW EXECUTE FUNCTION create_journey_on_alignment_activation()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "alignments",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "alignments",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "alignments",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.alignments.created_at",
+      "default": "now()",
+      "writers": [
+        "private.accept_movement_offer_legacy_internal(uuid)",
+        "private.close_mutual_no_travel(uuid)",
+        "activate_my_funded_movement(uuid,integer)",
+        "confirm_journey_completion(uuid)",
+        "confirm_journey_start(uuid)",
+        "confirm_movement_end(uuid)",
+        "confirm_my_funded_movement_start(uuid)",
+        "create_alignment_activation_payment(uuid,bigint,text,text)",
+        "mark_alignment_activation_payment_succeeded(uuid,text)",
+        "request_movement_end(uuid,text)"
+      ],
+      "triggers": [
+        {
+          "function": "private.validate_funded_start_graph()",
+          "definition": "CREATE CONSTRAINT TRIGGER funded_start_alignment_complete AFTER UPDATE ON public.alignments DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION private.validate_funded_start_graph()"
+        },
+        {
+          "function": "private.protect_financial_coordination_alignment()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_alignment BEFORE DELETE OR UPDATE ON public.alignments FOR EACH ROW EXECUTE FUNCTION private.protect_financial_coordination_alignment()"
+        },
+        {
+          "function": "private.protect_no_travel_alignment()",
+          "definition": "CREATE TRIGGER protect_no_travel_alignment BEFORE UPDATE OF status ON public.alignments FOR EACH ROW EXECUTE FUNCTION private.protect_no_travel_alignment()"
+        },
+        {
+          "function": "private.require_alignment_face_verification()",
+          "definition": "CREATE TRIGGER require_alignment_face_verification BEFORE INSERT OR UPDATE OF status, movement_need_id, movement_offer_id, member_needing_movement_id, offering_member_id ON public.alignments FOR EACH ROW EXECUTE FUNCTION private.require_alignment_face_verification()"
+        },
+        {
+          "function": "private.require_alignment_vehicle_plate()",
+          "definition": "CREATE TRIGGER require_alignment_vehicle_plate BEFORE INSERT OR UPDATE OF movement_offer_id, movement_need_id, offering_member_id, status ON public.alignments FOR EACH ROW EXECUTE FUNCTION private.require_alignment_vehicle_plate()"
+        },
+        {
+          "function": "private.require_funded_alignment_activation()",
+          "definition": "CREATE TRIGGER require_funded_alignment_activation BEFORE UPDATE ON public.alignments FOR EACH ROW EXECUTE FUNCTION private.require_funded_alignment_activation()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_alignments BEFORE UPDATE ON public.alignments FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        },
+        {
+          "function": "create_journey_on_alignment_activation()",
+          "definition": "CREATE TRIGGER trg_create_journey_on_alignment_activation AFTER UPDATE ON public.alignments FOR EACH ROW EXECUTE FUNCTION create_journey_on_alignment_activation()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "alignments",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "alignments",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "alignments",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.alignments.updated_at",
+      "default": "now()",
+      "writers": [
+        "private.accept_movement_offer_legacy_internal(uuid)",
+        "private.close_mutual_no_travel(uuid)",
+        "activate_my_funded_movement(uuid,integer)",
+        "confirm_journey_completion(uuid)",
+        "confirm_journey_start(uuid)",
+        "confirm_movement_end(uuid)",
+        "confirm_my_funded_movement_start(uuid)",
+        "create_alignment_activation_payment(uuid,bigint,text,text)",
+        "mark_alignment_activation_payment_succeeded(uuid,text)",
+        "request_movement_end(uuid,text)"
+      ],
+      "triggers": [
+        {
+          "function": "private.validate_funded_start_graph()",
+          "definition": "CREATE CONSTRAINT TRIGGER funded_start_alignment_complete AFTER UPDATE ON public.alignments DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION private.validate_funded_start_graph()"
+        },
+        {
+          "function": "private.protect_financial_coordination_alignment()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_alignment BEFORE DELETE OR UPDATE ON public.alignments FOR EACH ROW EXECUTE FUNCTION private.protect_financial_coordination_alignment()"
+        },
+        {
+          "function": "private.protect_no_travel_alignment()",
+          "definition": "CREATE TRIGGER protect_no_travel_alignment BEFORE UPDATE OF status ON public.alignments FOR EACH ROW EXECUTE FUNCTION private.protect_no_travel_alignment()"
+        },
+        {
+          "function": "private.require_alignment_face_verification()",
+          "definition": "CREATE TRIGGER require_alignment_face_verification BEFORE INSERT OR UPDATE OF status, movement_need_id, movement_offer_id, member_needing_movement_id, offering_member_id ON public.alignments FOR EACH ROW EXECUTE FUNCTION private.require_alignment_face_verification()"
+        },
+        {
+          "function": "private.require_alignment_vehicle_plate()",
+          "definition": "CREATE TRIGGER require_alignment_vehicle_plate BEFORE INSERT OR UPDATE OF movement_offer_id, movement_need_id, offering_member_id, status ON public.alignments FOR EACH ROW EXECUTE FUNCTION private.require_alignment_vehicle_plate()"
+        },
+        {
+          "function": "private.require_funded_alignment_activation()",
+          "definition": "CREATE TRIGGER require_funded_alignment_activation BEFORE UPDATE ON public.alignments FOR EACH ROW EXECUTE FUNCTION private.require_funded_alignment_activation()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_alignments BEFORE UPDATE ON public.alignments FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        },
+        {
+          "function": "create_journey_on_alignment_activation()",
+          "definition": "CREATE TRIGGER trg_create_journey_on_alignment_activation AFTER UPDATE ON public.alignments FOR EACH ROW EXECUTE FUNCTION create_journey_on_alignment_activation()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "alignments",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "alignments",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "alignments",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.journey_reviews.created_at",
+      "default": "now()",
+      "writers": [],
+      "triggers": [],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "journey_reviews",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "journey_reviews",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "journey_reviews",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.journeys.completed_at",
+      "default": null,
+      "writers": [
+        "private.close_mutual_no_travel(uuid)",
+        "confirm_journey_completion(uuid)",
+        "confirm_journey_start(uuid)",
+        "confirm_movement_end(uuid)",
+        "confirm_my_funded_movement_start(uuid)",
+        "create_journey_on_alignment_activation()",
+        "decline_movement_end(uuid)",
+        "open_my_funded_movement_coordination(uuid)",
+        "request_journey_completion(uuid)",
+        "request_journey_start(uuid)",
+        "request_movement_end(uuid,text)",
+        "request_my_funded_movement_start(uuid)"
+      ],
+      "triggers": [
+        {
+          "function": "private.validate_funded_start_graph()",
+          "definition": "CREATE CONSTRAINT TRIGGER funded_start_journey_complete AFTER UPDATE ON public.journeys DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION private.validate_funded_start_graph()"
+        },
+        {
+          "function": "private.protect_financial_coordination_journey()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_journey BEFORE INSERT OR DELETE OR UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.protect_financial_coordination_journey()"
+        },
+        {
+          "function": "private.protect_financial_coordination_journey()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_journey_truncate BEFORE TRUNCATE ON public.journeys FOR EACH STATEMENT EXECUTE FUNCTION private.protect_financial_coordination_journey()"
+        },
+        {
+          "function": "private.protect_no_travel_journey()",
+          "definition": "CREATE TRIGGER protect_no_travel_journey BEFORE UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.protect_no_travel_journey()"
+        },
+        {
+          "function": "private.require_meeting_point_on_start_request()",
+          "definition": "CREATE TRIGGER require_meeting_point_on_start_request BEFORE UPDATE OF start_requested_at ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.require_meeting_point_on_start_request()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_journeys BEFORE UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "journeys",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "journeys",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "journeys",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.journeys.completion_requested_at",
+      "default": null,
+      "writers": [
+        "private.close_mutual_no_travel(uuid)",
+        "confirm_journey_completion(uuid)",
+        "confirm_journey_start(uuid)",
+        "confirm_movement_end(uuid)",
+        "confirm_my_funded_movement_start(uuid)",
+        "create_journey_on_alignment_activation()",
+        "decline_movement_end(uuid)",
+        "open_my_funded_movement_coordination(uuid)",
+        "request_journey_completion(uuid)",
+        "request_journey_start(uuid)",
+        "request_movement_end(uuid,text)",
+        "request_my_funded_movement_start(uuid)"
+      ],
+      "triggers": [
+        {
+          "function": "private.validate_funded_start_graph()",
+          "definition": "CREATE CONSTRAINT TRIGGER funded_start_journey_complete AFTER UPDATE ON public.journeys DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION private.validate_funded_start_graph()"
+        },
+        {
+          "function": "private.protect_financial_coordination_journey()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_journey BEFORE INSERT OR DELETE OR UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.protect_financial_coordination_journey()"
+        },
+        {
+          "function": "private.protect_financial_coordination_journey()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_journey_truncate BEFORE TRUNCATE ON public.journeys FOR EACH STATEMENT EXECUTE FUNCTION private.protect_financial_coordination_journey()"
+        },
+        {
+          "function": "private.protect_no_travel_journey()",
+          "definition": "CREATE TRIGGER protect_no_travel_journey BEFORE UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.protect_no_travel_journey()"
+        },
+        {
+          "function": "private.require_meeting_point_on_start_request()",
+          "definition": "CREATE TRIGGER require_meeting_point_on_start_request BEFORE UPDATE OF start_requested_at ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.require_meeting_point_on_start_request()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_journeys BEFORE UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "journeys",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "journeys",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "journeys",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.journeys.created_at",
+      "default": "now()",
+      "writers": [
+        "private.close_mutual_no_travel(uuid)",
+        "confirm_journey_completion(uuid)",
+        "confirm_journey_start(uuid)",
+        "confirm_movement_end(uuid)",
+        "confirm_my_funded_movement_start(uuid)",
+        "create_journey_on_alignment_activation()",
+        "decline_movement_end(uuid)",
+        "open_my_funded_movement_coordination(uuid)",
+        "request_journey_completion(uuid)",
+        "request_journey_start(uuid)",
+        "request_movement_end(uuid,text)",
+        "request_my_funded_movement_start(uuid)"
+      ],
+      "triggers": [
+        {
+          "function": "private.validate_funded_start_graph()",
+          "definition": "CREATE CONSTRAINT TRIGGER funded_start_journey_complete AFTER UPDATE ON public.journeys DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION private.validate_funded_start_graph()"
+        },
+        {
+          "function": "private.protect_financial_coordination_journey()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_journey BEFORE INSERT OR DELETE OR UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.protect_financial_coordination_journey()"
+        },
+        {
+          "function": "private.protect_financial_coordination_journey()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_journey_truncate BEFORE TRUNCATE ON public.journeys FOR EACH STATEMENT EXECUTE FUNCTION private.protect_financial_coordination_journey()"
+        },
+        {
+          "function": "private.protect_no_travel_journey()",
+          "definition": "CREATE TRIGGER protect_no_travel_journey BEFORE UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.protect_no_travel_journey()"
+        },
+        {
+          "function": "private.require_meeting_point_on_start_request()",
+          "definition": "CREATE TRIGGER require_meeting_point_on_start_request BEFORE UPDATE OF start_requested_at ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.require_meeting_point_on_start_request()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_journeys BEFORE UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "journeys",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "journeys",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "journeys",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.journeys.end_confirmed_at",
+      "default": null,
+      "writers": [
+        "private.close_mutual_no_travel(uuid)",
+        "confirm_journey_completion(uuid)",
+        "confirm_journey_start(uuid)",
+        "confirm_movement_end(uuid)",
+        "confirm_my_funded_movement_start(uuid)",
+        "create_journey_on_alignment_activation()",
+        "decline_movement_end(uuid)",
+        "open_my_funded_movement_coordination(uuid)",
+        "request_journey_completion(uuid)",
+        "request_journey_start(uuid)",
+        "request_movement_end(uuid,text)",
+        "request_my_funded_movement_start(uuid)"
+      ],
+      "triggers": [
+        {
+          "function": "private.validate_funded_start_graph()",
+          "definition": "CREATE CONSTRAINT TRIGGER funded_start_journey_complete AFTER UPDATE ON public.journeys DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION private.validate_funded_start_graph()"
+        },
+        {
+          "function": "private.protect_financial_coordination_journey()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_journey BEFORE INSERT OR DELETE OR UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.protect_financial_coordination_journey()"
+        },
+        {
+          "function": "private.protect_financial_coordination_journey()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_journey_truncate BEFORE TRUNCATE ON public.journeys FOR EACH STATEMENT EXECUTE FUNCTION private.protect_financial_coordination_journey()"
+        },
+        {
+          "function": "private.protect_no_travel_journey()",
+          "definition": "CREATE TRIGGER protect_no_travel_journey BEFORE UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.protect_no_travel_journey()"
+        },
+        {
+          "function": "private.require_meeting_point_on_start_request()",
+          "definition": "CREATE TRIGGER require_meeting_point_on_start_request BEFORE UPDATE OF start_requested_at ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.require_meeting_point_on_start_request()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_journeys BEFORE UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "journeys",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "journeys",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "journeys",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.journeys.end_requested_at",
+      "default": null,
+      "writers": [
+        "private.close_mutual_no_travel(uuid)",
+        "confirm_journey_completion(uuid)",
+        "confirm_journey_start(uuid)",
+        "confirm_movement_end(uuid)",
+        "confirm_my_funded_movement_start(uuid)",
+        "create_journey_on_alignment_activation()",
+        "decline_movement_end(uuid)",
+        "open_my_funded_movement_coordination(uuid)",
+        "request_journey_completion(uuid)",
+        "request_journey_start(uuid)",
+        "request_movement_end(uuid,text)",
+        "request_my_funded_movement_start(uuid)"
+      ],
+      "triggers": [
+        {
+          "function": "private.validate_funded_start_graph()",
+          "definition": "CREATE CONSTRAINT TRIGGER funded_start_journey_complete AFTER UPDATE ON public.journeys DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION private.validate_funded_start_graph()"
+        },
+        {
+          "function": "private.protect_financial_coordination_journey()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_journey BEFORE INSERT OR DELETE OR UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.protect_financial_coordination_journey()"
+        },
+        {
+          "function": "private.protect_financial_coordination_journey()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_journey_truncate BEFORE TRUNCATE ON public.journeys FOR EACH STATEMENT EXECUTE FUNCTION private.protect_financial_coordination_journey()"
+        },
+        {
+          "function": "private.protect_no_travel_journey()",
+          "definition": "CREATE TRIGGER protect_no_travel_journey BEFORE UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.protect_no_travel_journey()"
+        },
+        {
+          "function": "private.require_meeting_point_on_start_request()",
+          "definition": "CREATE TRIGGER require_meeting_point_on_start_request BEFORE UPDATE OF start_requested_at ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.require_meeting_point_on_start_request()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_journeys BEFORE UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "journeys",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "journeys",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "journeys",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.journeys.start_requested_at",
+      "default": null,
+      "writers": [
+        "private.close_mutual_no_travel(uuid)",
+        "confirm_journey_completion(uuid)",
+        "confirm_journey_start(uuid)",
+        "confirm_movement_end(uuid)",
+        "confirm_my_funded_movement_start(uuid)",
+        "create_journey_on_alignment_activation()",
+        "decline_movement_end(uuid)",
+        "open_my_funded_movement_coordination(uuid)",
+        "request_journey_completion(uuid)",
+        "request_journey_start(uuid)",
+        "request_movement_end(uuid,text)",
+        "request_my_funded_movement_start(uuid)"
+      ],
+      "triggers": [
+        {
+          "function": "private.validate_funded_start_graph()",
+          "definition": "CREATE CONSTRAINT TRIGGER funded_start_journey_complete AFTER UPDATE ON public.journeys DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION private.validate_funded_start_graph()"
+        },
+        {
+          "function": "private.protect_financial_coordination_journey()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_journey BEFORE INSERT OR DELETE OR UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.protect_financial_coordination_journey()"
+        },
+        {
+          "function": "private.protect_financial_coordination_journey()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_journey_truncate BEFORE TRUNCATE ON public.journeys FOR EACH STATEMENT EXECUTE FUNCTION private.protect_financial_coordination_journey()"
+        },
+        {
+          "function": "private.protect_no_travel_journey()",
+          "definition": "CREATE TRIGGER protect_no_travel_journey BEFORE UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.protect_no_travel_journey()"
+        },
+        {
+          "function": "private.require_meeting_point_on_start_request()",
+          "definition": "CREATE TRIGGER require_meeting_point_on_start_request BEFORE UPDATE OF start_requested_at ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.require_meeting_point_on_start_request()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_journeys BEFORE UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "journeys",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "journeys",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "journeys",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.journeys.started_at",
+      "default": null,
+      "writers": [
+        "private.close_mutual_no_travel(uuid)",
+        "confirm_journey_completion(uuid)",
+        "confirm_journey_start(uuid)",
+        "confirm_movement_end(uuid)",
+        "confirm_my_funded_movement_start(uuid)",
+        "create_journey_on_alignment_activation()",
+        "decline_movement_end(uuid)",
+        "open_my_funded_movement_coordination(uuid)",
+        "request_journey_completion(uuid)",
+        "request_journey_start(uuid)",
+        "request_movement_end(uuid,text)",
+        "request_my_funded_movement_start(uuid)"
+      ],
+      "triggers": [
+        {
+          "function": "private.validate_funded_start_graph()",
+          "definition": "CREATE CONSTRAINT TRIGGER funded_start_journey_complete AFTER UPDATE ON public.journeys DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION private.validate_funded_start_graph()"
+        },
+        {
+          "function": "private.protect_financial_coordination_journey()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_journey BEFORE INSERT OR DELETE OR UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.protect_financial_coordination_journey()"
+        },
+        {
+          "function": "private.protect_financial_coordination_journey()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_journey_truncate BEFORE TRUNCATE ON public.journeys FOR EACH STATEMENT EXECUTE FUNCTION private.protect_financial_coordination_journey()"
+        },
+        {
+          "function": "private.protect_no_travel_journey()",
+          "definition": "CREATE TRIGGER protect_no_travel_journey BEFORE UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.protect_no_travel_journey()"
+        },
+        {
+          "function": "private.require_meeting_point_on_start_request()",
+          "definition": "CREATE TRIGGER require_meeting_point_on_start_request BEFORE UPDATE OF start_requested_at ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.require_meeting_point_on_start_request()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_journeys BEFORE UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "journeys",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "journeys",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "journeys",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.journeys.updated_at",
+      "default": "now()",
+      "writers": [
+        "private.close_mutual_no_travel(uuid)",
+        "confirm_journey_completion(uuid)",
+        "confirm_journey_start(uuid)",
+        "confirm_movement_end(uuid)",
+        "confirm_my_funded_movement_start(uuid)",
+        "create_journey_on_alignment_activation()",
+        "decline_movement_end(uuid)",
+        "open_my_funded_movement_coordination(uuid)",
+        "request_journey_completion(uuid)",
+        "request_journey_start(uuid)",
+        "request_movement_end(uuid,text)",
+        "request_my_funded_movement_start(uuid)"
+      ],
+      "triggers": [
+        {
+          "function": "private.validate_funded_start_graph()",
+          "definition": "CREATE CONSTRAINT TRIGGER funded_start_journey_complete AFTER UPDATE ON public.journeys DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION private.validate_funded_start_graph()"
+        },
+        {
+          "function": "private.protect_financial_coordination_journey()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_journey BEFORE INSERT OR DELETE OR UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.protect_financial_coordination_journey()"
+        },
+        {
+          "function": "private.protect_financial_coordination_journey()",
+          "definition": "CREATE TRIGGER protect_financial_coordination_journey_truncate BEFORE TRUNCATE ON public.journeys FOR EACH STATEMENT EXECUTE FUNCTION private.protect_financial_coordination_journey()"
+        },
+        {
+          "function": "private.protect_no_travel_journey()",
+          "definition": "CREATE TRIGGER protect_no_travel_journey BEFORE UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.protect_no_travel_journey()"
+        },
+        {
+          "function": "private.require_meeting_point_on_start_request()",
+          "definition": "CREATE TRIGGER require_meeting_point_on_start_request BEFORE UPDATE OF start_requested_at ON public.journeys FOR EACH ROW EXECUTE FUNCTION private.require_meeting_point_on_start_request()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_journeys BEFORE UPDATE ON public.journeys FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "journeys",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "journeys",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "journeys",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.member_media.created_at",
+      "default": "now()",
+      "writers": [
+        "complete_alignment_face_verification_for_server(uuid,uuid,boolean,boolean)",
+        "prepare_profile_photo_submission_for_server(uuid,text)",
+        "revoke_current_profile_photo_for_server(uuid)"
+      ],
+      "triggers": [],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "member_media",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "member_media",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "member_media",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.member_vehicle_access.created_at",
+      "default": "now()",
+      "writers": [
+        "register_vehicle_with_access(text,text,integer,text,integer)"
+      ],
+      "triggers": [],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "member_vehicle_access",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "member_vehicle_access",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "member_vehicle_access",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.members.created_at",
+      "default": "now()",
+      "writers": [
+        "complete_alignment_face_verification_for_server(uuid,uuid,boolean,boolean)",
+        "handle_new_auth_user()",
+        "prepare_profile_photo_submission_for_server(uuid,text)",
+        "revoke_current_profile_photo_for_server(uuid)",
+        "update_my_profile(text,date)"
+      ],
+      "triggers": [
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_members BEFORE UPDATE ON public.members FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "members",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "members",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "members",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.members.updated_at",
+      "default": "now()",
+      "writers": [
+        "complete_alignment_face_verification_for_server(uuid,uuid,boolean,boolean)",
+        "handle_new_auth_user()",
+        "prepare_profile_photo_submission_for_server(uuid,text)",
+        "revoke_current_profile_photo_for_server(uuid)",
+        "update_my_profile(text,date)"
+      ],
+      "triggers": [
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_members BEFORE UPDATE ON public.members FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "members",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "members",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "members",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.movement_needs.created_at",
+      "default": "now()",
+      "writers": [
+        "private.accept_movement_offer_legacy_internal(uuid)",
+        "create_movement_need(uuid,uuid,uuid,timestamp with time zone,timestamp with time zone,integer)"
+      ],
+      "triggers": [
+        {
+          "function": "private.enforce_movement_planning_horizon()",
+          "definition": "CREATE TRIGGER enforce_movement_need_planning_horizon BEFORE INSERT OR UPDATE OF earliest_departure_at, latest_departure_at ON public.movement_needs FOR EACH ROW EXECUTE FUNCTION private.enforce_movement_planning_horizon()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_movement_needs BEFORE UPDATE ON public.movement_needs FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        },
+        {
+          "function": "create_primary_requester_on_movement_need()",
+          "definition": "CREATE TRIGGER trg_create_primary_requester_on_movement_need AFTER INSERT ON public.movement_needs FOR EACH ROW EXECUTE FUNCTION create_primary_requester_on_movement_need()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "movement_needs",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "movement_needs",
+          "delete": true,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "movement_needs",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.movement_needs.earliest_departure_at",
+      "default": null,
+      "writers": [
+        "private.accept_movement_offer_legacy_internal(uuid)",
+        "create_movement_need(uuid,uuid,uuid,timestamp with time zone,timestamp with time zone,integer)"
+      ],
+      "triggers": [
+        {
+          "function": "private.enforce_movement_planning_horizon()",
+          "definition": "CREATE TRIGGER enforce_movement_need_planning_horizon BEFORE INSERT OR UPDATE OF earliest_departure_at, latest_departure_at ON public.movement_needs FOR EACH ROW EXECUTE FUNCTION private.enforce_movement_planning_horizon()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_movement_needs BEFORE UPDATE ON public.movement_needs FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        },
+        {
+          "function": "create_primary_requester_on_movement_need()",
+          "definition": "CREATE TRIGGER trg_create_primary_requester_on_movement_need AFTER INSERT ON public.movement_needs FOR EACH ROW EXECUTE FUNCTION create_primary_requester_on_movement_need()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "movement_needs",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "movement_needs",
+          "delete": true,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "movement_needs",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.movement_needs.latest_departure_at",
+      "default": null,
+      "writers": [
+        "private.accept_movement_offer_legacy_internal(uuid)",
+        "create_movement_need(uuid,uuid,uuid,timestamp with time zone,timestamp with time zone,integer)"
+      ],
+      "triggers": [
+        {
+          "function": "private.enforce_movement_planning_horizon()",
+          "definition": "CREATE TRIGGER enforce_movement_need_planning_horizon BEFORE INSERT OR UPDATE OF earliest_departure_at, latest_departure_at ON public.movement_needs FOR EACH ROW EXECUTE FUNCTION private.enforce_movement_planning_horizon()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_movement_needs BEFORE UPDATE ON public.movement_needs FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        },
+        {
+          "function": "create_primary_requester_on_movement_need()",
+          "definition": "CREATE TRIGGER trg_create_primary_requester_on_movement_need AFTER INSERT ON public.movement_needs FOR EACH ROW EXECUTE FUNCTION create_primary_requester_on_movement_need()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "movement_needs",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "movement_needs",
+          "delete": true,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "movement_needs",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.movement_needs.updated_at",
+      "default": "now()",
+      "writers": [
+        "private.accept_movement_offer_legacy_internal(uuid)",
+        "create_movement_need(uuid,uuid,uuid,timestamp with time zone,timestamp with time zone,integer)"
+      ],
+      "triggers": [
+        {
+          "function": "private.enforce_movement_planning_horizon()",
+          "definition": "CREATE TRIGGER enforce_movement_need_planning_horizon BEFORE INSERT OR UPDATE OF earliest_departure_at, latest_departure_at ON public.movement_needs FOR EACH ROW EXECUTE FUNCTION private.enforce_movement_planning_horizon()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_movement_needs BEFORE UPDATE ON public.movement_needs FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        },
+        {
+          "function": "create_primary_requester_on_movement_need()",
+          "definition": "CREATE TRIGGER trg_create_primary_requester_on_movement_need AFTER INSERT ON public.movement_needs FOR EACH ROW EXECUTE FUNCTION create_primary_requester_on_movement_need()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "movement_needs",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "movement_needs",
+          "delete": true,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "movement_needs",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.movement_offers.created_at",
+      "default": "now()",
+      "writers": [
+        "private.accept_movement_offer_legacy_internal(uuid)",
+        "private.create_movement_offer_internal(uuid,uuid,uuid,integer,text,text,integer)"
+      ],
+      "triggers": [
+        {
+          "function": "private.protect_funded_coordination_offer()",
+          "definition": "CREATE TRIGGER protect_funded_coordination_offer BEFORE DELETE OR UPDATE ON public.movement_offers FOR EACH ROW EXECUTE FUNCTION private.protect_funded_coordination_offer()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_movement_offers BEFORE UPDATE ON public.movement_offers FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "movement_offers",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "movement_offers",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "movement_offers",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.movement_offers.updated_at",
+      "default": "now()",
+      "writers": [
+        "private.accept_movement_offer_legacy_internal(uuid)",
+        "private.create_movement_offer_internal(uuid,uuid,uuid,integer,text,text,integer)"
+      ],
+      "triggers": [
+        {
+          "function": "private.protect_funded_coordination_offer()",
+          "definition": "CREATE TRIGGER protect_funded_coordination_offer BEFORE DELETE OR UPDATE ON public.movement_offers FOR EACH ROW EXECUTE FUNCTION private.protect_funded_coordination_offer()"
+        },
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_movement_offers BEFORE UPDATE ON public.movement_offers FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "movement_offers",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "movement_offers",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "movement_offers",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.movement_participants.created_at",
+      "default": "now()",
+      "writers": [
+        "create_primary_requester_on_movement_need()",
+        "invite_movement_participant(uuid,uuid)",
+        "invite_movement_participant_by_share_token(uuid,text)",
+        "remove_movement_participant(uuid)",
+        "respond_to_movement_invitation(uuid,boolean)"
+      ],
+      "triggers": [
+        {
+          "function": "private.freeze_aligned_face_roster()",
+          "definition": "CREATE TRIGGER freeze_aligned_face_roster BEFORE INSERT OR DELETE OR UPDATE ON public.movement_participants FOR EACH ROW EXECUTE FUNCTION private.freeze_aligned_face_roster()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "movement_participants",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "movement_participants",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "movement_participants",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.movement_participants.invited_at",
+      "default": null,
+      "writers": [
+        "create_primary_requester_on_movement_need()",
+        "invite_movement_participant(uuid,uuid)",
+        "invite_movement_participant_by_share_token(uuid,text)",
+        "remove_movement_participant(uuid)",
+        "respond_to_movement_invitation(uuid,boolean)"
+      ],
+      "triggers": [
+        {
+          "function": "private.freeze_aligned_face_roster()",
+          "definition": "CREATE TRIGGER freeze_aligned_face_roster BEFORE INSERT OR DELETE OR UPDATE ON public.movement_participants FOR EACH ROW EXECUTE FUNCTION private.freeze_aligned_face_roster()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "movement_participants",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "movement_participants",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "movement_participants",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.movement_participants.responded_at",
+      "default": null,
+      "writers": [
+        "create_primary_requester_on_movement_need()",
+        "invite_movement_participant(uuid,uuid)",
+        "invite_movement_participant_by_share_token(uuid,text)",
+        "remove_movement_participant(uuid)",
+        "respond_to_movement_invitation(uuid,boolean)"
+      ],
+      "triggers": [
+        {
+          "function": "private.freeze_aligned_face_roster()",
+          "definition": "CREATE TRIGGER freeze_aligned_face_roster BEFORE INSERT OR DELETE OR UPDATE ON public.movement_participants FOR EACH ROW EXECUTE FUNCTION private.freeze_aligned_face_roster()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "movement_participants",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "movement_participants",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "movement_participants",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.movement_participants.updated_at",
+      "default": "now()",
+      "writers": [
+        "create_primary_requester_on_movement_need()",
+        "invite_movement_participant(uuid,uuid)",
+        "invite_movement_participant_by_share_token(uuid,text)",
+        "remove_movement_participant(uuid)",
+        "respond_to_movement_invitation(uuid,boolean)"
+      ],
+      "triggers": [
+        {
+          "function": "private.freeze_aligned_face_roster()",
+          "definition": "CREATE TRIGGER freeze_aligned_face_roster BEFORE INSERT OR DELETE OR UPDATE ON public.movement_participants FOR EACH ROW EXECUTE FUNCTION private.freeze_aligned_face_roster()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "movement_participants",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "movement_participants",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "movement_participants",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.vehicles.created_at",
+      "default": "now()",
+      "writers": [
+        "register_vehicle_with_access(text,text,integer,text,integer)",
+        "register_vehicle_with_plate(text,text,integer,text,integer,text)"
+      ],
+      "triggers": [
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_vehicles BEFORE UPDATE ON public.vehicles FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "vehicles",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "vehicles",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "vehicles",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    },
+    {
+      "field": "public.vehicles.updated_at",
+      "default": "now()",
+      "writers": [
+        "register_vehicle_with_access(text,text,integer,text,integer)",
+        "register_vehicle_with_plate(text,text,integer,text,integer,text)"
+      ],
+      "triggers": [
+        {
+          "function": "set_updated_at()",
+          "definition": "CREATE TRIGGER set_updated_at_vehicles BEFORE UPDATE ON public.vehicles FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        }
+      ],
+      "privileges": [
+        {
+          "role": "anon",
+          "table": "vehicles",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "authenticated",
+          "table": "vehicles",
+          "delete": false,
+          "insert": false,
+          "update": false,
+          "any_column_insert": false,
+          "any_column_update": false
+        },
+        {
+          "role": "service_role",
+          "table": "vehicles",
+          "delete": true,
+          "insert": true,
+          "update": true,
+          "any_column_insert": true,
+          "any_column_update": true
+        }
+      ],
+      "final_origin": "D",
+      "reason": "Service-role direct writes plus RPC/default/trigger paths. Whole-column origin remains D; narrow financial receipt mirror may be C."
+    }
+  ],
+  "timestampWriters": [
+    {
+      "signature": "private.consume_location_provider_quota_at(uuid,text,timestamp with time zone)",
+      "schema": "private",
+      "name": "consume_location_provider_quota_at",
+      "arguments": "p_verified_member_id uuid, p_operation text, p_server_time timestamp with time zone",
+      "anon": false,
+      "authenticated": false,
+      "service_role": false,
+      "security_definer": true,
+      "owner": "postgres",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "acl": [
+        "postgres=X/postgres"
+      ]
+    },
+    {
+      "signature": "private.consume_route_provider_quota_at(uuid,timestamp with time zone)",
+      "schema": "private",
+      "name": "consume_route_provider_quota_at",
+      "arguments": "p_verified_member_id uuid, p_server_time timestamp with time zone",
+      "anon": false,
+      "authenticated": false,
+      "service_role": false,
+      "security_definer": true,
+      "owner": "postgres",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "acl": [
+        "postgres=X/postgres"
+      ]
+    },
+    {
+      "signature": "private.has_current_alignment_face_check(uuid,uuid,timestamp with time zone)",
+      "schema": "private",
+      "name": "has_current_alignment_face_check",
+      "arguments": "p_alignment_id uuid, p_member_id uuid, p_at timestamp with time zone",
+      "anon": false,
+      "authenticated": false,
+      "service_role": false,
+      "security_definer": true,
+      "owner": "postgres",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "acl": [
+        "postgres=X/postgres"
+      ]
+    },
+    {
+      "signature": "create_movement_need(uuid,uuid,uuid,timestamp with time zone,timestamp with time zone,integer)",
+      "schema": "public",
+      "name": "create_movement_need",
+      "arguments": "p_request_id uuid, p_origin_location_reference_id uuid, p_destination_location_reference_id uuid, p_earliest_departure_at timestamp with time zone, p_latest_departure_at timestamp with time zone DEFAULT NULL::timestamp with time zone, p_people_count integer DEFAULT 1",
+      "anon": false,
+      "authenticated": true,
+      "service_role": false,
+      "security_definer": true,
+      "owner": "postgres",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "acl": [
+        "postgres=X/postgres",
+        "authenticated=X/postgres"
+      ]
+    },
+    {
+      "signature": "create_offering_movement_intent(uuid,uuid,uuid,timestamp with time zone,timestamp with time zone)",
+      "schema": "public",
+      "name": "create_offering_movement_intent",
+      "arguments": "p_request_id uuid, p_origin_location_reference_id uuid, p_destination_location_reference_id uuid, p_earliest_departure_at timestamp with time zone, p_latest_departure_at timestamp with time zone DEFAULT NULL::timestamp with time zone",
+      "anon": false,
+      "authenticated": true,
+      "service_role": false,
+      "security_definer": true,
+      "owner": "postgres",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "acl": [
+        "postgres=X/postgres",
+        "authenticated=X/postgres"
+      ]
+    },
+    {
+      "signature": "record_attested_location_resolution_for_server(uuid,uuid,uuid,text,text,text,text,text,numeric,numeric,timestamp with time zone,timestamp with time zone)",
+      "schema": "public",
+      "name": "record_attested_location_resolution_for_server",
+      "arguments": "p_verified_member_id uuid, p_source_location_reference_id uuid, p_producer_request_id uuid, p_provider_namespace text, p_provider_product text, p_provider_version text, p_provider_place_reference text, p_resolution_version text, p_latitude numeric, p_longitude numeric, p_resolved_at timestamp with time zone, p_expires_at timestamp with time zone DEFAULT NULL::timestamp with time zone",
+      "anon": false,
+      "authenticated": false,
+      "service_role": false,
+      "security_definer": true,
+      "owner": "postgres",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "acl": [
+        "postgres=X/postgres"
+      ]
+    },
+    {
+      "signature": "record_attested_location_resolution_for_server(uuid,uuid,uuid,text,text,text,text,text,text,numeric,numeric,timestamp with time zone,timestamp with time zone)",
+      "schema": "public",
+      "name": "record_attested_location_resolution_for_server",
+      "arguments": "p_verified_member_id uuid, p_source_location_reference_id uuid, p_producer_request_id uuid, p_provider_namespace text, p_provider_product text, p_provider_version text, p_provider_place_reference text, p_resolution_version text, p_discovery_area_label text, p_latitude numeric, p_longitude numeric, p_resolved_at timestamp with time zone, p_expires_at timestamp with time zone DEFAULT NULL::timestamp with time zone",
+      "anon": false,
+      "authenticated": false,
+      "service_role": false,
+      "security_definer": true,
+      "owner": "postgres",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "acl": [
+        "postgres=X/postgres"
+      ]
+    },
+    {
+      "signature": "record_attested_location_resolution_for_server(uuid,uuid,uuid,text,text,text,text,text,text,text,text,numeric,numeric,timestamp with time zone,timestamp with time zone)",
+      "schema": "public",
+      "name": "record_attested_location_resolution_for_server",
+      "arguments": "p_verified_member_id uuid, p_source_location_reference_id uuid, p_producer_request_id uuid, p_provider_namespace text, p_provider_product text, p_provider_version text, p_provider_place_reference text, p_resolution_version text, p_discovery_area_label text, p_state_provider_reference text, p_state_name text, p_latitude numeric, p_longitude numeric, p_resolved_at timestamp with time zone, p_expires_at timestamp with time zone DEFAULT NULL::timestamp with time zone",
+      "anon": false,
+      "authenticated": false,
+      "service_role": true,
+      "security_definer": true,
+      "owner": "postgres",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "acl": [
+        "postgres=X/postgres",
+        "service_role=X/postgres"
+      ]
+    },
+    {
+      "signature": "record_claimed_offering_route_evidence_for_server(uuid,uuid,uuid,text,text,text,text,jsonb,bigint,bigint,timestamp with time zone,timestamp with time zone)",
+      "schema": "public",
+      "name": "record_claimed_offering_route_evidence_for_server",
+      "arguments": "p_offering_movement_intent_id uuid, p_offering_member_id uuid, p_generation_claim_token uuid, p_provider_namespace text, p_provider_product text, p_provider_version text, p_provider_route_reference text, p_route_shape jsonb, p_route_distance_meters bigint, p_route_duration_seconds bigint, p_generated_at timestamp with time zone, p_expires_at timestamp with time zone DEFAULT NULL::timestamp with time zone",
+      "anon": false,
+      "authenticated": false,
+      "service_role": true,
+      "security_definer": true,
+      "owner": "postgres",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "acl": [
+        "postgres=X/postgres",
+        "service_role=X/postgres"
+      ]
+    },
+    {
+      "signature": "record_location_resolution_for_server(uuid,uuid,text,text,text,text,text,numeric,numeric,timestamp with time zone,timestamp with time zone)",
+      "schema": "public",
+      "name": "record_location_resolution_for_server",
+      "arguments": "p_source_location_reference_id uuid, p_producer_request_id uuid, p_provider_namespace text, p_provider_product text, p_provider_version text, p_provider_place_reference text, p_resolution_version text, p_latitude numeric, p_longitude numeric, p_resolved_at timestamp with time zone, p_expires_at timestamp with time zone DEFAULT NULL::timestamp with time zone",
+      "anon": false,
+      "authenticated": false,
+      "service_role": false,
+      "security_definer": true,
+      "owner": "postgres",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "acl": [
+        "postgres=X/postgres"
+      ]
+    },
+    {
+      "signature": "record_offering_route_evidence_for_server(uuid,text,text,text,text,jsonb,bigint,bigint,timestamp with time zone,timestamp with time zone)",
+      "schema": "public",
+      "name": "record_offering_route_evidence_for_server",
+      "arguments": "p_offering_movement_intent_id uuid, p_provider_namespace text, p_provider_product text, p_provider_version text, p_provider_route_reference text, p_route_shape jsonb, p_route_distance_meters bigint, p_route_duration_seconds bigint, p_generated_at timestamp with time zone, p_expires_at timestamp with time zone DEFAULT NULL::timestamp with time zone",
+      "anon": false,
+      "authenticated": false,
+      "service_role": true,
+      "security_definer": true,
+      "owner": "postgres",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "acl": [
+        "postgres=X/postgres",
+        "service_role=X/postgres"
+      ]
+    },
+    {
+      "signature": "record_trusted_route_match_evidence_for_server(uuid,uuid,uuid,integer,bigint,bigint,bigint,bigint,bigint,numeric,numeric,numeric,numeric,timestamp with time zone,timestamp with time zone)",
+      "schema": "public",
+      "name": "record_trusted_route_match_evidence_for_server",
+      "arguments": "p_movement_need_id uuid, p_offering_movement_intent_id uuid, p_expected_route_evidence_id uuid, p_expected_route_evidence_version integer, p_requester_origin_distance_to_route_meters bigint, p_requester_destination_distance_to_route_meters bigint, p_calculated_route_shape_length_meters bigint, p_requester_origin_position_along_route_meters bigint, p_requester_destination_position_along_route_meters bigint, p_requester_origin_closest_route_latitude numeric, p_requester_origin_closest_route_longitude numeric, p_requester_destination_closest_route_latitude numeric, p_requester_destination_closest_route_longitude numeric, p_calculated_at timestamp with time zone, p_expires_at timestamp with time zone DEFAULT NULL::timestamp with time zone",
+      "anon": false,
+      "authenticated": false,
+      "service_role": true,
+      "security_definer": true,
+      "owner": "postgres",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "acl": [
+        "postgres=X/postgres",
+        "service_role=X/postgres"
+      ]
+    },
+    {
+      "signature": "record_verified_selected_location_for_server(uuid,uuid,text,text,text,text,timestamp with time zone,timestamp with time zone)",
+      "schema": "public",
+      "name": "record_verified_selected_location_for_server",
+      "arguments": "p_verified_member_id uuid, p_selection_request_id uuid, p_declared_label text, p_provider_namespace text, p_provider_place_reference text, p_proof_version text, p_proof_issued_at timestamp with time zone, p_proof_expires_at timestamp with time zone",
+      "anon": false,
+      "authenticated": false,
+      "service_role": true,
+      "security_definer": true,
+      "owner": "postgres",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "acl": [
+        "postgres=X/postgres",
+        "service_role=X/postgres"
+      ]
+    }
+  ],
+  "selectors": [
+    {
+      "signature": "private.assert_funded_activation(private.financial_agreements,alignments)",
+      "line": 30,
+      "text": "   OR EXISTS(SELECT 1 FROM private.alignment_face_verifications newer WHERE newer.alignment_id=a.id AND newer.member_id=x.member_id\n    AND newer.started_at<=receipt.activated_at AND ROW(newer.started_at,newer.id)>ROW(f.started_at,f.id)))\n ) THEN RAISE EXCEPTION USING ERRCODE='23514',MESSAGE='Exact historical activation face evidence required'; END IF;\nEND;\n"
+    },
+    {
+      "signature": "private.consume_location_provider_quota_at(uuid,text,timestamp with time zone)",
+      "line": 48,
+      "text": "  IF v_retry>0 THEN\n    RETURN QUERY SELECT false,least(86400,greatest(1,v_retry));\n    RETURN;\n  END IF;\n  -- One statement updates both windows; any error rolls back both. Only the\n  -- exact primary-key conflict is handled; unrelated uniqueness errors escape.\n  INSERT INTO private.location_provider_quota_buckets AS b\n    (member_id,operation,window_kind,window_start,request_count,updated_at)"
+    },
+    {
+      "signature": "private.has_current_alignment_face_check(uuid,uuid,timestamp with time zone)",
+      "line": 13,
+      "text": "        WHERE latest.alignment_id=f.alignment_id AND latest.member_id=f.member_id\n        ORDER BY latest.started_at DESC,latest.id DESC LIMIT 1)\n      AND f.completed_at<=p_at AND f.expires_at>p_at);\n"
+    },
+    {
+      "signature": "private.movement_funding_evidence(private.financial_agreements)",
+      "line": 49,
+      "text": "    PERFORM private.assert_wallet_transaction_balanced(t.id);\n    latest:=greatest(latest,t.created_at);\n  END LOOP;\n  IF receipt.fully_held_at<g.requester_accepted_at OR receipt.fully_held_at>clock_timestamp()\n    OR (positive_count>0 AND receipt.fully_held_at IS DISTINCT FROM latest) THEN\n    RAISE EXCEPTION USING ERRCODE='23514',MESSAGE='Exact persisted funding timestamp required'; END IF;\n  RETURN QUERY SELECT total::bigint,total::bigint,receipt.fully_held_at;\nEND;"
+    },
+    {
+      "signature": "private.post_activation_reveal_subjects(uuid,uuid)",
+      "line": 41,
+      "text": "    SELECT e.id, e.vehicle_id, mp.member_id, mp.role,\n      row_number() OVER (ORDER BY\n        CASE WHEN mp.role = 'primary_requester' THEN 0 ELSE 1 END, mp.created_at, mp.id)\n    FROM eligible e\n    JOIN public.movement_participants mp ON mp.movement_need_id = e.movement_need_id\n    WHERE p_viewer_member_id = e.offering_member_id\n      AND mp.status = 'confirmed' AND mp.member_id <> e.offering_member_id\n      AND ((mp.role = 'primary_requester' AND mp.member_id = e.member_needing_movement_id)"
+    },
+    {
+      "signature": "accept_my_financial_proposal_as_requester(uuid,integer)",
+      "line": 75,
+      "text": "    WHERE x.movement_need_id=p.movement_need_id AND x.offering_member_id=p.offering_member_id\n    ORDER BY x.version FOR UPDATE;\n  SELECT x.* INTO STRICT p FROM private.financial_proposals x WHERE x.id=p_financial_proposal_id;\n  SELECT x.* INTO STRICT s FROM private.movement_context_snapshots x WHERE x.id=p.movement_context_snapshot_id;\n  SELECT x.* INTO STRICT n FROM public.movement_needs x WHERE x.id=p.movement_need_id;\n  IF p.version IS DISTINCT FROM p_expected_proposal_version OR p.status<>'current'\n    OR p.member_needing_movement_id IS DISTINCT FROM caller OR n.member_id IS DISTINCT FROM caller\n    OR p.expires_at<=clock_timestamp() OR p.created_at>clock_timestamp()"
+    },
+    {
+      "signature": "activate_my_funded_movement(uuid,integer)",
+      "line": 26,
+      "text": " SELECT g.id,r.member_id,(SELECT f.id FROM private.alignment_face_verifications f WHERE f.alignment_id=a.id AND f.member_id=r.member_id\n  ORDER BY f.started_at DESC,f.id DESC LIMIT 1) FROM private.required_face_members(a.id) r;\n UPDATE public.alignments x SET status='activated',activated_at=stamp,updated_at=stamp WHERE x.id=a.id RETURNING x.* INTO a;\n PERFORM private.assert_funded_activation(g,a);\n RETURN QUERY SELECT g.id,g.version,a.id,a.status,a.activated_at;\nEND;\n"
+    },
+    {
+      "signature": "discover_masked_movement_group(uuid)",
+      "line": 43,
+      "text": "      ROW_NUMBER() OVER (\r\n        ORDER BY\r\n          CASE WHEN mp.role = 'primary_requester' THEN 0 ELSE 1 END,\r\n          mp.created_at,\r\n          mp.id\r\n      ) AS traveller_number\r\n    FROM public.movement_participants mp\r\n    WHERE mp.movement_need_id = p_movement_need_id\r"
+    },
+    {
+      "signature": "discover_masked_movement_needs(integer)",
+      "line": 64,
+      "text": "    ) > v_now\r\n  ORDER BY\r\n    mn.earliest_departure_at ASC,\r\n    mn.created_at ASC\r\n  LIMIT p_limit;\r\nEND;\r\n"
+    },
+    {
+      "signature": "discover_masked_offers_for_my_need(uuid,integer)",
+      "line": 62,
+      "text": "    AND mo.status = 'pending'\r\n  ORDER BY\r\n    mo.created_at ASC\r\n  LIMIT p_limit;\r\nEND;\r\n"
+    },
+    {
+      "signature": "discover_offering_movement_availability(integer)",
+      "line": 45,
+      "text": "    AND (dl.expires_at IS NULL OR dl.expires_at>clock_timestamp())\n  ORDER BY i.earliest_departure_at,a.created_at,a.id\n  LIMIT p_limit;\nEND;\n"
+    },
+    {
+      "signature": "get_my_alignment_face_verification_status(uuid)",
+      "line": 9,
+      "text": "  LEFT JOIN LATERAL (SELECT s.* FROM private.alignment_face_verifications s\n    WHERE s.alignment_id=a.id AND s.member_id=auth.uid() ORDER BY s.started_at DESC,s.id DESC LIMIT 1) f ON true\n  WHERE a.movement_need_id=p_movement_need_id AND a.status IN ('awaiting_activation_payment','activated','in_progress','completed')\n    AND EXISTS (SELECT 1 FROM private.required_face_members(a.id) r WHERE r.member_id=auth.uid());\n"
+    },
+    {
+      "signature": "get_my_current_movement_need()",
+      "line": 21,
+      "text": "    ) > v_now\r\n  ORDER BY\r\n    mn.created_at DESC,\r\n    mn.id DESC\r\n  LIMIT 1;\r\nEND;\r\n"
+    },
+    {
+      "signature": "get_my_movement_activation_status(uuid,integer)",
+      "line": 14,
+      "text": " -- activation rechecks under UPDATE locks. Projection performs no writes.\n PERFORM m.id FROM public.members m JOIN private.required_face_members(a.id) r ON r.member_id=m.id ORDER BY m.id FOR SHARE OF m;\n SELECT * INTO evidence FROM private.movement_funding_evidence(g);\n ready:=NOT EXISTS(SELECT 1 FROM private.required_face_members(a.id) r WHERE NOT private.has_current_alignment_face_check(a.id,r.member_id,clock_timestamp()));\n RETURN QUERY SELECT g.id,g.version,a.id,a.status,CASE WHEN evidence.fully_held_at IS NULL THEN 'funding_required'\n  WHEN NOT ready THEN 'identity_required' ELSE 'ready_to_activate' END,NULL::timestamptz;\nEND;\n"
+    },
+    {
+      "signature": "get_my_movement_invitations()",
+      "line": 29,
+      "text": "    AND mn.status = 'discoverable'\r\n  ORDER BY mp.invited_at DESC;\r\nEND;\r\n"
+    },
+    {
+      "signature": "get_my_movement_participants(uuid)",
+      "line": 43,
+      "text": "  WHERE mp.movement_need_id = p_movement_need_id\r\n  ORDER BY\r\n    CASE\r\n      WHEN mp.role = 'primary_requester' THEN 0\r\n      ELSE 1\r\n    END ASC,\r\n    mp.created_at ASC;\r\nEND;\r"
+    },
+    {
+      "signature": "get_my_profile_photo_submission_status()",
+      "line": 6,
+      "text": "  FROM private.profile_photo_submissions p WHERE p.member_id=auth.uid()\n  ORDER BY p.created_at DESC,p.id DESC LIMIT 1;\n"
+    },
+    {
+      "signature": "get_my_requester_movement_continuation()",
+      "line": 15,
+      "text": "    AND a.status IN ('awaiting_activation_payment', 'activated')\n  ORDER BY a.created_at DESC, a.id DESC\n  LIMIT 1;\nEND;\n"
+    },
+    {
+      "signature": "get_post_activation_people(uuid)",
+      "line": 22,
+      "text": "        AND mm.is_current AND mm.verified\n      ORDER BY mm.created_at DESC, mm.id DESC LIMIT 1\n    ) photo ON true\n  ), issued AS (\n    INSERT INTO private.post_activation_photo_tokens AS pt\n      (viewer_member_id, alignment_id, subject_member_id, media_id, token, expires_at)\n    SELECT v_viewer, s.alignment_id, s.subject_member_id, s.media_id,\n      replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''),"
+    },
+    {
+      "signature": "hold_my_movement_funds(uuid,integer)",
+      "line": 47,
+      "text": "  FOR c IN SELECT x.* FROM private.financial_components x WHERE x.agreement_id=g.id\n    AND x.component_key IN ('requester_platform_share','movement_contribution') AND x.amount_minor>0 ORDER BY x.id LOOP\n    INSERT INTO private.wallet_transactions(transaction_kind,currency,alignment_id,financial_component_id,idempotency_key)\n    VALUES('movement_hold',g.currency,g.alignment_id,c.id,'movement_hold:'||c.id::text) RETURNING id,created_at INTO transaction_id,stamp;\n    INSERT INTO private.wallet_postings(transaction_id,account_id,direction,amount_minor)\n    VALUES(transaction_id,available_id,'debit',c.amount_minor),(transaction_id,held_id,'credit',c.amount_minor);\n    funding_at:=greatest(funding_at,stamp);\n    PERFORM private.assert_wallet_transaction_balanced(transaction_id);"
+    },
+    {
+      "signature": "hold_my_movement_funds(uuid,integer)",
+      "line": 52,
+      "text": "    VALUES(transaction_id,available_id,'debit',c.amount_minor),(transaction_id,held_id,'credit',c.amount_minor);\n    funding_at:=greatest(funding_at,stamp);\n    PERFORM private.assert_wallet_transaction_balanced(transaction_id);\n  END LOOP;\n  -- Zero-only obligations use this immutable receipt's recorded completion time.\n  INSERT INTO private.movement_funding_holds VALUES(g.id,coalesce(funding_at,clock_timestamp()));\n  SELECT * INTO evidence FROM private.movement_funding_evidence(g);\n  SET CONSTRAINTS private.wallet_transaction_balanced_after_transaction,private.wallet_transaction_balanced_after_posting IMMEDIATE;"
+    },
+    {
+      "signature": "issue_financial_proposal_for_server(uuid,integer,uuid,integer)",
+      "line": 146,
+      "text": "    SELECT p.id,t.member_id,t.movement_participant_id,t.role\r\n    FROM private.movement_context_snapshot_travellers t WHERE t.snapshot_id=s.id ORDER BY t.movement_participant_id;\r\n  PERFORM private.assert_financial_proposal_snapshot_roster(p.id);\r\n  SET CONSTRAINTS private.financial_proposal_complete,private.financial_proposal_roster_complete,\r\n    private.financial_proposal_movement_context_complete,private.financial_proposal_snapshot_roster_complete IMMEDIATE;\r\n  SET CONSTRAINTS private.financial_proposal_complete,private.financial_proposal_roster_complete,\r\n    private.financial_proposal_movement_context_complete,private.financial_proposal_snapshot_roster_complete DEFERRED;\r\n  RETURN QUERY SELECT p.id,p.version,p.status,p.created_at,p.expires_at;\r"
+    },
+    {
+      "signature": "list_my_active_movement_continuations(integer)",
+      "line": 23,
+      "text": "    AND c.began_at IS NOT NULL AND isfinite(c.began_at)\n  ORDER BY c.began_at DESC, a.movement_need_id DESC\n  LIMIT p_limit;\nEND;\n"
+    },
+    {
+      "signature": "list_my_completed_movement_recoveries(integer)",
+      "line": 45,
+      "text": "      OR (s.status<>'settled' AND s.settled_at IS NULL))\n  ORDER BY j.completed_at DESC, a.movement_need_id DESC\n  LIMIT p_limit;\nEND;\n"
+    },
+    {
+      "signature": "list_my_offerer_movement_continuations(integer)",
+      "line": 30,
+      "text": "    AND a.status IN ('awaiting_activation_payment', 'activated')\n  ORDER BY a.created_at DESC, a.movement_need_id DESC\n  LIMIT p_limit;\nEND;\n"
+    },
+    {
+      "signature": "list_my_open_offering_movement_availabilities(integer)",
+      "line": 26,
+      "text": "    WHERE a.offering_member_id = v_member_id\n    ORDER BY i.earliest_departure_at ASC, a.created_at ASC, a.id ASC\n  LOOP\n    v_visible := false;\n    BEGIN\n      -- Only eligibility failures from the existing assertion are skippable.\n      -- Projection errors, deadlocks, cancellations and other SQL errors escape.\n      BEGIN"
+    },
+    {
+      "signature": "list_requester_movement_interests_for_offerer(uuid,integer)",
+      "line": 44,
+      "text": "      AND (p_availability_id IS NULL OR i.availability_id = p_availability_id)\n    ORDER BY i.created_at ASC, i.id ASC\n  LOOP\n    v_visible := false;\n    BEGIN\n      -- Preserve 0047's complete authoritative support and lock contract.\n      -- Expected eligibility exceptions are caught ONLY around this assertion;\n      -- SQL/projection errors, deadlocks and cancellations propagate normally."
+    },
+    {
+      "signature": "record_location_resolution_for_server(uuid,uuid,text,text,text,text,text,numeric,numeric,timestamp with time zone,timestamp with time zone)",
+      "line": 83,
+      "text": "\n  SELECT COALESCE(MAX(e.version),0)+1 INTO v_version\n  FROM private.movement_location_resolution_evidence e WHERE e.source_location_reference_id=v_source.id;\n  v_now := clock_timestamp();\n  -- PostgreSQL LEAST ignores NULL; two NULL deadlines deliberately mean no expiry.\n  v_expiry := LEAST(p_expires_at,v_source.expires_at);\n  IF v_expiry IS NOT NULL AND v_expiry<=v_now THEN\n    RAISE EXCEPTION USING ERRCODE='23514', MESSAGE='Location resolution expiry elapsed before recording';"
+    },
+    {
+      "signature": "resolve_post_activation_photo_for_server(text,uuid)",
+      "line": 18,
+      "text": "        AND latest.is_current AND latest.verified\n      ORDER BY latest.created_at DESC, latest.id DESC LIMIT 1\n    );\n"
+    }
+  ],
+  "local_face_counts": {
+    "attempts": 0,
+    "activation_faces": 0
+  },
+  "existing_sequences": null
+}

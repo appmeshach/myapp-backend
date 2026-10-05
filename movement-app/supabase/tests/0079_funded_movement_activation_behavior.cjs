@@ -5,7 +5,8 @@ const {inspect}=require('./0079_funded_movement_activation_harness.cjs');
 const {query,snapshot}=require('./0074_trusted_financial_proposal_issuer_behavior.cjs');
 const read=p=>fs.readFileSync(path.join(__dirname,p),'utf8').replace(/\r\n/g,'\n');
 const migration=read('../migrations/0079_funded_movement_activation.sql');
-const migrationBody=migration.replace(/^BEGIN;\s*/,'').replace(/COMMIT;\s*$/,'');
+const historicalMigrationBody=migration.replace(/^BEGIN;\s*/,'').replace(/COMMIT;\s*$/,'');
+const migrationBody=require('./final_movement_regression_catalog.cjs').finalSourceBody(79);
 const live=read('0079_funded_movement_activation_test.sql');
 function fixtures(zero=false) {
  let base=baseFixtures(zero);
@@ -41,5 +42,5 @@ function main() {
   }
  } finally { assert.equal(query('postgres',snapshot),before,'0079 application data/catalog/ACL/history fully restored'); }
 }
-module.exports={fixtures,migrationBody};
+module.exports={fixtures,migrationBody,historicalMigrationBody};
 if(require.main===module)try{main();}catch(e){console.error(e.stack);process.exitCode=1;}

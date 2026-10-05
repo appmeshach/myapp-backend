@@ -1946,12 +1946,11 @@ test('0058 completed recovery rejects malformed duplicate oversized and private 
     }),
   ]);
 
-  invalid.push([
-    completedRow({
-      settlement_status: 'settled',
-      settled_at: '2026-09-28T11:59:59+00:00',
-    }),
-  ]);
+  const regressed = completedRow({
+    settlement_status: 'settled',
+    settled_at: '2026-09-28T11:59:59+00:00',
+  });
+  assert.equal((await completedService([regressed]).api.listMyCompletedMovementRecoveries(1))[0].settledAt, regressed.settled_at);
 
   for (const data of invalid) {
     await assert.rejects(

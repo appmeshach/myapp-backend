@@ -45,8 +45,7 @@ export async function listMyCompletedMovementRecoveries(limit = 20, signal?: Abo
         || row.completed_at === null || !timestamp(row.completed_at) || !timestamp(row.settled_at)
         || typeof row.settlement_is_for_me !== 'boolean'
         || !['pending_amount', 'pending_settlement', 'settled', 'failed'].includes(row.settlement_status as string)
-        || (row.settlement_status === 'settled') !== (row.settled_at !== null)
-        || (row.settled_at !== null && Date.parse(row.settled_at) < Date.parse(row.completed_at))) throw new Error();
+        || (row.settlement_status === 'settled') !== (row.settled_at !== null)) throw new Error();
       seen.add(row.movement_need_id.toLowerCase());
       return { movementNeedId: row.movement_need_id, originArea: row.origin_area, destinationArea: row.destination_area,
         completedAt: row.completed_at, settlementStatus: row.settlement_status as CompletedMovementRecovery['settlementStatus'],

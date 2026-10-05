@@ -1,0 +1,16 @@
+✔ funded start accepts regressed/equal confirmation 2026-10-04T10:00:00.000000Z (203.5035ms)
+✔ funded start accepts regressed/equal confirmation 2026-10-04T10:00:00.005338Z (63.0143ms)
+✔ completion accepts regressed/equal confirmation 2026-10-04T10:00:00.000000Z (32.0148ms)
+✔ completion accepts regressed/equal confirmation 2026-10-04T10:00:00.005338Z (24.5937ms)
+✔ completed recovery accepts settlement before completion (22.7978ms)
+✔ latest request generation wins despite later timestamp on old response (28.3882ms)
+✔ coordination projection uses server state rather than activation timestamp (243.5604ms)
+✔ proposal consent accepts regressed creation/action clocks but preserves deadline and prerequisite (555.2012ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1879.8001

@@ -1,0 +1,81 @@
+// Offline inventory of the read-only catalog capture and historical SQL.
+const fs = require('node:fs');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const root = path.resolve(__dirname, '..');
+const catalog = require('./0082-temporal-audit-catalog.json');
+const token = /clock_timestamp\s*\(|transaction_timestamp\s*\(|statement_timestamp\s*\(|\bnow\s*\(|\bCURRENT_TIMESTAMP\b|\b\w*(?:_at|_time|window_start)\b/i;
+const clock = /clock_timestamp\s*\(|transaction_timestamp\s*\(|statement_timestamp\s*\(|\bnow\s*\(|\bCURRENT_TIMESTAMP\b/i;
+const lines = (text) => text.replace(/\r\n/g, '\n').split('\n');
+const matches = (text) => lines(text).flatMap((text, i) => token.test(text) ? [{line: i + 1, text}] : []);
+const migrations = fs.readdirSync(path.join(root, 'supabase/migrations')).filter(n => /^\d{4}_.*\.sql$/.test(n) && Number(n.slice(0,4)) <= 81).sort().map(name => {
+  const body = fs.readFileSync(path.join(root, 'supabase/migrations', name), 'utf8');
+  return {name, sha256: crypto.createHash('sha256').update(body).digest('hex'), matches: matches(body)};
+});
+const functions = catalog.functions.map(f => ({signature:f.signature, owner:f.owner, security_definer:f.security_definer, settings:f.settings, acl:f.acl, matches:matches(f.body), clock_lines:matches(f.body).filter(x=>clock.test(x.text))}));
+const constraints = catalog.constraints.filter(c=>token.test(c.definition));
+const policies = catalog.policies.filter(c=>token.test(JSON.stringify(c)));
+fs.writeFileSync(path.join(__dirname,'0082-temporal-audit-inventory.json'), JSON.stringify({search:'All timestamp-like identifiers and all five clock spellings; lexical superset, not an SQL parser or proof that every hit is a predicate.',migrations,functions,constraints,policies},null,2)+'\n');
+
+// Conservative whole-column classification. Mixed or unproven writers remain D.
+const overrides = new Map();
+function assign(table, fields, kind, producer) { for(const field of fields.split(' ')) overrides.set('private.'+table+'.'+field,{kind,producer}); }
+assign('alignment_face_verifications','started_at completed_at','A','start/complete_alignment_face_verification_for_server');
+assign('alignment_face_verifications','expires_at','C','start_alignment_face_verification_for_server: started_at + 10 minutes');
+assign('financial_proposals','created_at offering_accepted_at requester_accepted_at materialized_at','A','issue_financial_proposal_for_server; accept_my_financial_proposal_as_offerer/requester');
+assign('financial_proposals','earliest_departure_at latest_departure_at expires_at','C','0074 issuer copies/bounds persisted snapshot and quote');
+assign('financial_agreements','created_at','A','0077 requester materialization');
+assign('financial_agreements','offering_accepted_at requester_accepted_at','C','0077 copies exact proposal consent');
+assign('financial_components','created_at','A','0077 requester materialization');
+assign('funded_movement_activations','activated_at','A','activate_my_funded_movement');
+assign('funded_movement_coordination_entries','created_at','A','open_my_funded_movement_coordination');
+assign('funded_movement_start_requests','requested_at','A','request_my_funded_movement_start');
+assign('funded_movement_starts','started_at','A','confirm_my_funded_movement_start');
+assign('movement_context_snapshots','created_at','A','record_movement_context_snapshot_for_server');
+assign('movement_context_snapshots','expires_at offering_earliest_departure_at offering_latest_departure_at requester_earliest_departure_at requester_latest_departure_at','C','0072 copies/bounds persisted offer, need, intent and availability');
+assign('movement_location_references','created_at','A','record_selected_location_for_member; record_verified_selected_location_for_server; record_location_resolution_for_server');
+assign('movement_location_references','resolved_at','B','record_location_resolution_for_server p_resolved_at through attested wrappers');
+assign('movement_location_resolution_evidence','recorded_at','C','copies resolved target created_at from same trusted producer sample');
+assign('movement_location_resolution_evidence','requested_expires_at','B','record_location_resolution_for_server p_expires_at');
+assign('movement_location_selection_attestations','proof_issued_at proof_expires_at','B','record_verified_selected_location_for_server proof arguments');
+assign('movement_location_selection_attestations','verified_at','C','same trusted sample as selected location created_at and receipt');
+assign('movement_location_selection_receipts','recorded_at','C','copies selected location created_at from same trusted producer sample');
+assign('movement_need_creation_receipts','recorded_at','C','create_movement_need exact need created_at');
+assign('movement_need_creation_receipts','earliest_departure_at latest_departure_at','C','create_movement_need exact accepted departure declarations');
+assign('offering_movement_intent_creation_receipts','recorded_at','C','create_offering_movement_intent exact intent created_at');
+assign('offering_movement_intent_creation_receipts','earliest_departure_at latest_departure_at','C','create_offering_movement_intent exact accepted declarations');
+assign('offering_movement_intents','created_at','A','create_offering_movement_intent');
+assign('offering_movement_intents','earliest_departure_at latest_departure_at','B','create_offering_movement_intent API arguments');
+assign('movement_offer_availability_bindings','bound_at','A','create_movement_offer_internal');
+assign('movement_offer_route_match_bindings','bound_at','A','create_movement_offer_internal');
+assign('offering_route_evidence','created_at','A','record_offering_route_evidence_for_server default');
+assign('offering_route_evidence','generated_at','B','record_offering_route_evidence_for_server p_generated_at');
+assign('trusted_route_match_evidence','created_at','A','record_trusted_route_match_evidence_for_server default');
+assign('trusted_route_match_evidence','calculated_at','B','record_trusted_route_match_evidence_for_server p_calculated_at');
+assign('pricing_geography_evidence','created_at generated_at','A','record_pricing_geography_evidence_for_server (one sample, created_at = generated_at)');
+assign('pricing_geography_evidence','expires_at','C','bounded persisted matching context');
+assign('pricing_quotes','created_at','A','record_pricing_quote_for_server');
+assign('pricing_quotes','expires_at','C','record_pricing_quote_for_server geography expiry');
+assign('trusted_location_discovery_areas','recorded_at','A','attested location resolution wrapper default');
+assign('trusted_location_state_evidence','recorded_at','A','attested location resolution wrapper default');
+assign('wallet_accounts','created_at','A','trusted wallet account creation/default');
+assign('wallet_transactions','created_at','A','hold_my_movement_funds trusted ledger insert/default');
+assign('wallet_postings','created_at','A','hold_my_movement_funds trusted postings insert/default');
+assign('offering_route_generation_claims','claimed_at completed_at','A','claim/record_claimed_offering_route_evidence_for_server');
+assign('offering_route_generation_claims','lease_expires_at','C','claim producer derives lease deadline');
+assign('profile_photo_submissions','created_at processed_at','A','prepare/fail_profile_photo_submission_for_server');
+assign('post_activation_photo_tokens','expires_at','A','get_post_activation_people statement timestamp + interval (not persisted parent-derived)');
+const escape = s => String(s).replace(/\|/g,'\\|').replace(/\r?\n/g,' ');
+const out=['# Timestamp origin inventory','', 'Whole-column classification is conservative. D includes mixed paths, caller-writable legacy tables, and any producer not yet proven. Defaults alone do not establish A. The report gives narrower, proven producer contexts for D columns. Function references below are lexical associations; inspect exact definitions in the catalog capture before changing a predicate.','', '| Function/table | Field | Origin class | Producer | Later validators / readers | Current wall-clock comparison |','| --- | --- | --- | --- | --- | --- |'];
+for(const col of catalog.timestamp_columns) {
+ const table=col.table_schema+'.'+col.table_name, key=table+'.'+col.column_name;
+ const metadata=catalog.tables.find(t=>t.schema+'.'+t.name===table);
+ const origin=overrides.get(key)||{kind:'D',producer:metadata?.service_role_insert?'Service-role INSERT permitted; trusted RPC/default does not exclude other writers':'Not fully traced, or mixed external/derived/internal paths; see source inventory'};
+ const related=catalog.functions.filter(f=>f.body.includes(table)&&new RegExp('\\b'+col.column_name+'\\b').test(f.body));
+ const refs=related.filter(f=>/assert_|protect_|require_|validate_|has_current/.test(f.name)).map(f=>f.schema+'.'+f.name);
+ const timed=related.filter(f=>clock.test(f.body)).map(f=>f.schema+'.'+f.name);
+ out.push('| '+[table,col.column_name,origin.kind,origin.producer,refs.join(', ')||'Catalog constraints / untraced reader',timed.join(', ')||'No lexical direct clock association found'].map(escape).join(' | ')+' |');
+}
+out.push('','Last column identifies functions requiring predicate review; it does not assert that every clock reference compares this column. Exact body line inventories and CHECK expressions are in the companion JSON.');
+fs.writeFileSync(path.join(__dirname,'0082-temporal-audit-origins.md'),out.join('\n')+'\n');
+console.log(JSON.stringify({migrations:migrations.length,source_hits:migrations.reduce((n,m)=>n+m.matches.length,0),functions:functions.length,functions_with_time_hits:functions.filter(f=>f.matches.length).length,installed_time_hits:functions.reduce((n,f)=>n+f.matches.length,0),constraints:constraints.length,policies:policies.length,columns:catalog.timestamp_columns.length,origin_counts:catalog.timestamp_columns.reduce((a,c)=>{const k=overrides.get(c.table_schema+'.'+c.table_name+'.'+c.column_name)?.kind||'D';a[k]=(a[k]||0)+1;return a;},{})}));
