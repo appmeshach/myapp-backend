@@ -53,13 +53,6 @@ export type MovementState = { [P in MovementPhase]: {
 } }[MovementPhase];
 export const initialMovement: MovementState = { phase: 'required', error: null, loaded: false, ownReady: false,
   expiresAt: null, completedAt: null, awaitingNewAttempt: false };
-// PostgreSQL timestamps carry microseconds; Date.parse alone collapses distinct
-// attempts created within the same millisecond. 0016 fixes lifetime at 10 minutes.
-function attemptTime(value: string | null): number {
-  if (!value) return 0;
-  const fraction = /\.(\d+)(?:Z|[+-]\d{2}:\d{2})$/.exec(value)?.[1] ?? '';
-  return Date.parse(value) * 1000 + Number(fraction.padEnd(6, '0').slice(3, 6));
-}
 export type MovementEvent = { type: 'start' } | { type: 'unavailable' } | { type: 'cancel' }
   | { type: 'session'; expiresAt: string } | { type: 'capture_submitted' }
   | { type: 'backend'; row: AlignmentFaceVerificationStatus | null; now: number }
@@ -77,7 +70,6 @@ export function movementTransition(state: MovementState, event: MovementEvent): 
       return { ...state, phase: 'provider_unavailable', ownReady: false, error: 'verification_unavailable' };
     case 'session':
       if (state.phase !== 'starting' || !Number.isFinite(Date.parse(event.expiresAt))) throw new Error('Invalid movement transition');
-      if (state.expiresAt && attemptTime(event.expiresAt) <= attemptTime(state.expiresAt)) throw new Error('Stale provider receipt');
       return { ...state, phase: 'provider_session_ready', expiresAt: event.expiresAt, completedAt: null, awaitingNewAttempt: false };
     case 'capture_submitted':
       if (state.phase !== 'provider_session_ready') throw new Error('Invalid movement transition');
@@ -95,12 +87,9 @@ export function movementTransition(state: MovementState, event: MovementEvent): 
       if (!row) return state.awaitingNewAttempt ? state : { ...initialMovement, phase: 'not_required', loaded: true };
       // A fresh authorized read can remove readiness (for example a new alignment).
       if (row.status === 'not_started') return { ...initialMovement, loaded: true };
-      const time = attemptTime(row.expiresAt);
-      const previous = attemptTime(state.expiresAt);
-      if (time < previous || (state.awaitingNewAttempt && time <= previous)) return state;
-      // A failed/expired attempt cannot become a success without a newer attempt.
-      if (time === previous && ['expired','failed'].includes(state.phase) && row.status === 'succeeded') return state;
-      const expired = !!time && time <= event.now * 1000 && ['pending','succeeded','expired'].includes(row.status);
+      // Controller generation/read IDs admit only the latest authorized response.
+      // Attempt chronology is selected by the server, not inferred from expiry.
+      const expired = row.expiresAt !== null && Date.parse(row.expiresAt) <= event.now && ['pending','succeeded','expired'].includes(row.status);
       const phase: MovementPhase = expired ? 'expired' : row.status === 'superseded'
         ? 'required' : row.status;
       return { phase, loaded: true, error: null, expiresAt: row.expiresAt, completedAt: row.completedAt,

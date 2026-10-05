@@ -1,0 +1,66 @@
+{
+  "mode": "discovery-only",
+  "required": 1000,
+  "passed": 30,
+  "retries": 0,
+  "restored": true,
+  "scenario": "discovery-only-31",
+  "error": "NOTICE:  00000: 0082_CREATION_DIAGNOSTIC={\"row\": {\"id\": \"df6eaf63-561f-453e-9987-37c0733193fb\", \"latitude\": 6.43, \"longitude\": 3.52, \"created_at\": \"2026-10-04T16:36:38.138255+00:00\", \"expires_at\": \"2026-10-04T20:36:38.104156+00:00\", \"resolved_at\": \"2026-10-04T16:36:38.10767+00:00\", \"source_kind\": \"provider_resolved\", \"declared_label\": \"Agungi, Lagos\", \"owner_member_id\": \"16d91597-13d2-4170-9ec1-bf0693c6be9f\", \"resolution_status\": \"resolved\", \"provider_namespace\": \"test-provider\", \"resolution_version\": \"test-resolution-v1\", \"provider_place_reference\": \"discovery-only-31-42bb2d5d-af07-4e18-8da4-189de47f2a46\"}, \"table\": \"private.movement_location_references\", \"fixture\": \"discovery-only-31\", \"isolation\": \"read committed\", \"clock_timestamp\": \"2026-10-04T16:36:38.133987+00:00\", \"owner_endpoints\": [{\"id\": \"982a32f3-6e07-49be-b4f0-7aada548ca2b\", \"latitude\": null, \"longitude\": null, \"created_at\": \"2026-10-04T16:36:38.10767+00:00\", \"expires_at\": null, \"resolved_at\": null, \"source_kind\": \"member_selected\", \"declared_label\": \"Agungi, Lagos\", \"owner_member_id\": \"16d91597-13d2-4170-9ec1-bf0693c6be9f\", \"resolution_status\": \"unresolved\", \"provider_namespace\": \"test-provider\", \"resolution_version\": null, \"provider_place_reference\": \"discovery-only-31-42bb2d5d-af07-4e18-8da4-189de47f2a46\"}], \"synthetic_offsets\": \"server-owned created_at unchanged; endpoint proof -1 minute/expiry +4 hours; route +3 hours; match +2 hours; departure statement +1/+2 hours\", \"expiry_check_clock\": \"\", \"statement_timestamp\": \"2026-10-04T16:36:38.09935+00:00\", \"creation_check_clock\": \"2026-10-04 16:36:38.132917+00\", \"transaction_timestamp\": \"2026-10-04T16:36:38.061406+00:00\"}\nLOCATION:  exec_stmt_raise, pl_exec.c:3911\nERROR:  23514: Movement context creation time or expiry is invalid\nCONTEXT:  PL/pgSQL function private.protect_movement_context_record() line 8 at RAISE\nSQL statement \"INSERT INTO private.movement_location_references(\n    owner_member_id,declared_label,source_kind,resolution_status,latitude,longitude,\n    provider_namespace,provider_place_reference,resolution_version,resolved_at,created_at,expires_at\n  ) VALUES (\n    v_source.owner_member_id,v_source.declared_label,'provider_resolved','resolved',p_latitude,p_longitude,\n    p_provider_namespace,p_provider_place_reference,p_resolution_version,p_resolved_at,v_now,v_expiry\n  ) RETURNING id\"\nPL/pgSQL function public.record_location_resolution_for_server(uuid,uuid,text,text,text,text,text,numeric,numeric,timestamp with time zone,timestamp with time zone) line 91 at SQL statement\nSQL statement \"SELECT r.* FROM public.record_location_resolution_for_server(\n    p_source_location_reference_id,p_producer_request_id,p_provider_namespace,p_provider_product,p_provider_version,\n    p_provider_place_reference,p_resolution_version,p_latitude,p_longitude,p_resolved_at,p_expires_at\n  ) r\"\nPL/pgSQL function public.record_attested_location_resolution_for_server(uuid,uuid,uuid,text,text,text,text,text,numeric,numeric,timestamp with time zone,timestamp with time zone) line 11 at RETURN QUERY\nSQL statement \"SELECT\r\n    r.evidence_id,\r\n    r.resolved_location_reference_id,\r\n    r.version,\r\n    r.expires_at\r\n                                                                                                              FROM public.record_attested_location_resolution_for_server(\r\n    p_verified_member_id,\r\n    p_source_location_reference_id,\r\n    p_producer_request_id,\r\n    p_provider_namespace,\r\n    p_provider_product,\r\n    p_provider_version,\r\n    p_provider_place_reference,\r\n    p_resolution_version,\r\n    p_latitude,\r\n    p_longitude,\r\n    p_resolved_at,\r\n    p_expires_at\r\n  ) r\"\nPL/pgSQL function public.record_attested_location_resolution_for_server(uuid,uuid,uuid,text,text,text,text,text,text,numeric,numeric,timestamp with time zone,timestamp with time zone) line 20 at SQL statement\nSQL statement \"SELECT\n    r.evidence_id,\n    r.resolved_location_reference_id,\n    r.version,\n    r.expires_at\n                                                                                                         FROM public.record_attested_location_resolution_for_server(\n    p_verified_member_id,\n    p_source_location_reference_id,\n    p_producer_request_id,\n    p_provider_namespace,\n    p_provider_product,\n    p_provider_version,\n    p_provider_place_reference,\n    p_resolution_version,\n    p_discovery_area_label,\n    p_latitude,\n    p_longitude,\n    p_resolved_at,\n    p_expires_at\n  ) r\"\nPL/pgSQL function public.record_attested_location_resolution_for_server(uuid,uuid,uuid,text,text,text,text,text,text,text,text,numeric,numeric,timestamp with time zone,timestamp with time zone) line 347 at SQL statement\nSQL statement \"SELECT x.resolved_location_reference_id                      FROM public.record_attested_location_resolution_for_server(\n   p_owner_member_id,selected,gen_random_uuid(),'test-provider','geocode','v1',p_provider_place_reference,'test-resolution-v1',\n   'Lagos meeting area','region-lagos','Lagos',p_latitude,p_longitude,anchor,parent_expiry) x\"\nPL/pgSQL function pg_temp_15.snapshot_state_endpoint(uuid,text,text,numeric,numeric) line 8 at SQL statement\nPL/pgSQL function inline_code_block line 4 at assignment\nLOCATION:  exec_stmt_raise, pl_exec.c:3911\ndiscovery-only-31\n",
+  "diagnostics": {
+    "0082_CREATION_DIAGNOSTIC": {
+      "row": {
+        "id": "df6eaf63-561f-453e-9987-37c0733193fb",
+        "latitude": 6.43,
+        "longitude": 3.52,
+        "created_at": "2026-10-04T16:36:38.138255+00:00",
+        "expires_at": "2026-10-04T20:36:38.104156+00:00",
+        "resolved_at": "2026-10-04T16:36:38.10767+00:00",
+        "source_kind": "provider_resolved",
+        "declared_label": "Agungi, Lagos",
+        "owner_member_id": "16d91597-13d2-4170-9ec1-bf0693c6be9f",
+        "resolution_status": "resolved",
+        "provider_namespace": "test-provider",
+        "resolution_version": "test-resolution-v1",
+        "provider_place_reference": "discovery-only-31-42bb2d5d-af07-4e18-8da4-189de47f2a46"
+      },
+      "table": "private.movement_location_references",
+      "fixture": "discovery-only-31",
+      "isolation": "read committed",
+      "clock_timestamp": "2026-10-04T16:36:38.133987+00:00",
+      "owner_endpoints": [
+        {
+          "id": "982a32f3-6e07-49be-b4f0-7aada548ca2b",
+          "latitude": null,
+          "longitude": null,
+          "created_at": "2026-10-04T16:36:38.10767+00:00",
+          "expires_at": null,
+          "resolved_at": null,
+          "source_kind": "member_selected",
+          "declared_label": "Agungi, Lagos",
+          "owner_member_id": "16d91597-13d2-4170-9ec1-bf0693c6be9f",
+          "resolution_status": "unresolved",
+          "provider_namespace": "test-provider",
+          "resolution_version": null,
+          "provider_place_reference": "discovery-only-31-42bb2d5d-af07-4e18-8da4-189de47f2a46"
+        }
+      ],
+      "synthetic_offsets": "server-owned created_at unchanged; endpoint proof -1 minute/expiry +4 hours; route +3 hours; match +2 hours; departure statement +1/+2 hours",
+      "expiry_check_clock": "",
+      "statement_timestamp": "2026-10-04T16:36:38.09935+00:00",
+      "creation_check_clock": "2026-10-04 16:36:38.132917+00",
+      "transaction_timestamp": "2026-10-04T16:36:38.061406+00:00"
+    }
+  },
+  "observed_failure": {
+    "validator": "private.protect_movement_context_record()",
+    "predicate": "NEW.created_at > clock_timestamp()",
+    "left": "2026-10-04T16:36:38.138255+00:00",
+    "right": "2026-10-04 16:36:38.132917+00",
+    "failed": true,
+    "delta_microseconds": 5338,
+    "delta_computed_by": "PostgreSQL interval arithmetic in --discovery-provenance",
+    "discovery_validator_reached": false,
+    "created_at_precision": 6,
+    "root_cause": "Earlier producer clock_timestamp value is 5338 microseconds greater than later creation-guard clock_timestamp value; origin of clock regression unknown"
+  }
+}

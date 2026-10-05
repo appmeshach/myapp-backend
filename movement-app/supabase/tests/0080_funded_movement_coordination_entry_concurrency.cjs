@@ -148,7 +148,7 @@ async function readinessRace(){
 async function meetingPointRace(){
  const f=fresh(),a=new Session(),b=new Session();await a.begin();await b.begin();await a.send(open(f));
  const pending=outcome(b.send(as(f,f.offerer,`SELECT * FROM public.set_my_movement_meeting_point('${f.need}','Station entrance',NULL);`)));
- await blocked(a,b);await a.send('COMMIT;');check(await pending,true);await b.send('COMMIT;');assert(b.out.includes('Station entrance'));assert(b.out.includes('|t|f|f'));finish(a,b,f,'meeting point waits construction canonical lock order');
+ await blocked(a,b);await a.send('COMMIT;');check(await pending,true);await b.send('COMMIT;');assert(b.out.includes('Station entrance'));assert(b.out.includes('|t|t|f'));assert.equal(target(`SELECT count(*) FROM private.funded_movement_start_requests WHERE alignment_id='${f.alignment}';`),'0');finish(a,b,f,'meeting point waits construction canonical lock order');
 }
 async function agreementRace(entryFirst){
  const f=fresh(),a=new Session(),b=new Session();await a.begin();await b.begin();

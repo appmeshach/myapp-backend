@@ -193,6 +193,9 @@ test('no operational callers or older migrations consume these tables', () => {
     'supabase/migrations/0080_funded_movement_coordination_entry.sql',
     // 0081 validates historical funded start without live capacity consumption.
     'supabase/migrations/0081_financial_movement_start.sql',
+    'supabase/migrations/0083_financial_movement_completion.sql',
+    // Audited temporal replacements preserve these exact historical bindings.
+    'supabase/migrations/0082_trusted_temporal_evidence_hardening.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);

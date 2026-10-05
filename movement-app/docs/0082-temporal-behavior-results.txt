@@ -1,0 +1,264 @@
+PASS temporal ingestion and attestation: 15 checks
+1|location sample used by admission equals both persisted attestations|t|
+2|route admission sample equals immutable created stamp|t|
+3|match admission sample equals immutable created stamp|t|
+4|location rejects genuine future external event|t|23514: Location resolution timestamps are invalid
+5|match rejects genuine future external event|t|23514: Trusted route-match calculation time is invalid
+6|plausible event cannot replace exact selected provider identity|t|23514: Location resolution must preserve provider selection identity
+7|plausible match time cannot substitute another route identity|t|23514: Trusted route-match calculation route is no longer current
+8|API cannot fabricate ordinal|t|42501: permission denied for schema private
+9|API cannot fabricate route attestation|t|42501: permission denied for table offering_route_evidence
+10|resolution attestation immutable|t|23514: Location resolution evidence is immutable
+11|route attestation immutable|t|23514: Offering route evidence fields are immutable
+12|match attestation immutable|t|23514: Trusted route-match evidence fields are immutable
+13|resolution survives exact captured 5338 microsecond lower evaluation clock|t|
+14|expired resolution cannot authorize new live action|t|23514: Location resolution timing or expiry is invalid
+15|exact wrong provider provenance denied|t|23514: Offering route evidence fields are immutable
+PASS normal construction with regressing producer clocks: 5 checks
+1|legacy operational behavior retained outside financial cutover|t|00000:
+2|normal construction accepts exact causal graph despite regressing independent clocks|t|
+3|regressed-clock graph exact replay preserves all IDs and stamps without writes|t|
+4|plausible materialization clocks cannot substitute snapshot identity|t|23514: Proposal requires exact movement context provenance
+5|plausible materialization clocks cannot substitute requester parent|t|23514: Proposal requires exact pricing quote provenance
+PASS temporal behavioral zero=false: 14 checks
+1|legacy operational behavior retained outside financial cutover|t|00000:
+2|higher ordinal failure with earlier wall time defeats older success|t|
+3|higher ordinal success with earlier wall time defeats older failure|t|
+4|exact face callback replay allocates nothing and writes nothing|t|
+5|ordinal immutable|t|23514: Face attempt ordinal is immutable
+6|sequence denied to every API role|t|
+7|private ordinal guard locked down|t|
+8|attestation and ordinal table writes denied|t|
+9|genuine future route input rejected|t|23514: Trusted route evidence generation time is invalid
+10|historical materialization survives lower synthetic evaluation clock|t|
+11|exact activation replay uses bound historical faces no ordinal no writes|t|
+12|live expired face denies new readiness|t|00000:
+13|wrong historical face binding rejected|t|00000:
+14|unexpected preexisting face history aborts before any ordinal backfill|t|23514: Temporal hardening requires an empty face history; no inferred ordinal backfill
+PASS temporal behavioral zero=true: 14 checks
+1|legacy operational behavior retained outside financial cutover|t|00000:
+2|higher ordinal failure with earlier wall time defeats older success|t|
+3|higher ordinal success with earlier wall time defeats older failure|t|
+4|exact face callback replay allocates nothing and writes nothing|t|
+5|ordinal immutable|t|23514: Face attempt ordinal is immutable
+6|sequence denied to every API role|t|
+7|private ordinal guard locked down|t|
+8|attestation and ordinal table writes denied|t|
+9|genuine future route input rejected|t|23514: Trusted route evidence generation time is invalid
+10|historical materialization survives lower synthetic evaluation clock|t|
+11|exact activation replay uses bound historical faces no ordinal no writes|t|
+12|live expired face denies new readiness|t|00000:
+13|wrong historical face binding rejected|t|00000:
+14|unexpected preexisting face history aborts before any ordinal backfill|t|23514: Temporal hardening requires an empty face history; no inferred ordinal backfill
+PASS impacted 0079_funded_movement_activation_test.sql: 47 checks
+1|legacy operational behavior retained outside financial cutover|t|00000:
+2|unfunded projection truthful read only|t|
+3|unfunded and identity incomplete rejected|t|
+4|only exact requester activates 6c3111bb-8bbe-4c2c-b2aa-a74396acb3d4|t|
+5|only exact requester activates 5dab162c-abf2-4d71-b77a-1a36d181c8d8|t|
+6|only exact requester activates 15a4f496-f75c-42b9-b6c9-cc90e96a23d6|t|
+7|missing auth denied|t|
+8|anon denied|t|
+9|service role denied|t|
+10|exact version enforced|t|
+11|NULL version denied|t|
+12|NULL agreement denied|t|
+13|typed invalid UUID denied|t|
+14|no preactivation reveal|t|
+15|face only cannot activate|t|00000:
+16|face only no reveal|t|
+17|receipt alone cannot substitute exact historical funding|t|00000:
+18|legacy create blocked with ready faces|t|23514: Financial movement requires funded activation
+19|legacy status refuses false monetary projection|t|00000:
+20|direct service activation cannot bypass receipt|t|23514: Funded activation receipt required
+21|direct legacy succeeded payment cannot bypass|t|23514: Financial movement requires funded activation
+22|funded identity-incomplete projection truthful|t|00000:
+23|funding alone no reveal|t|
+24|missing required readiness denies funded activation|t|00000:
+25|wrong media member binding denies activation|t|00000:
+26|wrong face member denies activation|t|00000:
+27|superseded latest attempt denies funded activation|t|00000:
+28|expired-at-activation face check denies|t|00000:
+29|first activation rejects superseded agreement|t|00000:
+30|ready projection truthful|t|
+31|partial activation receipt lacks exact roster evidence|t|23514: Exact historical activation face evidence required
+32|activation returns exact persisted status and instant|t|
+33|one activation receipt and exact required member evidence|t|
+34|activation no wallet or funding writes|t|
+35|no journey payment settlement revenue or payout|t|
+36|exact retry same IDs timestamp zero writes|t|
+37|activated projection authoritative|t|
+38|funded activation unlocks existing reveal|t|
+39|replacement and revocation do not break historical replay|t|00000:
+40|natural later face expiry preserves replay|t|00000:
+41|duplicate activation face evidence cannot be fabricated|t|23505: duplicate key value violates unique constraint "funded_movement_activation_fa_financial_agreement_id_face_v_key"
+42|malformed historical face fails closed|t|00000:
+43|receipt immutable|t|23514: Wallet ledger history is append-only
+44|face receipt immutable|t|23514: Wallet ledger history is append-only
+45|activation timestamp immutable|t|23514: Financial coordination lifecycle unavailable
+46|superseded agreement historical replay succeeds|t|00000:
+47|receipt tables have no API grants|t|
+PASS impacted 0080_funded_movement_coordination_entry_test.sql: 65 checks
+1|legacy operational behavior retained outside financial cutover|t|00000:
+2|unfunded nonactivated cannot construct|t|
+3|nonprincipal denied ae6b3c19-4792-4bba-a215-2284686f8188|t|
+4|nonprincipal denied b7e71357-9bba-49f6-a9a9-03a8c582a60c|t|
+5|anon denied|t|
+6|service_role denied|t|
+7|missing identity denied|t|
+8|unknown movement denied|t|
+9|funding and faces without activation cannot construct|t|
+10|activation remains explicit no automatic journey|t|
+11|requester readiness read only no construction|t|
+12|offerer readiness read only no construction|t|
+13|activated without entry no coordination|t|
+14|direct unproven journey denied|t|23514: Exact funded coordination provenance required
+15|rolled back constructor leaves no graph|t|00000:
+16|rollback construction absent|t|
+17|partial receipt cannot be repaired|t|00000:
+18|offerer can construct genuine entry|t|00000:
+19|only journey receipt changed across every application table|t|
+20|minimal exact safe response|t|
+21|one exact receipt|t|
+22|exact accepted historical vehicle|t|
+23|all lifecycle fields empty|t|
+24|trusted postactivation creation|t|
+25|no wallet funding writes|t|
+26|no legacy payment or settlement|t|
+27|principal replay identical zero writes 31e98c82-3401-44cb-8086-7a57ba9c8aee|t|
+28|principal replay identical zero writes 7571b9a7-baea-48ca-ae0b-97069fae657c|t|
+29|meeting point reflects 0081 offerer authority without starting|t|
+30|requester meeting point revision|t|
+31|invited read but no principal controls|t|
+32|invited cannot mutate meeting point|t|
+33|unrelated coordination hidden|t|
+34|service legacy lifecycle denied request_journey_start|t|
+35|service legacy lifecycle denied confirm_journey_start|t|
+36|service legacy lifecycle denied request_journey_completion|t|
+37|service legacy lifecycle denied confirm_journey_completion|t|
+38|service legacy lifecycle denied request_movement_end|t|
+39|service legacy lifecycle denied confirm_movement_end|t|
+40|service legacy lifecycle denied decline_movement_end|t|
+41|current lifecycle denied request_my_movement_start|t|
+42|current lifecycle denied confirm_my_movement_start|t|
+43|current lifecycle denied request_my_movement_end|t|
+44|current lifecycle denied confirm_my_movement_end|t|
+45|current lifecycle denied decline_my_movement_end|t|
+46|direct journey transition denied in_progress|t|23514: Financial coordination lifecycle unavailable
+47|direct alignment transition denied in_progress|t|23514: Financial coordination lifecycle unavailable
+48|direct journey transition denied completed|t|23514: Financial coordination lifecycle unavailable
+49|direct alignment transition denied completed|t|23514: Financial coordination lifecycle unavailable
+50|direct journey transition denied cancelled|t|23514: Financial coordination lifecycle unavailable
+51|direct alignment transition denied cancelled|t|23514: Financial coordination lifecycle unavailable
+52|direct journey transition denied failed|t|23514: Financial coordination lifecycle unavailable
+53|direct alignment transition denied failed|t|23514: Financial coordination lifecycle unavailable
+54|direct start request denied|t|23514: Financial coordination lifecycle unavailable
+55|direct end request denied|t|23514: Financial coordination lifecycle unavailable
+56|direct vehicle rebind denied|t|23514: Financial coordination lifecycle unavailable
+57|receipt append only|t|23514: Wallet ledger history is append-only
+58|journey cannot delete|t|23514: Financial coordination lifecycle unavailable
+59|legacy settlement direct denied|t|23514: Financial legacy settlement unavailable
+60|wrong accepted vehicle fails replay|t|23514: Funded accepted offer is immutable
+61|malformed activation fails replay|t|00000:
+62|not started excluded active recovery|t|
+63|receipt no API grants|t|
+64|duplicate receipt history rejected|t|23505: duplicate key value violates unique constraint "funded_movement_coordination_entries_alignment_id_key"
+65|direct service writer no lifecycle bypass|t|
+PASS impacted 0081_financial_movement_start_test.sql: 96 checks
+1|legacy operational behavior retained outside financial cutover|t|00000:
+2|unfunded nonactivated denied|t|
+3|nonofferer preactivation denied 08939c0a-5314-4a93-96c8-f68c9db6c9e4|t|
+4|nonofferer preactivation denied c13bde50-f68f-448a-b697-30fe05f5a3c9|t|
+5|nonofferer preactivation denied afc6a1be-7fd5-4712-98cf-84f40f7d0cc1|t|
+6|anon request denied|t|
+7|anon confirm denied|t|
+8|service_role request denied|t|
+9|service_role confirm denied|t|
+10|missing identity denied|t|
+11|unknown need denied|t|
+12|held without activation denied|t|
+13|activation without coordination denied|t|
+14|no meeting point denied|t|
+15|premature requester confirmation denied|t|
+16|request exact offerer 08939c0a-5314-4a93-96c8-f68c9db6c9e4|t|
+17|request exact offerer c13bde50-f68f-448a-b697-30fe05f5a3c9|t|
+18|request exact offerer 1cb1fe64-4571-40e5-a18e-4c62316df528|t|
+19|confirm exact requester a114d65c-5f24-4da4-aa72-d6ddcddb3af5|t|
+20|confirm exact requester c13bde50-f68f-448a-b697-30fe05f5a3c9|t|
+21|confirm exact requester fb81a330-b192-439b-80b9-9fac90fa309f|t|
+22|backend funded request capability|t|
+23|not started excluded active recovery|t|
+24|rollback request then retry|t|00000:
+25|rollback no request|t|
+26|partial request fails closed|t|00000:
+27|arbitrary unproven first request rejected|t|23514: Financial coordination lifecycle unavailable
+28|arbitrary unproven first start rejected|t|23514: Financial coordination lifecycle unavailable
+29|arbitrary unproven alignment start rejected|t|23514: Financial coordination lifecycle unavailable
+30|request completeness enforced immediately|t|23514: Exact frozen meeting point and start request required
+31|request exact single immutable provenance|t|
+32|request freezes controls not started|t|
+33|request keeps alignment activated|t|
+34|request no other side effects across every table|t|
+35|request replay exact zero writes|t|
+36|only requester confirm capability|t|
+37|normal meeting edit frozen|t|
+38|trusted meeting edit frozen|t|23514: Financial start meeting point is frozen
+39|trusted meeting delete frozen|t|23514: Financial start meeting point is frozen
+40|rollback confirm then retry|t|00000:
+41|rollback no start|t|
+42|partial confirmation fails closed|t|00000:
+43|unproven start after request rejected|t|23514: Financial coordination lifecycle unavailable
+44|confirmation completeness enforced immediately|t|23514: Complete exact financial start required
+45|atomic journey alignment in progress|t|
+46|one authoritative exact started instant|t|
+47|confirmation no other side effects across every table|t|
+48|started projection controls off|t|
+49|confirm replay exact zero writes|t|
+50|request after start historical zero writes|t|
+51|entry replay after start same graph zero writes|t|
+52|superseded agreement historical replay|t|00000:
+53|direct journey transition denied not_started|t|23514: Financial coordination lifecycle unavailable
+54|direct alignment transition denied not_started|t|23514: Financial coordination lifecycle unavailable
+55|direct journey transition denied completed|t|23514: Financial coordination lifecycle unavailable
+56|direct alignment transition denied completed|t|23514: Financial coordination lifecycle unavailable
+57|direct journey transition denied cancelled|t|23514: Financial coordination lifecycle unavailable
+58|direct alignment transition denied cancelled|t|23514: Financial coordination lifecycle unavailable
+59|direct journey transition denied failed|t|23514: Financial coordination lifecycle unavailable
+60|direct alignment transition denied failed|t|23514: Financial coordination lifecycle unavailable
+61|direct timestamp rewrite denied start_requested_at|t|23514: Financial coordination lifecycle unavailable
+62|direct timestamp rewrite denied started_at|t|23514: Financial coordination lifecycle unavailable
+63|direct timestamp rewrite denied completed_at|t|23514: Financial coordination lifecycle unavailable
+64|direct timestamp rewrite denied completion_requested_at|t|23514: Financial coordination lifecycle unavailable
+65|direct timestamp rewrite denied end_requested_at|t|23514: Financial coordination lifecycle unavailable
+66|direct timestamp rewrite denied end_confirmed_at|t|23514: Financial coordination lifecycle unavailable
+67|direct timestamp rewrite denied created_at|t|23514: Financial coordination lifecycle unavailable
+68|duplicate request receipt impossible|t|23514: Exact pre-start graph required
+69|duplicate confirmation receipt impossible|t|23514: Exact pre-start graph required
+70|activation timestamp immutable|t|23514: Financial coordination lifecycle unavailable
+71|vehicle binding immutable|t|23514: Financial coordination lifecycle unavailable
+72|journey deletion denied|t|23514: Financial coordination lifecycle unavailable
+73|offer withdrawal denied|t|23514: Funded accepted offer is immutable
+74|receipt append only funded_movement_start_requests|t|23514: Wallet ledger history is append-only
+75|receipt RLS no API grants funded_movement_start_requests|t|
+76|receipt append only funded_movement_starts|t|23514: Wallet ledger history is append-only
+77|receipt RLS no API grants funded_movement_starts|t|
+78|legacy lifecycle financial blocked request_journey_start|t|
+79|legacy lifecycle financial blocked confirm_journey_start|t|
+80|legacy lifecycle financial blocked request_journey_completion|t|
+81|legacy lifecycle financial blocked confirm_journey_completion|t|
+82|legacy lifecycle financial blocked request_movement_end|t|
+83|legacy lifecycle financial blocked confirm_movement_end|t|
+84|legacy lifecycle financial blocked decline_movement_end|t|
+85|old need wrapper financial blocked request_my_movement_start|t|
+86|old need wrapper financial blocked confirm_my_movement_start|t|
+87|old need wrapper financial blocked request_my_movement_end|t|
+88|old need wrapper financial blocked confirm_my_movement_end|t|
+89|old need wrapper financial blocked decline_my_movement_end|t|
+90|legacy settlement denied|t|23514: Financial legacy settlement unavailable
+91|genuine active recovery 08939c0a-5314-4a93-96c8-f68c9db6c9e4|t|
+92|genuine active recovery a114d65c-5f24-4da4-aa72-d6ddcddb3af5|t|
+93|unrelated active recovery denied|t|
+94|recovery reads no writes|t|
+95|invited readonly start projection|t|
+96|malformed activation replay fails closed|t|00000:
+PASS compatibility, cleanup and application fingerprint verification

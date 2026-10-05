@@ -1,0 +1,175 @@
+A — INSTALLED-MODE HARNESS AND COMPLETION VERIFICATION PASSED
+0082 SHA: 75cba03be6dc31d9869861ba53e50623d9756028d2b0be281ddac903d3b15351
+0083 SHA: c9df4dedc931b090b0615fc79c4af3bfc5cd51af66b28b05d42229d4e428a976
+Historical normalized SHA: 488e25e92fe84140b1300dbc8a58a3db6e7de21256a08dc01f4c9c5c4109d223
+All 81 raw hashes unchanged. TypeScript passed; diff check passed.
+Installed behavior: 50 executions, 100 variants, 7450 checks, no failures, fingerprint unchanged.
+Installed concurrency: 3 runs × 25 scenarios; 27 blocking proofs each; no deadlocks; cleanup/fingerprints unchanged.
+Source composition: real through-0081 clone → 0082 → 0083; final 32+12 catalog/ACL verified; 75+74 behavior checks; cleanup/fingerprint unchanged.
+No production SQL/roles/history/client changes, reinstall, staging, commit, push or remote change.
+
+focused:
+ℹ tests 100
+ℹ suites 0
+ℹ pass 100
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4261.4679
+
+full:
+ℹ tests 1648
+ℹ suites 0
+ℹ pass 1647
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 90263.9922
+
+completion:
+ℹ tests 63
+ℹ suites 0
+ℹ pass 63
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2626.604
+
+Exact files changed this task:
+supabase/tests/0082_financial_movement_completion_behavior.cjs
+supabase/tests/0082_financial_movement_completion_concurrency.cjs
+supabase/tests/0082_financial_movement_completion_constraint_mode_probe.cjs
+supabase/tests/0082_financial_movement_completion_harness.cjs
+supabase/tests/0082_financial_movement_completion_settlement_stress.cjs
+supabase/tests/0082_trusted_temporal_evidence_hardening_harness.cjs
+supabase/tests/0083_completion_harness_source_composition.cjs
+tests/financialMovementCompletion.test.cjs
+tests/completionHarnessModes.test.cjs
+docs/0082-prehardening-timestamp-diagnostics.txt
+docs/0083-completion-harness-compatibility.md
+docs/0083-harness-validation.cjs
+docs/0083-harness-database-results.json
+docs/0083-harness-focused-results.txt
+docs/0083-harness-full-results.txt
+docs/0083-harness-completion-results.txt
+docs/0083-harness-behavior-results.txt
+docs/0083-harness-validation.txt
+
+Complete git status --short:
+ M src/components/MeetingJourney.tsx
+ M src/services/completedMovementService.ts
+ M src/services/meetingJourneyService.ts
+ M src/services/movementService.ts
+ M src/state/fundedCoordinationEntryState.ts
+ M src/state/verificationState.ts
+ M supabase/tests/0048_offerer_interest_inbox.test.cjs
+ M supabase/tests/financial_agreement.test.cjs
+ M supabase/tests/financial_proposal.test.cjs
+ M supabase/tests/movement_context.test.cjs
+ M tests/financialMovementStart.test.cjs
+ M tests/financialProposalRequesterMaterialization.test.cjs
+ M tests/fundedMovementCoordinationEntry.test.cjs
+ M tests/meetingJourney.test.cjs
+ M tests/requesterMovementInterest.test.cjs
+ M tests/verificationClient.test.cjs
+?? ../gseller-app/
+?? ../gtransport-app/
+?? ../gzone-app/
+?? 0061-manual-review.txt
+?? 0062-behavioral-test-review.txt
+?? 0062-input-contract-review.txt
+?? 0062-route-contracts-review.txt
+?? 0062-runtime-review.txt
+?? docs/0059-pricing-geography-concurrency-results.json
+?? docs/0059-pricing-geography-sql-results.txt
+?? docs/0060-pricing-geography-concurrency-results.json
+?? docs/0082-client-focused-results.txt
+?? docs/0082-client-full-results.txt
+?? docs/0082-client-temporal-compatibility.md
+?? docs/0082-client-validation.cjs
+?? docs/0082-client-validation.txt
+?? docs/0082-constraint-mode-fix.md
+?? docs/0082-discovery-area-investigation.md
+?? docs/0082-discovery-area-stress-result.json
+?? docs/0082-fixture-timestamp-verification.md
+?? docs/0082-forensic-review.md
+?? docs/0082-prehardening-timestamp-diagnostics.txt
+?? docs/0082-proposal-evidence-investigation.md
+?? docs/0082-temporal-audit-catalog.json
+?? docs/0082-temporal-audit-inventory.cjs
+?? docs/0082-temporal-audit-inventory.json
+?? docs/0082-temporal-audit-origins.md
+?? docs/0082-temporal-behavior-results.json
+?? docs/0082-temporal-behavior-results.txt
+?? docs/0082-temporal-build.cjs
+?? docs/0082-temporal-concurrency-results.json
+?? docs/0082-temporal-existing-0080-concurrency-results.json
+?? docs/0082-temporal-external-model.cjs
+?? docs/0082-temporal-external-model.json
+?? docs/0082-temporal-external-review.md
+?? docs/0082-temporal-external-validation.txt
+?? docs/0082-temporal-focused-audit.cjs
+?? docs/0082-temporal-focused-evidence.json
+?? docs/0082-temporal-focused-review.md
+?? docs/0082-temporal-focused-validation.txt
+?? docs/0082-temporal-focused-writers.md
+?? docs/0082-temporal-hardening-audit.md
+?? docs/0082-temporal-hardening-implementation.md
+?? docs/0082-temporal-node-results.txt
+?? docs/0082-temporal-schema.sql
+?? docs/0082-temporal-targeted-results.txt
+?? docs/0082-temporal-validation.cjs
+?? docs/0082-temporal-validation.txt
+?? docs/0083-completion-harness-compatibility.md
+?? docs/0083-harness-behavior-results.txt
+?? docs/0083-harness-completion-results.txt
+?? docs/0083-harness-database-results.json
+?? docs/0083-harness-focused-results.txt
+?? docs/0083-harness-full-results.txt
+?? docs/0083-harness-validation.cjs
+?? docs/0083-harness-validation.txt
+?? docs/0083-numbering-client-results.txt
+?? docs/0083-numbering-completion-results.txt
+?? docs/0083-numbering-finalized.md
+?? docs/0083-numbering-focused-results.txt
+?? docs/0083-numbering-full-results.txt
+?? docs/0083-numbering-temporal-results.txt
+?? docs/0083-numbering-update.cjs
+?? docs/0083-numbering-validation.cjs
+?? docs/0083-numbering-validation.txt
+?? docs/MOVEMENT_SYSTEM_SPEC.md
+?? docs/financial-movement-completion.md
+?? src/app/register-vehicle.tsx
+?? src/components/FundedCompletion.tsx
+?? src/hooks/useFundedCompletion.ts
+?? src/services/fundedCompletionService.ts
+?? src/state/fundedCompletionController.ts
+?? supabase/.branches/
+?? supabase/migrations/0082_trusted_temporal_evidence_hardening.sql
+?? supabase/migrations/0083_financial_movement_completion.sql
+?? supabase/tests/0082_financial_movement_completion_behavior.cjs
+?? supabase/tests/0082_financial_movement_completion_concurrency.cjs
+?? supabase/tests/0082_financial_movement_completion_constraint_mode_probe.cjs
+?? supabase/tests/0082_financial_movement_completion_harness.cjs
+?? supabase/tests/0082_financial_movement_completion_settlement_stress.cjs
+?? supabase/tests/0082_financial_movement_completion_test.sql
+?? supabase/tests/0082_trusted_temporal_evidence_hardening_behavior.cjs
+?? supabase/tests/0082_trusted_temporal_evidence_hardening_concurrency.cjs
+?? supabase/tests/0082_trusted_temporal_evidence_hardening_harness.cjs
+?? supabase/tests/0082_trusted_temporal_evidence_hardening_test.sql
+?? supabase/tests/0082_trusted_temporal_existing_concurrency.cjs
+?? supabase/tests/0082_trusted_temporal_ingestion_test.sql
+?? supabase/tests/0082_trusted_temporal_materialization_test.sql
+?? supabase/tests/0083_completion_harness_source_composition.cjs
+?? tests/completionHarnessModes.test.cjs
+?? tests/financialMovementCompletion.test.cjs
+?? tests/migrationNumbering.test.cjs
+?? tests/temporalClientCompatibility.test.cjs
+?? tests/temporalHardeningAudit.test.cjs
+?? tests/trustedTemporalEvidenceHardening.test.cjs
+?? transport-geography-tooling-corrected-review.txt
+?? transport-geography-tooling-full-review.txt
+?? transport-geography-tooling-review.txt

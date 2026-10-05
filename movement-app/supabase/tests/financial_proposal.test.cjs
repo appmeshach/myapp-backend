@@ -257,6 +257,9 @@ test('only reviewed 0070, 0073, 0074, 0075 and 0076 migrations may consume propo
     'supabase/migrations/0080_funded_movement_coordination_entry.sql',
     // 0081 validates historical funded start without live capacity consumption.
     'supabase/migrations/0081_financial_movement_start.sql',
+    'supabase/migrations/0083_financial_movement_completion.sql',
+    // Audited temporal hardening retains proposal provenance and live deadlines.
+    'supabase/migrations/0082_trusted_temporal_evidence_hardening.sql',
   ]);
 
   for (const file of walk('supabase/migrations')) {

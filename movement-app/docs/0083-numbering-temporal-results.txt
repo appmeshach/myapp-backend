@@ -1,0 +1,37 @@
+✔ all historical migration bytes match the first audit capture (161.6744ms)
+✔ paused completion bytes are exactly preserved (1.813ms)
+✔ resolved private writers exclude direct API table and column writes (2.4807ms)
+✔ bounded external expiry is classified B rather than trusted default C (9.9976ms)
+✔ server timestamp ingestion boundaries are inaccessible to client roles (1.6601ms)
+✔ private explicit quota clocks are not public server inputs (2.099ms)
+✔ geography trusted producer uses one authoritative sample for both fields (1.0741ms)
+✔ installed face selectors exhibit the regressing-time counterexample (1.7365ms)
+✔ attempt production owns alignment then member lock before insertion (2.5716ms)
+✔ snapshot capture mode remains SELECT-only and exits before source loading (3.5349ms)
+✔ selection proof has an existing Edge skew allowance while DB remains strict (18.7903ms)
+✔ actual external adapter timestamps are server observations rather than provider claims (84.1004ms)
+✔ existing attestation columns and immutable private boundaries can be reused (2.4729ms)
+✔ provider-free timestamp families really have no external timestamp arguments (0.6517ms)
+✔ current location route and match writers show the captured sample separation (0.9372ms)
+✔ authored attestation model separates ingestion history and live expiry (0.9603ms)
+✔ exact forward replacement list names existing functions and only one new guard (3.4212ms)
+✔ route claim completion chronology is metadata not lease or token authority (0.9938ms)
+✔ exact audited scope; empty search paths and definer attributes retained (10.5534ms)
+✔ record_location_resolution_for_server persists its single authoritative admission sample (0.9626ms)
+✔ record_offering_route_evidence_for_server persists its single authoritative admission sample (0.4392ms)
+✔ record_trusted_route_match_evidence_for_server persists its single authoritative admission sample (0.3196ms)
+✔ sequence private, CACHE 1, positive unique immutable ordinal; no backfill (0.9215ms)
+✔ ordinal allocated after alignment/member locks, never max plus one (0.6584ms)
+✔ latest selectors use ordinal; historical activation validates receipt-bound face (0.9501ms)
+✔ current eligibility retained; historical replay does not resample clock (0.6005ms)
+✔ compatibility before cutover; no count assumptions or history mutation (0.9333ms)
+✔ historical migrations raw bytes and paused completion unchanged (264.4343ms)
+✔ source-only clone preserves ACLs and always cleans up independently (1.1105ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 637.8973

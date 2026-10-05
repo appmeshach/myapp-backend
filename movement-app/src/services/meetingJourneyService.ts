@@ -38,10 +38,8 @@ function project(value: unknown, extended: boolean): MeetingJourneyStatus {
     || (row.can_edit_meeting_point && (status !== 'not_started' || requested !== null))
     || (row.can_request_start && (status !== 'not_started' || requested !== null || text === null))
     || (row.can_confirm_start && (status !== 'not_started' || requested === null || text === null))) throw new Error('unavailable');
-  if (extended && row.start_authority === 'funded' && (status === 'completed'
-    || (started !== null && requested === null)
-    || (requested !== null && text === null)
-    || (started !== null && Date.parse(started as string) < Date.parse(requested as string)))) throw new Error('unavailable');
+  if (extended && row.start_authority === 'funded' && ((started !== null && requested === null)
+    || (requested !== null && text === null))) throw new Error('unavailable');
   return { startAuthority: extended ? row.start_authority as MeetingJourneyStatus['startAuthority'] : 'legacy',
     meetingPointText: text as string | null, meetingPointRevision: revision as number | null,
     journeyState: status as MeetingJourneyStatus['journeyState'], startRequestedAt: requested as string | null, startedAt: started as string | null,
@@ -75,7 +73,7 @@ export const confirmMovementStart = (need: string, signal: AbortSignal) => mutat
 async function fundedStart(name: string, need: string, signal: AbortSignal, confirm = false) {
   const result = await call(name, need, {}, signal, true);
   if (!result || result.startAuthority !== 'funded' || result.startRequestedAt === null
-    || (confirm && (result.journeyState !== 'in_progress' || result.startedAt === null))) throw new Error('unavailable');
+    || (confirm && (!['in_progress', 'completed'].includes(result.journeyState) || result.startedAt === null))) throw new Error('unavailable');
   return result;
 }
 export const requestMyFundedMovementStart = (need: string, signal: AbortSignal) => fundedStart('request_my_funded_movement_start', need, signal);

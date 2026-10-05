@@ -68,13 +68,13 @@ test('provider capture submission never implies success', () => {
   s = state.movementTransition(s,{ type:'capture_submitted' }); assert.equal(s.phase,'pending'); assert.equal(s.ownReady,false);
   s = movement(s,row('succeeded')); assert.equal(s.phase,'succeeded'); assert.equal(s.ownReady,true);
 });
-test('stale success cannot override newer pending', () => {
+test('fresh server-selected attempt accepts regressed expiry', () => {
   const s = movement(state.initialMovement,row('pending',newer));
-  assert.equal(movement(s,row('succeeded',future)),s);
+  assert.equal(movement(s,row('succeeded',future)).phase,'succeeded');
 });
-for (const phase of ['failed','expired']) test(`${phase} is terminal for same attempt but permits newer backend success`, () => {
+for (const phase of ['failed','expired']) test(`${phase} yields to fresh authoritative backend success`, () => {
   const s = movement(state.initialMovement,row(phase));
-  assert.equal(movement(s,row('succeeded')),s);
+  assert.equal(movement(s,row('succeeded')).phase,'succeeded');
   assert.equal(movement(s,row('succeeded',newer)).phase,'succeeded');
 });
 test('clock expiry clears readiness without network polling', () => {
@@ -288,12 +288,12 @@ test('foreground before provider promise settles refreshes afterward without get
   assert.equal(reads,1); assert.equal(c.getSnapshot().phase,'pending');
 });
 
-test('later attempts within one millisecond retain PostgreSQL ordering', () => {
+test('attempt ordering comes from backend even with regressed submillisecond expiry', () => {
   let s = movement(state.initialMovement,row('failed','2099-01-01T00:10:00.000001Z'));
   s = state.movementTransition(s,{type:'start'});
   s = state.movementTransition(s,{type:'session',expiresAt:'2099-01-01T00:10:00.000002+00:00'});
   s = state.movementTransition(s,{type:'capture_submitted'});
-  assert.equal(movement(s,row('succeeded','2099-01-01T00:10:00.000001Z')),s);
+  assert.equal(movement(s,row('succeeded','2099-01-01T00:10:00.000001Z')).phase,'succeeded');
   assert.equal(movement(s,row('succeeded','2099-01-01T00:10:00.000002Z')).phase,'succeeded');
 });
 

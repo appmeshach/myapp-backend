@@ -1,0 +1,188 @@
+{
+  "79": [
+    {
+      "name": "private.is_financial_alignment",
+      "owner": "0079"
+    },
+    {
+      "name": "private.funded_activation_agreement",
+      "owner": "0079"
+    },
+    {
+      "name": "private.assert_funded_activation",
+      "owner": "0082"
+    },
+    {
+      "name": "public.activate_my_funded_movement",
+      "owner": "0082"
+    },
+    {
+      "name": "public.get_my_movement_activation_status",
+      "owner": "0079"
+    },
+    {
+      "name": "private.reject_financial_activation_payment",
+      "owner": "0079"
+    },
+    {
+      "name": "private.require_funded_alignment_activation",
+      "owner": "0079"
+    },
+    {
+      "name": "private.has_funded_activation",
+      "owner": "0079"
+    },
+    {
+      "name": "public.create_alignment_activation_payment",
+      "owner": "0079"
+    },
+    {
+      "name": "public.mark_alignment_activation_payment_succeeded",
+      "owner": "0079"
+    },
+    {
+      "name": "public.get_my_activation_payment_status",
+      "owner": "0079"
+    },
+    {
+      "name": "public.create_journey_on_alignment_activation",
+      "owner": "0079"
+    },
+    {
+      "name": "private.post_activation_reveal_subjects",
+      "owner": "0079"
+    }
+  ],
+  "80": [
+    {
+      "name": "private.funded_coordination_alignment",
+      "owner": "0083"
+    },
+    {
+      "name": "private.assert_funded_coordination_entry",
+      "owner": "0083"
+    },
+    {
+      "name": "public.open_my_funded_movement_coordination",
+      "owner": "0080"
+    },
+    {
+      "name": "public.get_my_funded_movement_coordination_readiness",
+      "owner": "0080"
+    },
+    {
+      "name": "private.protect_financial_coordination_journey",
+      "owner": "0083"
+    },
+    {
+      "name": "private.protect_financial_coordination_alignment",
+      "owner": "0083"
+    },
+    {
+      "name": "private.protect_funded_coordination_offer",
+      "owner": "0080"
+    },
+    {
+      "name": "private.reject_financial_legacy_settlement",
+      "owner": "0080"
+    },
+    {
+      "name": "public.request_journey_start",
+      "owner": "0080"
+    },
+    {
+      "name": "public.confirm_journey_start",
+      "owner": "0080"
+    },
+    {
+      "name": "public.request_journey_completion",
+      "owner": "0080"
+    },
+    {
+      "name": "public.confirm_journey_completion",
+      "owner": "0080"
+    },
+    {
+      "name": "public.request_movement_end",
+      "owner": "0080"
+    },
+    {
+      "name": "public.confirm_movement_end",
+      "owner": "0080"
+    },
+    {
+      "name": "public.decline_movement_end",
+      "owner": "0080"
+    },
+    {
+      "name": "private.close_mutual_no_travel",
+      "owner": "0080"
+    },
+    {
+      "name": "public.request_my_movement_start",
+      "owner": "0080"
+    },
+    {
+      "name": "public.confirm_my_movement_start",
+      "owner": "0080"
+    },
+    {
+      "name": "private.movement_end_context",
+      "owner": "0080"
+    },
+    {
+      "name": "private.movement_coordination_context",
+      "owner": "0080"
+    },
+    {
+      "name": "public.get_my_movement_coordination_status",
+      "owner": "0081"
+    }
+  ],
+  "81": [
+    {
+      "name": "private.funded_coordination_alignment",
+      "owner": "0083"
+    },
+    {
+      "name": "private.assert_funded_coordination_entry",
+      "owner": "0083"
+    },
+    {
+      "name": "private.protect_financial_coordination_journey",
+      "owner": "0083"
+    },
+    {
+      "name": "private.protect_financial_coordination_alignment",
+      "owner": "0083"
+    },
+    {
+      "name": "private.protect_funded_start_meeting_point",
+      "owner": "0081"
+    },
+    {
+      "name": "private.require_funded_start_actor",
+      "owner": "0082"
+    },
+    {
+      "name": "private.validate_funded_start_graph",
+      "owner": "0081"
+    },
+    {
+      "name": "public.get_my_movement_coordination_status",
+      "owner": "0081"
+    },
+    {
+      "name": "public.get_my_movement_start_status",
+      "owner": "0081"
+    },
+    {
+      "name": "public.request_my_funded_movement_start",
+      "owner": "0081"
+    },
+    {
+      "name": "public.confirm_my_funded_movement_start",
+      "owner": "0081"
+    }
+  ]
+}

@@ -5,7 +5,8 @@ const {inspect}=require('./0080_funded_movement_coordination_entry_harness.cjs')
 const {query,snapshot}=require('./0074_trusted_financial_proposal_issuer_behavior.cjs');
 const read=p=>fs.readFileSync(path.join(__dirname,p),'utf8').replace(/\r\n/g,'\n');
 const migration=read('../migrations/0080_funded_movement_coordination_entry.sql');
-const migrationBody=migration.replace(/^BEGIN;\s*/,'').replace(/COMMIT;\s*$/,'');
+const historicalMigrationBody=migration.replace(/^BEGIN;\s*/,'').replace(/COMMIT;\s*$/,'');
+const migrationBody=require('./final_movement_regression_catalog.cjs').finalSourceBody(80);
 const live=read('0080_funded_movement_coordination_entry_test.sql');
 function fixtures(zero=false) {
  let base=baseFixtures(zero);
@@ -38,5 +39,5 @@ function main() {
   console.log('PASS 0080 behavioral variant zero='+zero);
  }} finally {assert.equal(query('postgres',snapshot),before,'0080 application data/catalog/ACL/RLS/history fully restored');console.log('PASS application fingerprint unchanged');}
 }
-module.exports={fixtures,migrationBody};
+module.exports={fixtures,migrationBody,historicalMigrationBody};
 if(require.main===module)try{main();}catch(e){console.error(e.stack);process.exitCode=1;}

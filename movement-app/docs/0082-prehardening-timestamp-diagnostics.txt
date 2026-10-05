@@ -1,0 +1,105 @@
+// Test-only instrumentation: preserve the historical producer's exact rejection
+// and print its otherwise inaccessible validation clock only on that rejection.
+// Definition replacement rolls back in source tests and exists only in the clone
+// for concurrency. No historical migration or persistent catalog is changed.
+const timestampDiagnostics = `DO $diagnostics$
+DECLARE definition text; marker text; replacement text;
+BEGIN
+ SELECT pg_get_functiondef(p.oid) INTO STRICT definition FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+  WHERE n.nspname='public' AND p.proname='record_attested_location_resolution_for_server' AND p.pronargs=15;
+ definition:=replace(definition,chr(13)||chr(10),chr(10));
+ marker:=E'THEN\n    RAISE EXCEPTION\n      USING\n        ERRCODE=''23514'',\n        MESSAGE=''Trusted provider resolution timestamps are invalid'';';
+ replacement:=E'THEN\n    RAISE NOTICE ''0082_LOCATION_DIAGNOSTIC=%'', jsonb_build_object(''fixture'',current_setting(''movement.fixture_scenario'',true),''table'',''private.movement_location_references'', ''producer_request_id'',p_producer_request_id,''source_row'',to_jsonb(v_source),''synthetic_offsets'',''selected proof anchor -1 minute; expiry anchor +4 hours; resolution persisted parent created_at; requested expiry selection anchor +4 hours'', ''source_id'',p_source_location_reference_id,''selected_created_at'',v_source.created_at,''resolved_at'',p_resolved_at,''producer_v_now'',v_now,''expires_at'',p_expires_at,''clock_timestamp'',clock_timestamp(),''transaction_timestamp'',transaction_timestamp(),''statement_timestamp'',statement_timestamp(),''isolation'',current_setting(''transaction_isolation''));\n    RAISE EXCEPTION\n      USING\n        ERRCODE=''23514'',\n        MESSAGE=''Trusted provider resolution timestamps are invalid'';';
+ IF strpos(definition,'0082_LOCATION_DIAGNOSTIC')=0 THEN
+  IF strpos(definition,marker)=0 THEN RAISE EXCEPTION 'Timestamp diagnostic producer source drift'; END IF;
+  EXECUTE replace(definition,marker,replacement);
+ END IF;
+END $diagnostics$;
+-- Capture the exact clock values used by the inherited generic creation guard.
+-- This wrapper returns its argument unchanged, preserving both predicates.
+CREATE OR REPLACE FUNCTION private.completion_fixture_clock(value timestamptz,label text)
+RETURNS timestamptz LANGUAGE plpgsql AS $clock$
+BEGIN
+ IF label='created' THEN PERFORM set_config('movement.fixture_expiry_clock','',true); END IF;
+ PERFORM set_config('movement.fixture_'||label||'_clock',value::text,true); RETURN value;
+END $clock$;
+CREATE OR REPLACE FUNCTION private.completion_fixture_proposal_sources(p private.financial_proposals)
+RETURNS jsonb LANGUAGE sql AS $sources$
+ SELECT jsonb_build_object(
+  'snapshot',to_jsonb(s),'quote',to_jsonb(q),'pricing_geography',to_jsonb(g),
+  'offer_binding',to_jsonb(rb),'match',to_jsonb(m),'route',to_jsonb(r),
+  'locations',(SELECT jsonb_agg(to_jsonb(l)) FROM private.movement_location_references l WHERE l.owner_member_id IN(p.member_needing_movement_id,p.offering_member_id)),
+  'provider_resolution',(SELECT jsonb_agg(to_jsonb(e)) FROM private.movement_location_resolution_evidence e JOIN private.movement_location_references l ON l.id=e.resolved_location_reference_id WHERE l.owner_member_id IN(p.member_needing_movement_id,p.offering_member_id)),
+  'provider_state',(SELECT jsonb_agg(to_jsonb(e)) FROM private.trusted_location_state_evidence e JOIN private.movement_location_references l ON l.id=e.resolved_location_reference_id WHERE l.owner_member_id IN(p.member_needing_movement_id,p.offering_member_id)))
+ FROM private.movement_context_snapshots s
+ LEFT JOIN private.pricing_quotes q ON q.id=p.pricing_quote_id
+ LEFT JOIN private.pricing_geography_evidence g ON g.id=q.pricing_geography_evidence_id
+ LEFT JOIN private.movement_offer_route_match_bindings rb ON rb.movement_offer_id=s.movement_offer_id
+ LEFT JOIN private.trusted_route_match_evidence m ON m.id=rb.route_match_evidence_id
+ LEFT JOIN private.offering_route_evidence r ON r.id=m.route_evidence_id
+ WHERE s.id=p.movement_context_snapshot_id;
+$sources$;
+DO $creation_diagnostics$
+DECLARE definition text; marker text;
+BEGIN
+ definition:=replace(pg_get_functiondef('private.protect_movement_context_record()'::regprocedure),chr(13)||chr(10),chr(10));
+ IF strpos(definition,'0082_CREATION_DIAGNOSTIC')=0 THEN
+  marker:='NEW.created_at>clock_timestamp() OR (NEW.expires_at IS NOT NULL AND NEW.expires_at<=clock_timestamp())';
+  IF strpos(definition,marker)=0 THEN RAISE EXCEPTION 'Creation diagnostic guard source drift'; END IF;
+  definition:=replace(definition,marker,'NEW.created_at>private.completion_fixture_clock(clock_timestamp(),''created'') OR (NEW.expires_at IS NOT NULL AND NEW.expires_at<=private.completion_fixture_clock(clock_timestamp(),''expiry''))');
+  marker:='RAISE EXCEPTION USING ERRCODE=''23514'',MESSAGE=''Movement context creation time or expiry is invalid'';';
+  definition:=replace(definition,marker,'RAISE NOTICE ''0082_CREATION_DIAGNOSTIC=%'',jsonb_build_object(''fixture'',current_setting(''movement.fixture_scenario'',true),''table'',TG_TABLE_SCHEMA||''.''||TG_TABLE_NAME,''row'',to_jsonb(NEW),''synthetic_offsets'',''server-owned created_at unchanged; endpoint proof -1 minute/expiry +4 hours; route +3 hours; match +2 hours; departure statement +1/+2 hours'', ''owner_endpoints'',(SELECT jsonb_agg(to_jsonb(l)) FROM private.movement_location_references l WHERE l.owner_member_id=coalesce((to_jsonb(NEW)->>''owner_member_id'')::uuid,(to_jsonb(NEW)->>''offering_member_id'')::uuid)),''creation_check_clock'',current_setting(''movement.fixture_created_clock'',true),''expiry_check_clock'',current_setting(''movement.fixture_expiry_clock'',true),''clock_timestamp'',clock_timestamp(),''transaction_timestamp'',transaction_timestamp(),''statement_timestamp'',statement_timestamp(),''isolation'',current_setting(''transaction_isolation'')); '||marker);
+  EXECUTE definition;
+ END IF;
+END $creation_diagnostics$;
+-- Capture a later inherited materialization rejection without changing its
+-- three short-circuit timestamp comparisons or the original SQLSTATE.
+DO $proposal_diagnostics$
+DECLARE definition text; marker text;
+BEGIN
+ definition:=replace(pg_get_functiondef('private.protect_financial_proposal()'::regprocedure),chr(13)||chr(10),chr(10));
+ IF strpos(definition,'0082_PROPOSAL_DIAGNOSTIC')=0 THEN
+  marker:=E'IF NEW.offering_accepted_at>clock_timestamp() OR NEW.requester_accepted_at>clock_timestamp()\n      OR NEW.materialized_at>clock_timestamp() THEN';
+  IF strpos(definition,marker)=0 THEN RAISE EXCEPTION 'Proposal timestamp diagnostic source drift'; END IF;
+  definition:=replace(definition,marker,E'PERFORM set_config(''movement.fixture_offering_clock'','''',true); PERFORM set_config(''movement.fixture_requester_clock'','''',true); PERFORM set_config(''movement.fixture_materialization_clock'','''',true);\n    IF NEW.offering_accepted_at>private.completion_fixture_clock(clock_timestamp(),''offering'') OR NEW.requester_accepted_at>private.completion_fixture_clock(clock_timestamp(),''requester'')\n      OR NEW.materialized_at>private.completion_fixture_clock(clock_timestamp(),''materialization'') THEN');
+  marker:='RAISE EXCEPTION USING ERRCODE=''23514'',MESSAGE=''Proposal evidence cannot be future-dated'';';
+  definition:=replace(definition,marker,'RAISE NOTICE ''0082_PROPOSAL_DIAGNOSTIC=%'',jsonb_build_object(''fixture'',current_setting(''movement.fixture_scenario'',true),''table'',''private.financial_proposals'',''row'',to_jsonb(NEW),''previous'',to_jsonb(OLD),''snapshot'',(SELECT to_jsonb(diagnostic_snapshot) FROM private.movement_context_snapshots diagnostic_snapshot WHERE diagnostic_snapshot.id=NEW.movement_context_snapshot_id),''quote'',(SELECT to_jsonb(q) FROM private.pricing_quotes q WHERE q.id=NEW.pricing_quote_id),''offering_check_clock'',current_setting(''movement.fixture_offering_clock'',true),''requester_check_clock'',current_setting(''movement.fixture_requester_clock'',true),''materialization_check_clock'',current_setting(''movement.fixture_materialization_clock'',true),''clock_timestamp'',clock_timestamp(),''statement_timestamp'',statement_timestamp(),''transaction_timestamp'',transaction_timestamp(),''isolation'',current_setting(''transaction_isolation''),''synthetic_offsets'',CASE WHEN current_setting(''movement.fixture_scenario'',true)=''intentional-future-proposal-diagnostic'' THEN ''intentional negative test: offering consent clock +1 hour'' ELSE ''none: materialization timestamps owned by normal 0077 producer'' END,''evidence_chain'',private.completion_fixture_proposal_sources(NEW),''failed_predicates'',jsonb_build_object(''offering_accepted_at'',NEW.offering_accepted_at>nullif(current_setting(''movement.fixture_offering_clock'',true),'''')::timestamptz,''requester_accepted_at'',NEW.requester_accepted_at>nullif(current_setting(''movement.fixture_requester_clock'',true),'''')::timestamptz,''materialized_at'',NEW.materialized_at>nullif(current_setting(''movement.fixture_materialization_clock'',true),'''')::timestamptz),''deltas_microseconds'',jsonb_build_object(''offering_accepted_at'',extract(epoch FROM (NEW.offering_accepted_at-nullif(current_setting(''movement.fixture_offering_clock'',true),'''')::timestamptz))*1000000,''requester_accepted_at'',extract(epoch FROM (NEW.requester_accepted_at-nullif(current_setting(''movement.fixture_requester_clock'',true),'''')::timestamptz))*1000000,''materialized_at'',extract(epoch FROM (NEW.materialized_at-nullif(current_setting(''movement.fixture_materialization_clock'',true),'''')::timestamptz))*1000000)); '||marker);
+  EXECUTE definition;
+ END IF;
+END $proposal_diagnostics$;
+CREATE OR REPLACE FUNCTION private.completion_fixture_discovery_matrix(d private.trusted_location_discovery_areas,e private.movement_location_resolution_evidence,r private.movement_location_references,check_clock timestamptz) RETURNS jsonb LANGUAGE sql AS $matrix$
+ SELECT jsonb_build_array(
+ jsonb_build_object('predicate','resolution_id','failed',e.resolved_location_reference_id IS DISTINCT FROM d.resolved_location_reference_id,'left',e.resolved_location_reference_id,'right_expected',d.resolved_location_reference_id),
+ jsonb_build_object('predicate','source_kind','failed',r.source_kind IS DISTINCT FROM 'provider_resolved','left',r.source_kind,'right_expected','provider_resolved'),
+ jsonb_build_object('predicate','resolution_status','failed',r.resolution_status IS DISTINCT FROM 'resolved','left',r.resolution_status,'right_expected','resolved'),
+ jsonb_build_object('predicate','latitude_missing','failed',r.latitude IS NULL,'left',r.latitude,'right_expected','non-null'),
+ jsonb_build_object('predicate','longitude_missing','failed',r.longitude IS NULL,'left',r.longitude,'right_expected','non-null'),
+ jsonb_build_object('predicate','provider_namespace_missing','failed',r.provider_namespace IS NULL,'left',r.provider_namespace,'right_expected','non-null'),
+ jsonb_build_object('predicate','provider_place_reference_missing','failed',r.provider_place_reference IS NULL,'left',r.provider_place_reference,'right_expected','non-null'),
+ jsonb_build_object('predicate','resolution_version_missing','failed',r.resolution_version IS NULL,'left',r.resolution_version,'right_expected','non-null'),
+ jsonb_build_object('predicate','schema','failed',d.schema_version IS DISTINCT FROM 'trusted_location_discovery_area_v1','left',d.schema_version,'right_expected','trusted_location_discovery_area_v1'),
+ jsonb_build_object('predicate','label_trim','failed',d.discovery_area_label IS DISTINCT FROM btrim(d.discovery_area_label),'left',d.discovery_area_label,'right_expected',btrim(d.discovery_area_label)),
+ jsonb_build_object('predicate','label_length','failed',length(d.discovery_area_label) NOT BETWEEN 1 AND 500,'left',length(d.discovery_area_label),'right_expected','1..500'),
+ jsonb_build_object('predicate','label_empty','failed',d.discovery_area_label !~ '[^[:space:]]','left',d.discovery_area_label,'right_expected','contains non-whitespace'),
+ jsonb_build_object('predicate','recorded_nonfinite','failed',NOT isfinite(d.recorded_at),'left',d.recorded_at,'right_expected','finite'),
+ jsonb_build_object('predicate','before_parent','failed',d.recorded_at<e.recorded_at,'left',d.recorded_at,'right_expected',e.recorded_at),
+ jsonb_build_object('predicate','future','failed',d.recorded_at>check_clock,'left',d.recorded_at,'right_expected',check_clock)
+ );
+$matrix$;
+DO $discovery_diagnostics$
+DECLARE definition text; marker text;
+BEGIN
+ definition:=replace(pg_get_functiondef('private.assert_trusted_location_discovery_area(uuid)'::regprocedure),chr(13)||chr(10),chr(10));
+ IF strpos(definition,'0082_DISCOVERY_DIAGNOSTIC')=0 THEN
+  marker:=E'  IF\\n    e.resolved_location_reference_id';
+  IF strpos(definition,marker)=0 THEN RAISE EXCEPTION 'Discovery diagnostic guard source drift'; END IF;
+  definition:=replace(definition,marker,E'  PERFORM set_config(''movement.fixture_discovery_clock'','''',true);\\n  IF\\n    e.resolved_location_reference_id');
+  marker:='OR d.recorded_at > clock_timestamp()';
+  IF strpos(definition,marker)=0 THEN RAISE EXCEPTION 'Discovery diagnostic clock source drift'; END IF;
+  definition:=replace(definition,marker,'OR d.recorded_at > private.completion_fixture_clock(clock_timestamp(),''discovery'')');
+  marker:=E'RAISE EXCEPTION\\n      USING ERRCODE=''23514'',\\n      MESSAGE=''Trusted location discovery area evidence is invalid'';';
+  IF strpos(definition,marker)=0 THEN RAISE EXCEPTION 'Discovery diagnostic exception source drift'; END IF;
+  definition:=replace(definition,marker,'RAISE NOTICE ''0082_DISCOVERY_DIAGNOSTIC=%'',jsonb_build_object(''fixture'',current_setting(''movement.fixture_scenario'',true),''table'',''private.trusted_location_discovery_areas'',''discovery'',to_jsonb(d),''resolution'',to_jsonb(e),''resolved_location'',to_jsonb(r),''selected_location'',(SELECT to_jsonb(l) FROM private.movement_location_references l WHERE l.id=e.source_location_reference_id),''check_clock'',current_setting(''movement.fixture_discovery_clock'',true),''clock_timestamp'',clock_timestamp(),''statement_timestamp'',statement_timestamp(),''transaction_timestamp'',transaction_timestamp(),''isolation'',current_setting(''transaction_isolation''),''recording_delta_from_parent_microseconds'',extract(epoch FROM (d.recorded_at-e.recorded_at))*1000000,''future_delta_microseconds'',extract(epoch FROM (d.recorded_at-nullif(current_setting(''movement.fixture_discovery_clock'',true),'''')::timestamptz))*1000000,''label_length'',length(d.discovery_area_label),''timestamp_provenance'',''resolution recorded_at: 0026 explicit v_now=clock_timestamp; discovery recorded_at: 0040 DB default clock_timestamp; validator: fresh clock_timestamp; separate internal SQL statements, same transaction; no Node timestamp round-trip'', ''predicate_matrix'',private.completion_fixture_discovery_matrix(d,e,r,nullif(current_setting(''movement.fixture_discovery_clock'',true),'''')::timestamptz),''predicates'',jsonb_build_object(''resolution_id'',e.resolved_location_reference_id IS DISTINCT FROM d.resolved_location_reference_id,''source_kind'',r.source_kind IS DISTINCT FROM ''provider_resolved'',''resolution_status'',r.resolution_status IS DISTINCT FROM ''resolved'',''latitude_missing'',r.latitude IS NULL,''longitude_missing'',r.longitude IS NULL,''namespace_missing'',r.provider_namespace IS NULL,''place_missing'',r.provider_place_reference IS NULL,''version_missing'',r.resolution_version IS NULL,''schema'',d.schema_version IS DISTINCT FROM ''trusted_location_discovery_area_v1'',''label_trim'',d.discovery_area_label IS DISTINCT FROM btrim(d.discovery_area_label),''label_length'',length(d.discovery_area_label) NOT BETWEEN 1 AND 500,''label_empty'',d.discovery_area_label !~ ''[^[:space:]]'',''recorded_nonfinite'',NOT isfinite(d.recorded_at),''before_parent'',d.recorded_at<e.recorded_at,''future'',d.recorded_at>nullif(current_setting(''movement.fixture_discovery_clock'',true),'''')::timestamptz)); '||marker);
+  EXECUTE definition;
+ END IF;
+END $discovery_diagnostics$;`;
