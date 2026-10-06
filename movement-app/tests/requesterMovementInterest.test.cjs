@@ -2504,6 +2504,7 @@ function completedUI(
     load(
       'src/components/CompletedMovements.tsx',
       {
+        './CompletedMovementReputation': { CompletedMovementReputation: 'CompletedMovementReputation' },
         'react-native': {
           View:
             'View',

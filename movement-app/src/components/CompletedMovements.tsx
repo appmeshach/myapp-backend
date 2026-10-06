@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 import { useCompletedMovements } from '../hooks/useCompletedMovements';
 import type { CompletedMovementRecovery } from '../services/completedMovementService';
+import { CompletedMovementReputation } from './CompletedMovementReputation';
 
 function settlementCopy(row: CompletedMovementRecovery): string {
   switch (row.settlementStatus) {
@@ -25,6 +26,7 @@ export function CompletedMovements() {
       <Text>{row.settlementIsForMe ? 'Settlement for you' : 'Settlement'}</Text>
       <Text>{settlementCopy(row)}</Text>
       {row.settledAt && <Text>Settled {new Date(row.settledAt).toLocaleString()}</Text>}
+      <CompletedMovementReputation movementNeedId={row.movementNeedId} />
     </View>)}
     {state.phase !== 'signed_out' && <Pressable accessibilityRole="button" disabled={state.phase === 'loading'} onPress={() => { void refresh(); }}>
       <Text>{state.phase === 'error' ? 'Retry completed movements' : 'Refresh completed movements'}</Text>

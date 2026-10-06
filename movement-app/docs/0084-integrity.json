@@ -1,0 +1,18 @@
+{
+  "0082_trusted_temporal_evidence_hardening.sql": {
+    "workingRaw": "5b9eb6e47d5e7912f26572d79cab16d260a9539552208986ca142ee64c8ed627",
+    "normalized": "75cba03be6dc31d9869861ba53e50623d9756028d2b0be281ddac903d3b15351",
+    "committedRaw": "75cba03be6dc31d9869861ba53e50623d9756028d2b0be281ddac903d3b15351"
+  },
+  "0083_financial_movement_completion.sql": {
+    "workingRaw": "701da37c49e9e74cfbfc654698d4c57157aa39cf259d3df43ceee2632c9a4604",
+    "normalized": "c9df4dedc931b090b0615fc79c4af3bfc5cd51af66b28b05d42229d4e428a976",
+    "committedRaw": "c9df4dedc931b090b0615fc79c4af3bfc5cd51af66b28b05d42229d4e428a976"
+  },
+  "0084_completed_movement_reputation.sql": {
+    "workingRaw": "f18dabb6f74f4cdb41118d2e9cc58292aaf6d706b051c7a1d1679e4f25f8f2ef",
+    "normalized": "f18dabb6f74f4cdb41118d2e9cc58292aaf6d706b051c7a1d1679e4f25f8f2ef"
+  },
+  "historicalNormalized": "488e25e92fe84140b1300dbc8a58a3db6e7de21256a08dc01f4c9c5c4109d223",
+  "historicalRawUnchanged": true
+}
