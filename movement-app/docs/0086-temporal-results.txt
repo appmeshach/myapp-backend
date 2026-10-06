@@ -1,0 +1,87 @@
+PASS equal_coordination opens through normal authenticated RPC
+PASS equal_coordination controlled observation relationship actually holds
+PASS equal_coordination history retains exact opening metadata with observation interval '0 seconds'
+PASS equal_coordination exact replay still succeeds
+PASS equal_coordination replay and read write nothing
+PASS equal_coordination history retains exact opening metadata with observation interval '1 second'
+PASS equal_coordination exact replay still succeeds
+PASS equal_coordination replay and read write nothing
+PASS equal_coordination history retains exact opening metadata with observation interval '1 day'
+PASS equal_coordination exact replay still succeeds
+PASS equal_coordination replay and read write nothing
+PASS equal_coordination freeze still blocks confirm_my_funded_movement_start
+PASS equal_coordination freeze still blocks confirm_my_movement_end
+PASS equal_coordination freeze still blocks request_my_funded_movement_completion
+PASS equal_coordination freeze still blocks confirm_my_funded_movement_completion
+PASS equal_coordination all money/components/member rows unchanged
+PASS equal_coordination changed reason rejected
+PASS equal_coordination changed actor rejected
+PASS equal_coordination conflicting replays write nothing
+PASS regressed_coordination opens through normal authenticated RPC
+PASS regressed_coordination controlled observation relationship actually holds
+PASS regressed_coordination history retains exact opening metadata with observation interval '0 seconds'
+PASS regressed_coordination exact replay still succeeds
+PASS regressed_coordination replay and read write nothing
+PASS regressed_coordination history retains exact opening metadata with observation interval '1 second'
+PASS regressed_coordination exact replay still succeeds
+PASS regressed_coordination replay and read write nothing
+PASS regressed_coordination history retains exact opening metadata with observation interval '1 day'
+PASS regressed_coordination exact replay still succeeds
+PASS regressed_coordination replay and read write nothing
+PASS regressed_coordination freeze still blocks confirm_my_funded_movement_start
+PASS regressed_coordination freeze still blocks confirm_my_movement_end
+PASS regressed_coordination freeze still blocks request_my_funded_movement_completion
+PASS regressed_coordination freeze still blocks confirm_my_funded_movement_completion
+PASS regressed_coordination all money/components/member rows unchanged
+PASS regressed_coordination changed reason rejected
+PASS regressed_coordination changed actor rejected
+PASS regressed_coordination conflicting replays write nothing
+PASS later_clock_regression opens through normal authenticated RPC
+PASS later_clock_regression controlled observation relationship actually holds
+PASS later actual database clock numerically precedes valid observed opening
+PASS later_clock_regression history retains exact opening metadata with observation interval '0 seconds'
+PASS later_clock_regression exact replay still succeeds
+PASS later_clock_regression replay and read write nothing
+PASS later_clock_regression history retains exact opening metadata with observation interval '1 second'
+PASS later_clock_regression exact replay still succeeds
+PASS later_clock_regression replay and read write nothing
+PASS later_clock_regression history retains exact opening metadata with observation interval '1 day'
+PASS later_clock_regression exact replay still succeeds
+PASS later_clock_regression replay and read write nothing
+PASS later_clock_regression freeze still blocks confirm_my_funded_movement_start
+PASS later_clock_regression freeze still blocks confirm_my_movement_end
+PASS later_clock_regression freeze still blocks request_my_funded_movement_completion
+PASS later_clock_regression freeze still blocks confirm_my_funded_movement_completion
+PASS later_clock_regression all money/components/member rows unchanged
+PASS later_clock_regression changed reason rejected
+PASS later_clock_regression changed actor rejected
+PASS later_clock_regression conflicting replays write nothing
+PASS history_below_coordination opens through normal authenticated RPC
+PASS history_below_coordination controlled observation relationship actually holds
+PASS active review bypasses later-clock historical rejection in unchanged 0085 paths
+PASS history_below_coordination history retains exact opening metadata with observation interval '0 seconds'
+PASS history_below_coordination exact replay still succeeds
+PASS history_below_coordination replay and read write nothing
+PASS history_below_coordination history retains exact opening metadata with observation interval '1 second'
+PASS history_below_coordination exact replay still succeeds
+PASS history_below_coordination replay and read write nothing
+PASS history_below_coordination history retains exact opening metadata with observation interval '1 day'
+PASS history_below_coordination exact replay still succeeds
+PASS history_below_coordination replay and read write nothing
+PASS history_below_coordination freeze still blocks confirm_my_funded_movement_start
+PASS history_below_coordination freeze still blocks confirm_my_movement_end
+PASS history_below_coordination freeze still blocks request_my_funded_movement_completion
+PASS history_below_coordination freeze still blocks confirm_my_funded_movement_completion
+PASS history_below_coordination all money/components/member rows unchanged
+PASS history_below_coordination changed reason rejected
+PASS history_below_coordination changed actor rejected
+PASS history_below_coordination conflicting replays write nothing
+PASS public input contract has no opened_at
+PASS authenticated cannot supply opening through direct table writes
+PASS service_role cannot supply opening through direct table writes
+PASS extra timestamp argument/direct authority changes nothing
+PASS authoritatively started movement still denied
+PASS forged graph/actor with plausible metadata writes nothing
+PASS 118 PostgreSQL dispute temporal regression assertions
+PASS disposable database cleanup
+PASS application fingerprint unchanged

@@ -1,0 +1,7 @@
+PASS git diff --check (exit 0)
+PASS owned SQL/tests trailing whitespace and final newline
+PASS complete scoped graph source equivalence except enumerated temporal substitutions and stricter closure gate
+PASS canonical selector source equivalence including all locks and authorization
+warning: in the working copy of 'movement-app/src/components/MovementCoordination.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'movement-app/supabase/tests/financial_agreement.test.cjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'movement-app/tests/coordination.test.cjs', LF will be replaced by CRLF the next time Git touches it

@@ -1,0 +1,104 @@
+{
+  "scenarios": 20,
+  "blockingProofs": [
+    {
+      "label": "start confirmation disputeFirst=true rollback=false",
+      "blocker": 59583,
+      "blocked": 59582
+    },
+    {
+      "label": "start confirmation disputeFirst=true rollback=true",
+      "blocker": 59915,
+      "blocked": 59916
+    },
+    {
+      "label": "start confirmation disputeFirst=false rollback=false",
+      "blocker": 60204,
+      "blocked": 60196
+    },
+    {
+      "label": "start confirmation disputeFirst=false rollback=true",
+      "blocker": 60557,
+      "blocked": 60558
+    },
+    {
+      "label": "compatible intent request_my_funded_movement_start disputeFirst=true",
+      "blocker": 60882,
+      "blocked": 60905
+    },
+    {
+      "label": "compatible intent request_my_funded_movement_start disputeFirst=false",
+      "blocker": 61238,
+      "blocked": 61256
+    },
+    {
+      "label": "compatible intent request_my_movement_end disputeFirst=true",
+      "blocker": 61552,
+      "blocked": 61553
+    },
+    {
+      "label": "compatible intent request_my_movement_end disputeFirst=false",
+      "blocker": 61845,
+      "blocked": 61844
+    },
+    {
+      "label": "no-travel confirmation disputeFirst=true rollback=false",
+      "blocker": 62151,
+      "blocked": 62149
+    },
+    {
+      "label": "no-travel confirmation disputeFirst=true rollback=true",
+      "blocker": 62371,
+      "blocked": 62370
+    },
+    {
+      "label": "no-travel confirmation disputeFirst=false rollback=false",
+      "blocker": 62624,
+      "blocked": 62623
+    },
+    {
+      "label": "no-travel confirmation disputeFirst=false rollback=true",
+      "blocker": 62910,
+      "blocked": 62916
+    },
+    {
+      "label": "duplicate opening rollback=false",
+      "blocker": 63130,
+      "blocked": 63123
+    },
+    {
+      "label": "duplicate opening rollback=true",
+      "blocker": 63267,
+      "blocked": 63268
+    },
+    {
+      "label": "both principals open simultaneously",
+      "blocker": 63412,
+      "blocked": 63411
+    },
+    {
+      "label": "pre-start completion blocked request_my_funded_movement_completion",
+      "blocker": 63577,
+      "blocked": 63576
+    },
+    {
+      "label": "pre-start completion blocked confirm_my_funded_movement_completion",
+      "blocker": 63655,
+      "blocked": 63656
+    },
+    {
+      "label": "shared principal completion gates completionFirst=true",
+      "blocker": 63834,
+      "blocked": 63835
+    },
+    {
+      "label": "shared principal completion gates completionFirst=false",
+      "blocker": 64054,
+      "blocked": 64053
+    }
+  ],
+  "deadlocks": 0,
+  "walletAccountGateBypassed": true
+}
+PASS disposable database cleanup
+PASS application fingerprint unchanged
