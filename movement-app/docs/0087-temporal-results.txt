@@ -1,0 +1,55 @@
+PASS equal request clock relationship
+PASS equal confirmed settlement accepted
+PASS truthful method
+PASS equal completion clock relationship
+PASS historical private.assert_funded_completion(uuid) no later clock
+PASS historical private.assert_funded_coordination_entry(uuid) no later clock
+PASS historical settled read
+PASS historical confirmed replay
+PASS historical validation/read/replay no writes
+PASS explicit human rating accepts regressed metadata
+PASS regressed request clock relationship
+PASS regressed confirmed settlement accepted
+PASS truthful method
+PASS regressed completion clock relationship
+PASS historical private.assert_funded_completion(uuid) no later clock
+PASS historical private.assert_funded_coordination_entry(uuid) no later clock
+PASS historical settled read
+PASS historical confirmed replay
+PASS historical validation/read/replay no writes
+PASS explicit human rating accepts regressed metadata
+PASS forged future metadata cannot manufacture expired timeout admission
+PASS review deadline boundary -interval '1 microsecond'
+PASS review deadline boundary
+PASS review deadline boundary +interval '1 microsecond'
+PASS boundary confirm before lazy materialization
+PASS boundary direct confirm -interval '1 microsecond'
+PASS boundary stored basis -interval '1 microsecond'
+PASS boundary one authoritative sample -interval '1 microsecond'
+PASS boundary terminal replay
+PASS boundary replay no duplicate settlement
+PASS boundary confirm before lazy materialization
+PASS boundary direct confirm
+PASS boundary stored basis
+PASS boundary one authoritative sample
+PASS boundary terminal replay
+PASS boundary replay no duplicate settlement
+PASS boundary confirm before lazy materialization
+PASS boundary direct confirm +interval '1 microsecond'
+PASS boundary stored basis +interval '1 microsecond'
+PASS boundary one authoritative sample +interval '1 microsecond'
+PASS boundary terminal replay
+PASS boundary replay no duplicate settlement
+PASS review admitted in window
+PASS committed review beats late confirm
+PASS committed review beats timeout
+PASS late actions leave reviewed graph and all money unchanged
+PASS timeout exactly at deadline
+PASS timeout receipt exact admission sample
+PASS later regressed sample retains historical timeout
+PASS confirmed replay retains timeout truth
+PASS regressed timeout historical truth zero writes
+PASS 70 PostgreSQL 0087 temporal assertions
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS temporal exit 0

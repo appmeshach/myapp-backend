@@ -1,0 +1,288 @@
+PASS 558 PostgreSQL dispute behavioral assertions
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS unchanged 0086_funded_dispute_behavior.cjs against disposable 0087
+{
+  "scenarios": 20,
+  "blockingProofs": [
+    {
+      "label": "start confirmation disputeFirst=true rollback=false",
+      "blocker": 134127,
+      "blocked": 134128
+    },
+    {
+      "label": "start confirmation disputeFirst=true rollback=true",
+      "blocker": 134191,
+      "blocked": 134190
+    },
+    {
+      "label": "start confirmation disputeFirst=false rollback=false",
+      "blocker": 134245,
+      "blocked": 134246
+    },
+    {
+      "label": "start confirmation disputeFirst=false rollback=true",
+      "blocker": 134303,
+      "blocked": 134304
+    },
+    {
+      "label": "compatible intent request_my_funded_movement_start disputeFirst=true",
+      "blocker": 134358,
+      "blocked": 134359
+    },
+    {
+      "label": "compatible intent request_my_funded_movement_start disputeFirst=false",
+      "blocker": 134400,
+      "blocked": 134399
+    },
+    {
+      "label": "compatible intent request_my_movement_end disputeFirst=true",
+      "blocker": 134443,
+      "blocked": 134444
+    },
+    {
+      "label": "compatible intent request_my_movement_end disputeFirst=false",
+      "blocker": 134494,
+      "blocked": 134495
+    },
+    {
+      "label": "no-travel confirmation disputeFirst=true rollback=false",
+      "blocker": 134543,
+      "blocked": 134544
+    },
+    {
+      "label": "no-travel confirmation disputeFirst=true rollback=true",
+      "blocker": 134605,
+      "blocked": 134606
+    },
+    {
+      "label": "no-travel confirmation disputeFirst=false rollback=false",
+      "blocker": 134664,
+      "blocked": 134665
+    },
+    {
+      "label": "no-travel confirmation disputeFirst=false rollback=true",
+      "blocker": 134721,
+      "blocked": 134722
+    },
+    {
+      "label": "duplicate opening rollback=false",
+      "blocker": 134778,
+      "blocked": 134777
+    },
+    {
+      "label": "duplicate opening rollback=true",
+      "blocker": 134819,
+      "blocked": 134818
+    },
+    {
+      "label": "both principals open simultaneously",
+      "blocker": 134861,
+      "blocked": 134860
+    },
+    {
+      "label": "pre-start completion blocked request_my_funded_movement_completion",
+      "blocker": 134903,
+      "blocked": 134902
+    },
+    {
+      "label": "pre-start completion blocked confirm_my_funded_movement_completion",
+      "blocker": 134947,
+      "blocked": 134948
+    },
+    {
+      "label": "shared principal completion gates completionFirst=true",
+      "blocker": 135024,
+      "blocked": 135025
+    },
+    {
+      "label": "shared principal completion gates completionFirst=false",
+      "blocker": 135101,
+      "blocked": 135100
+    }
+  ],
+  "deadlocks": 0,
+  "walletAccountGateBypassed": true
+}
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS unchanged 0086_funded_dispute_concurrency.cjs against disposable 0087
+PASS equal_coordination opens through normal authenticated RPC
+PASS equal_coordination controlled observation relationship actually holds
+PASS equal_coordination history retains exact opening metadata with observation interval '0 seconds'
+PASS equal_coordination exact replay still succeeds
+PASS equal_coordination replay and read write nothing
+PASS equal_coordination history retains exact opening metadata with observation interval '1 second'
+PASS equal_coordination exact replay still succeeds
+PASS equal_coordination replay and read write nothing
+PASS equal_coordination history retains exact opening metadata with observation interval '1 day'
+PASS equal_coordination exact replay still succeeds
+PASS equal_coordination replay and read write nothing
+PASS equal_coordination freeze still blocks confirm_my_funded_movement_start
+PASS equal_coordination freeze still blocks confirm_my_movement_end
+PASS equal_coordination freeze still blocks request_my_funded_movement_completion
+PASS equal_coordination freeze still blocks confirm_my_funded_movement_completion
+PASS equal_coordination all money/components/member rows unchanged
+PASS equal_coordination changed reason rejected
+PASS equal_coordination changed actor rejected
+PASS equal_coordination conflicting replays write nothing
+PASS regressed_coordination opens through normal authenticated RPC
+PASS regressed_coordination controlled observation relationship actually holds
+PASS regressed_coordination history retains exact opening metadata with observation interval '0 seconds'
+PASS regressed_coordination exact replay still succeeds
+PASS regressed_coordination replay and read write nothing
+PASS regressed_coordination history retains exact opening metadata with observation interval '1 second'
+PASS regressed_coordination exact replay still succeeds
+PASS regressed_coordination replay and read write nothing
+PASS regressed_coordination history retains exact opening metadata with observation interval '1 day'
+PASS regressed_coordination exact replay still succeeds
+PASS regressed_coordination replay and read write nothing
+PASS regressed_coordination freeze still blocks confirm_my_funded_movement_start
+PASS regressed_coordination freeze still blocks confirm_my_movement_end
+PASS regressed_coordination freeze still blocks request_my_funded_movement_completion
+PASS regressed_coordination freeze still blocks confirm_my_funded_movement_completion
+PASS regressed_coordination all money/components/member rows unchanged
+PASS regressed_coordination changed reason rejected
+PASS regressed_coordination changed actor rejected
+PASS regressed_coordination conflicting replays write nothing
+PASS later_clock_regression opens through normal authenticated RPC
+PASS later_clock_regression controlled observation relationship actually holds
+PASS later actual database clock numerically precedes valid observed opening
+PASS later_clock_regression history retains exact opening metadata with observation interval '0 seconds'
+PASS later_clock_regression exact replay still succeeds
+PASS later_clock_regression replay and read write nothing
+PASS later_clock_regression history retains exact opening metadata with observation interval '1 second'
+PASS later_clock_regression exact replay still succeeds
+PASS later_clock_regression replay and read write nothing
+PASS later_clock_regression history retains exact opening metadata with observation interval '1 day'
+PASS later_clock_regression exact replay still succeeds
+PASS later_clock_regression replay and read write nothing
+PASS later_clock_regression freeze still blocks confirm_my_funded_movement_start
+PASS later_clock_regression freeze still blocks confirm_my_movement_end
+PASS later_clock_regression freeze still blocks request_my_funded_movement_completion
+PASS later_clock_regression freeze still blocks confirm_my_funded_movement_completion
+PASS later_clock_regression all money/components/member rows unchanged
+PASS later_clock_regression changed reason rejected
+PASS later_clock_regression changed actor rejected
+PASS later_clock_regression conflicting replays write nothing
+PASS history_below_coordination opens through normal authenticated RPC
+PASS history_below_coordination controlled observation relationship actually holds
+PASS active review bypasses later-clock historical rejection in unchanged 0085 paths
+PASS history_below_coordination history retains exact opening metadata with observation interval '0 seconds'
+PASS history_below_coordination exact replay still succeeds
+PASS history_below_coordination replay and read write nothing
+PASS history_below_coordination history retains exact opening metadata with observation interval '1 second'
+PASS history_below_coordination exact replay still succeeds
+PASS history_below_coordination replay and read write nothing
+PASS history_below_coordination history retains exact opening metadata with observation interval '1 day'
+PASS history_below_coordination exact replay still succeeds
+PASS history_below_coordination replay and read write nothing
+PASS history_below_coordination freeze still blocks confirm_my_funded_movement_start
+PASS history_below_coordination freeze still blocks confirm_my_movement_end
+PASS history_below_coordination freeze still blocks request_my_funded_movement_completion
+PASS history_below_coordination freeze still blocks confirm_my_funded_movement_completion
+PASS history_below_coordination all money/components/member rows unchanged
+PASS history_below_coordination changed reason rejected
+PASS history_below_coordination changed actor rejected
+PASS history_below_coordination conflicting replays write nothing
+PASS public input contract has no opened_at
+PASS authenticated cannot supply opening through direct table writes
+PASS service_role cannot supply opening through direct table writes
+PASS extra timestamp argument/direct authority changes nothing
+PASS authoritatively started movement still denied
+PASS forged graph/actor with plausible metadata writes nothing
+PASS 118 PostgreSQL dispute temporal regression assertions
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS unchanged 0086_funded_dispute_temporal.cjs against disposable 0087
+PASS funded no-travel zero=false pendingStart=false
+PASS funded no-travel zero=false pendingStart=true
+PASS funded no-travel zero=true pendingStart=false
+PASS funded no-travel zero=true pendingStart=true
+PASS current 0071 policy rejects zero-only fabricated funded economics
+PASS 420 PostgreSQL behavioral assertions
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS unchanged 0085_funded_no_travel_behavior.cjs against installed 0086
+PASS 149 unchanged 0083 settlement checks with 0085 installed in disposable database
+PASS 34 reputation behavioral checks
+PASS 203 legacy 0019 checks; old no-travel projection has no fabricated financial proof
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS unchanged 0085_funded_no_travel_regression.cjs against installed 0086
+{
+  "scenarios": 13,
+  "blockingProofs": [
+    {
+      "label": "final close vs start; closeWins=true rollback=false",
+      "blocker": 140425,
+      "blocked": 140426
+    },
+    {
+      "label": "final close vs start; closeWins=true rollback=true",
+      "blocker": 140519,
+      "blocked": 140518
+    },
+    {
+      "label": "final close vs start; closeWins=false rollback=false",
+      "blocker": 140602,
+      "blocked": 140603
+    },
+    {
+      "label": "final close vs start; closeWins=false rollback=true",
+      "blocker": 140695,
+      "blocked": 140694
+    },
+    {
+      "label": "duplicate final close rollback=false",
+      "blocker": 140772,
+      "blocked": 140771
+    },
+    {
+      "label": "duplicate final close rollback=true",
+      "blocker": 140859,
+      "blocked": 140858
+    },
+    {
+      "label": "first no-travel request vs start request true",
+      "blocker": 140931,
+      "blocked": 140930
+    },
+    {
+      "label": "first no-travel request vs start request false",
+      "blocker": 141014,
+      "blocked": 141015
+    },
+    {
+      "label": "reciprocal first requests",
+      "blocker": 141094,
+      "blocked": 141095
+    },
+    {
+      "label": "release vs existing top-up member gate",
+      "blocker": 141188,
+      "blocked": 141187
+    },
+    {
+      "label": "no-travel consent FKs vs 0083 sorted principal gates",
+      "blocker": 141293,
+      "blocked": 141294
+    },
+    {
+      "label": "no-travel final confirmation vs request_my_funded_movement_completion",
+      "blocker": 141393,
+      "blocked": 141394
+    },
+    {
+      "label": "no-travel final confirmation vs confirm_my_funded_movement_completion",
+      "blocker": 141484,
+      "blocked": 141483
+    }
+  ],
+  "deadlocks": 0
+}
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS unchanged 0085_funded_no_travel_concurrency.cjs against installed 0086
+PASS unchanged 0086_funded_dispute_regression.cjs against disposable 0087
+PASS regression exit 0

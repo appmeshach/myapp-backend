@@ -1,0 +1,170 @@
+{
+  "scenarios": 33,
+  "blockingProofs": [
+    {
+      "label": "in-window boundary confirm vs review reviewFirst=true rollback=false",
+      "blocker": 124671,
+      "blocked": 124672
+    },
+    {
+      "label": "in-window boundary confirm vs review reviewFirst=true rollback=true",
+      "blocker": 124805,
+      "blocked": 124806
+    },
+    {
+      "label": "in-window boundary confirm vs review reviewFirst=false rollback=false",
+      "blocker": 124972,
+      "blocked": 124973
+    },
+    {
+      "label": "in-window boundary confirm vs review reviewFirst=false rollback=true",
+      "blocker": 125128,
+      "blocked": 125129
+    },
+    {
+      "label": "timeout vs review reviewFirst=true rollback=false",
+      "blocker": 125281,
+      "blocked": 125280
+    },
+    {
+      "label": "timeout vs review reviewFirst=true rollback=true",
+      "blocker": 125414,
+      "blocked": 125415
+    },
+    {
+      "label": "timeout vs review reviewFirst=false rollback=false",
+      "blocker": 125556,
+      "blocked": 125555
+    },
+    {
+      "label": "timeout vs review reviewFirst=false rollback=true",
+      "blocker": 125695,
+      "blocked": 125696
+    },
+    {
+      "label": "late confirm vs timeout confirmFirst=true rollback=false",
+      "blocker": 125812,
+      "blocked": 125813
+    },
+    {
+      "label": "late confirm vs timeout confirmFirst=true rollback=true",
+      "blocker": 125967,
+      "blocked": 125966
+    },
+    {
+      "label": "late confirm vs timeout confirmFirst=false rollback=false",
+      "blocker": 126121,
+      "blocked": 126122
+    },
+    {
+      "label": "late confirm vs timeout confirmFirst=false rollback=true",
+      "blocker": 126279,
+      "blocked": 126280
+    },
+    {
+      "label": "boundary confirm vs timeout confirmFirst=true rollback=false",
+      "blocker": 126412,
+      "blocked": 126413
+    },
+    {
+      "label": "boundary confirm vs timeout confirmFirst=true rollback=true",
+      "blocker": 126568,
+      "blocked": 126569
+    },
+    {
+      "label": "boundary confirm vs timeout confirmFirst=false rollback=false",
+      "blocker": 126724,
+      "blocked": 126723
+    },
+    {
+      "label": "boundary confirm vs timeout confirmFirst=false rollback=true",
+      "blocker": 126879,
+      "blocked": 126878
+    },
+    {
+      "label": "boundary late confirm vs review reviewFirst=true rollback=false",
+      "blocker": 127040,
+      "blocked": 127041
+    },
+    {
+      "label": "boundary late confirm vs review reviewFirst=true rollback=true",
+      "blocker": 127174,
+      "blocked": 127175
+    },
+    {
+      "label": "boundary late confirm vs review reviewFirst=false rollback=false",
+      "blocker": 127335,
+      "blocked": 127336
+    },
+    {
+      "label": "boundary late confirm vs review reviewFirst=false rollback=true",
+      "blocker": 127486,
+      "blocked": 127487
+    },
+    {
+      "label": "confirm deadline crosses during wallet wait rollback=false",
+      "blocker": 127606,
+      "blocked": 127607
+    },
+    {
+      "label": "confirm deadline crosses during wallet wait rollback=true",
+      "blocker": 127762,
+      "blocked": 127761
+    },
+    {
+      "label": "duplicate get_my_funded_movement_completion_status rollback=false",
+      "blocker": 127931,
+      "blocked": 127932
+    },
+    {
+      "label": "duplicate get_my_funded_movement_completion_status rollback=true",
+      "blocker": 128043,
+      "blocked": 128042
+    },
+    {
+      "label": "duplicate dispute_my_funded_movement_completion rollback=false",
+      "blocker": 128121,
+      "blocked": 128120
+    },
+    {
+      "label": "duplicate dispute_my_funded_movement_completion rollback=true",
+      "blocker": 128186,
+      "blocked": 128187
+    },
+    {
+      "label": "principal status refresh vs timeout offererFirst=false",
+      "blocker": 128300,
+      "blocked": 128301
+    },
+    {
+      "label": "principal status refresh vs timeout offererFirst=true",
+      "blocker": 128413,
+      "blocked": 128414
+    },
+    {
+      "label": "shared principal timeout/review completionFirst=false",
+      "blocker": 128556,
+      "blocked": 128557
+    },
+    {
+      "label": "shared principal timeout/review completionFirst=true",
+      "blocker": 128715,
+      "blocked": 128716
+    },
+    {
+      "label": "timeout waits on wallet account rollback=false",
+      "blocker": 128858,
+      "blocked": 128859
+    },
+    {
+      "label": "timeout waits on wallet account rollback=true",
+      "blocker": 128977,
+      "blocked": 128976
+    }
+  ],
+  "deadlocks": 0,
+  "walletAccountGateBypassed": true
+}
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS concurrency exit 0

@@ -162,6 +162,7 @@ test('pre-0020 migrations and unreviewed operational callers do not consume the 
       || file==='supabase/migrations/0083_financial_movement_completion.sql'
       || file==='supabase/migrations/0085_funded_mutual_no_travel_release.sql'
       || file==='supabase/migrations/0086_funded_unilateral_dispute_freeze.sql'
+      || file==='supabase/migrations/0087_funded_completion_timeout_recovery.sql'
       || file==='supabase/migrations/0082_trusted_temporal_evidence_hardening.sql'
       || !/\.(sql|ts|tsx)$/.test(file)) continue;
     assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\bfinancial_agreements\b|\bfinancial_components\b/,file);

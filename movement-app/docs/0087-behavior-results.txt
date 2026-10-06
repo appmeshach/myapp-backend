@@ -1,0 +1,4 @@
+PASS 235 PostgreSQL 0087 behavior assertions
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS behavior exit 0
