@@ -1,0 +1,79 @@
+{
+  "relativeTo": "prior local 0088 version before this policy correction",
+  "modified": [
+    {
+      "file": "supabase/migrations/0088_funded_activation_fee_finalization.sql",
+      "beforeSha256": "aeed559e22c9c5d55f43fb0cbf5ba75bc861ba85066a8979dec9cfb9c1512a68",
+      "afterSha256": "74150ffc0c39d24f1ee256cbb1ebbe5d025e258bf634344b057dc649aafb8cea"
+    },
+    {
+      "file": "supabase/tests/0088_funded_activation_fee_behavior.cjs",
+      "beforeSha256": "23f09fb3fb066e34728b57bd51b016995a519ed09277946ca9767972cb0829a6",
+      "afterSha256": "7b0393e0ac04cad40652dd9c6ff9c0a474f2993be47e08765691704fcc331baa"
+    },
+    {
+      "file": "supabase/tests/0088_funded_activation_fee_concurrency.cjs",
+      "beforeSha256": "f63702137c5540b1fc77c1ba8f892e51cc9de38ec73e5a57596247c3ffa06dc8",
+      "afterSha256": "c52ffad009571b51d8dba3264391a9e385045c7885668ec26f7845146012e5f0"
+    },
+    {
+      "file": "supabase/tests/0088_funded_activation_fee_harness.cjs",
+      "beforeSha256": "0a7065e19245223bb87f7b35874056d8911216cde88c67159b266e194a1f6384",
+      "afterSha256": "1681c3f0d710d05f1ff43b5e341d789cbbbf3854e858121adfad3ae8768ea82b"
+    },
+    {
+      "file": "supabase/tests/0088_funded_activation_fee_regression.cjs",
+      "beforeSha256": "9535e34d0a7212b96d99e5e52e861f8e12193bcebdf27fda76c6b0ece643ae24",
+      "afterSha256": "cfde14e8049174349658f529a3344def25bd15339c08135398fc21df13273be5"
+    },
+    {
+      "file": "tests/fundedActivationFeeFinalization.test.cjs",
+      "beforeSha256": "646a8a99a2a9fad0ff2f26d2570c1a81e7cb26b94fafd5fed0891aa8b5586db6",
+      "afterSha256": "404d727477cbbfbf21ed0a8b9a30ae4cd64bbc7def57546512eb336a9803c045"
+    },
+    {
+      "file": "src/components/MovementEnd.tsx",
+      "beforeSha256": "f8afe4fe8413824a7ce9fed9e7650a45fed602392705537f91c6b88e8fb7e08a",
+      "afterSha256": "e07f04f24458c5951a6b82cba99507f313874a822e923e6400fe3d92cc09e01f"
+    },
+    {
+      "file": "src/services/movementEndService.ts",
+      "beforeSha256": "19afc5bd39bc12121d47ebfb3c04679729a4be3d5b77eee0ea9c48c408b134df",
+      "afterSha256": "db7042c45f646487d81112f16419e38f0fc50321313a1f2561e7f4b4dedb65e6"
+    },
+    {
+      "file": "docs/0088-funded-activation-fee-finalization.md",
+      "beforeSha256": "9b9753c1f5dd9e3d350b7c108cb10deb55856493b337ae25052f93cd52677f15",
+      "afterSha256": "f4c247ebb42a948faadc91872f3aaf6af2052cd4a08d918e50dc56ead88147d4"
+    }
+  ],
+  "created": [
+    "docs/0088-policy-before.json",
+    "docs/0088-policy-behavior-results.json",
+    "docs/0088-policy-behavior-results.txt",
+    "docs/0088-policy-concurrency-results.json",
+    "docs/0088-policy-concurrency-results.txt",
+    "docs/0088-policy-diff-results.txt",
+    "docs/0088-policy-file-manifest.json",
+    "docs/0088-policy-focused-results.txt",
+    "docs/0088-policy-full-results.txt",
+    "docs/0088-policy-git-status.txt",
+    "docs/0088-policy-held-behavior-results.json",
+    "docs/0088-policy-held-behavior-results.txt",
+    "docs/0088-policy-held-initial-forgery-error.txt",
+    "docs/0088-policy-integrity.json",
+    "docs/0088-policy-refund-denial-results.json",
+    "docs/0088-policy-refund-denial-results.txt",
+    "docs/0088-policy-regression-0087-behavior-results.json",
+    "docs/0088-policy-regression-0087-concurrency-results.json",
+    "docs/0088-policy-regression-0087-temporal-results.json",
+    "docs/0088-policy-regression-adaptations.json",
+    "docs/0088-policy-regression-results.txt",
+    "docs/0088-policy-types-results.txt",
+    "docs/0088-pre-policy-migration.sql.txt",
+    "docs/0088-pre-policy-report.md",
+    "supabase/tests/0088_funded_no_travel_hold_behavior.cjs",
+    "supabase/tests/0088_funded_no_travel_refund_denial.cjs",
+    "tests/fundedNoTravelHold.test.cjs"
+  ]
+}

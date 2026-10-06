@@ -1,0 +1,84 @@
+ M src/components/MovementEnd.tsx
+ M src/services/movementEndService.ts
+ M supabase/tests/0048_offerer_interest_inbox.test.cjs
+ M supabase/tests/financial_agreement.test.cjs
+ M supabase/tests/financial_proposal.test.cjs
+ M supabase/tests/movement_context.test.cjs
+ M tests/migrationNumbering.test.cjs
+?? ../gseller-app/
+?? ../gtransport-app/
+?? ../gzone-app/
+?? 0061-manual-review.txt
+?? 0062-behavioral-test-review.txt
+?? 0062-input-contract-review.txt
+?? 0062-route-contracts-review.txt
+?? 0062-runtime-review.txt
+?? docs/0059-pricing-geography-concurrency-results.json
+?? docs/0059-pricing-geography-sql-results.txt
+?? docs/0060-pricing-geography-concurrency-results.json
+?? docs/0086-0082-baseline-acl-failure.txt
+?? docs/0086-concurrency-restore-timeout.txt
+?? docs/0086-git-status.txt
+?? docs/0086-regression-restore-timeout.txt
+?? docs/0086-regression-retry-timeout.txt
+?? docs/0088-behavior-results.json
+?? docs/0088-behavior-results.txt
+?? docs/0088-concurrency-results.json
+?? docs/0088-concurrency-results.txt
+?? docs/0088-diff-results.txt
+?? docs/0088-file-manifest.json
+?? docs/0088-focused-results.txt
+?? docs/0088-full-initial-registry-failure.txt
+?? docs/0088-full-results.txt
+?? docs/0088-funded-activation-fee-finalization.md
+?? docs/0088-git-status.txt
+?? docs/0088-installed-baseline-audit.json
+?? docs/0088-migration-integrity.json
+?? docs/0088-policy-before.json
+?? docs/0088-policy-behavior-results.json
+?? docs/0088-policy-behavior-results.txt
+?? docs/0088-policy-concurrency-results.json
+?? docs/0088-policy-concurrency-results.txt
+?? docs/0088-policy-diff-results.txt
+?? docs/0088-policy-file-manifest.json
+?? docs/0088-policy-focused-results.txt
+?? docs/0088-policy-full-results.txt
+?? docs/0088-policy-git-status.txt
+?? docs/0088-policy-held-behavior-results.json
+?? docs/0088-policy-held-behavior-results.txt
+?? docs/0088-policy-held-initial-forgery-error.txt
+?? docs/0088-policy-integrity.json
+?? docs/0088-policy-refund-denial-results.json
+?? docs/0088-policy-refund-denial-results.txt
+?? docs/0088-policy-regression-0087-behavior-results.json
+?? docs/0088-policy-regression-0087-concurrency-results.json
+?? docs/0088-policy-regression-0087-temporal-results.json
+?? docs/0088-policy-regression-adaptations.json
+?? docs/0088-policy-regression-results.txt
+?? docs/0088-policy-types-results.txt
+?? docs/0088-pre-policy-migration.sql.txt
+?? docs/0088-pre-policy-report.md
+?? docs/0088-regression-0087-behavior-results.json
+?? docs/0088-regression-0087-concurrency-results.json
+?? docs/0088-regression-0087-temporal-results.json
+?? docs/0088-regression-adaptations.json
+?? docs/0088-regression-remaining-results.txt
+?? docs/0088-regression-results.txt
+?? docs/0088-regression-settlement-results.txt
+?? docs/0088-types-results.txt
+?? docs/MOVEMENT_SYSTEM_SPEC.md
+?? src/app/register-vehicle.tsx
+?? supabase/.branches/
+?? supabase/migrations/0088_funded_activation_fee_finalization.sql
+?? supabase/tests/0088_funded_activation_fee_behavior.cjs
+?? supabase/tests/0088_funded_activation_fee_concurrency.cjs
+?? supabase/tests/0088_funded_activation_fee_harness.cjs
+?? supabase/tests/0088_funded_activation_fee_regression.cjs
+?? supabase/tests/0088_funded_activation_fee_test_support.cjs
+?? supabase/tests/0088_funded_no_travel_hold_behavior.cjs
+?? supabase/tests/0088_funded_no_travel_refund_denial.cjs
+?? tests/fundedActivationFeeFinalization.test.cjs
+?? tests/fundedNoTravelHold.test.cjs
+?? transport-geography-tooling-corrected-review.txt
+?? transport-geography-tooling-full-review.txt
+?? transport-geography-tooling-review.txt

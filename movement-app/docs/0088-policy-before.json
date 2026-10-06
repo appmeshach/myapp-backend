@@ -1,0 +1,12 @@
+{
+  "supabase/migrations/0088_funded_activation_fee_finalization.sql": "aeed559e22c9c5d55f43fb0cbf5ba75bc861ba85066a8979dec9cfb9c1512a68",
+  "supabase/tests/0088_funded_activation_fee_behavior.cjs": "23f09fb3fb066e34728b57bd51b016995a519ed09277946ca9767972cb0829a6",
+  "supabase/tests/0088_funded_activation_fee_concurrency.cjs": "f63702137c5540b1fc77c1ba8f892e51cc9de38ec73e5a57596247c3ffa06dc8",
+  "supabase/tests/0088_funded_activation_fee_harness.cjs": "0a7065e19245223bb87f7b35874056d8911216cde88c67159b266e194a1f6384",
+  "supabase/tests/0088_funded_activation_fee_regression.cjs": "9535e34d0a7212b96d99e5e52e861f8e12193bcebdf27fda76c6b0ece643ae24",
+  "supabase/tests/0088_funded_activation_fee_test_support.cjs": "21699246b83f1601090dd60c8f70241d449c49990201fa050ce139c5ebb1c976",
+  "tests/fundedActivationFeeFinalization.test.cjs": "646a8a99a2a9fad0ff2f26d2570c1a81e7cb26b94fafd5fed0891aa8b5586db6",
+  "src/components/MovementEnd.tsx": "f8afe4fe8413824a7ce9fed9e7650a45fed602392705537f91c6b88e8fb7e08a",
+  "src/services/movementEndService.ts": "19afc5bd39bc12121d47ebfb3c04679729a4be3d5b77eee0ea9c48c408b134df",
+  "docs/0088-funded-activation-fee-finalization.md": "9b9753c1f5dd9e3d350b7c108cb10deb55856493b337ae25052f93cd52677f15"
+}

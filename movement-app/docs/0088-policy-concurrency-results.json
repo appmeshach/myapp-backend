@@ -1,0 +1,168 @@
+{
+  "scenarios": 38,
+  "blockingProofs": [
+    {
+      "label": "duplicate activation rollback=false",
+      "blocker": 210481,
+      "blocked": 210480
+    },
+    {
+      "label": "duplicate activation rollback=true",
+      "blocker": 210572,
+      "blocked": 210573
+    },
+    {
+      "label": "activation vs exact funding replay activationFirst=false rollback=false",
+      "blocker": 210658,
+      "blocked": 210657
+    },
+    {
+      "label": "activation vs exact funding replay activationFirst=false rollback=true",
+      "blocker": 210749,
+      "blocked": 210748
+    },
+    {
+      "label": "activation vs exact funding replay activationFirst=true rollback=false",
+      "blocker": 210831,
+      "blocked": 210832
+    },
+    {
+      "label": "activation vs exact funding replay activationFirst=true rollback=true",
+      "blocker": 210925,
+      "blocked": 210924
+    },
+    {
+      "label": "activation vs topup activationFirst=false rollback=false",
+      "blocker": 211024,
+      "blocked": 211023
+    },
+    {
+      "label": "activation vs topup activationFirst=false rollback=true",
+      "blocker": 211108,
+      "blocked": 211109
+    },
+    {
+      "label": "activation vs topup activationFirst=true rollback=false",
+      "blocker": 211199,
+      "blocked": 211200
+    },
+    {
+      "label": "activation vs topup activationFirst=true rollback=true",
+      "blocker": 211286,
+      "blocked": 211287
+    },
+    {
+      "label": "activation wallet-account wait rollback=false",
+      "blocker": 211384,
+      "blocked": 211385
+    },
+    {
+      "label": "activation wallet-account wait rollback=true",
+      "blocker": 211466,
+      "blocked": 211467
+    },
+    {
+      "label": "shared principal activations firstF=false rollback=false",
+      "blocker": 211581,
+      "blocked": 211582
+    },
+    {
+      "label": "shared principal activations firstF=false rollback=true",
+      "blocker": 211723,
+      "blocked": 211722
+    },
+    {
+      "label": "shared principal activations firstF=true rollback=false",
+      "blocker": 211869,
+      "blocked": 211870
+    },
+    {
+      "label": "shared principal activations firstF=true rollback=true",
+      "blocker": 212011,
+      "blocked": 212010
+    },
+    {
+      "label": "shared platform revenue gate rollback=false",
+      "blocker": 212145,
+      "blocked": 212144
+    },
+    {
+      "label": "shared platform revenue gate rollback=true",
+      "blocker": 212300,
+      "blocked": 212301
+    },
+    {
+      "label": "held no-travel vs confirm_my_funded_movement_start heldFirst=false rollback=false",
+      "blocker": 212859,
+      "blocked": 212860
+    },
+    {
+      "label": "held no-travel vs confirm_my_funded_movement_start heldFirst=false rollback=true",
+      "blocker": 212978,
+      "blocked": 212979
+    },
+    {
+      "label": "held no-travel vs confirm_my_funded_movement_start heldFirst=true rollback=false",
+      "blocker": 213092,
+      "blocked": 213093
+    },
+    {
+      "label": "held no-travel vs confirm_my_funded_movement_start heldFirst=true rollback=true",
+      "blocker": 213216,
+      "blocked": 213215
+    },
+    {
+      "label": "held no-travel vs open_my_funded_movement_dispute heldFirst=false rollback=false",
+      "blocker": 213335,
+      "blocked": 213336
+    },
+    {
+      "label": "held no-travel vs open_my_funded_movement_dispute heldFirst=false rollback=true",
+      "blocker": 213448,
+      "blocked": 213449
+    },
+    {
+      "label": "held no-travel vs open_my_funded_movement_dispute heldFirst=true rollback=false",
+      "blocker": 213570,
+      "blocked": 213571
+    },
+    {
+      "label": "held no-travel vs open_my_funded_movement_dispute heldFirst=true rollback=true",
+      "blocker": 213690,
+      "blocked": 213689
+    },
+    {
+      "label": "duplicate held consent rollback=false",
+      "blocker": 213801,
+      "blocked": 213800
+    },
+    {
+      "label": "duplicate held consent rollback=true",
+      "blocker": 213867,
+      "blocked": 213866
+    },
+    {
+      "label": "held consent vs shared-principal settlement heldFirst=false rollback=false",
+      "blocker": 214064,
+      "blocked": 214065
+    },
+    {
+      "label": "held consent vs shared-principal settlement heldFirst=false rollback=true",
+      "blocker": 214242,
+      "blocked": 214241
+    },
+    {
+      "label": "held consent vs shared-principal settlement heldFirst=true rollback=false",
+      "blocker": 214425,
+      "blocked": 214424
+    },
+    {
+      "label": "held consent vs shared-principal settlement heldFirst=true rollback=true",
+      "blocker": 214602,
+      "blocked": 214601
+    }
+  ],
+  "prerequisiteRejections": 4,
+  "heldConsentWalletGateBypasses": 2,
+  "deadlocks": 0
+}

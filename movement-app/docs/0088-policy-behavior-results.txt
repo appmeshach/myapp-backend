@@ -1,0 +1,213 @@
+PASS upgrade changes no existing business evidence or ledger
+PASS exact old-policy boundary
+PASS old activation never reinterpreted as finalization
+PASS old activation never reinterpreted as finalization
+PASS old activation never reinterpreted as finalization
+PASS old activation never reinterpreted as finalization
+PASS old pending activation retains explicit mutual consent
+PASS old pending graph records non-financial no travel
+PASS old pending activation cannot create a new R+C release
+PASS old policy remains truthful with R+C held and no invented earned activation R
+PASS pre-activation exact R+C held
+PASS no pre-activation charge
+PASS successful activation
+PASS activation exact R revenue / C held / O uncharged
+PASS exact finite paired immutable fee provenance
+PASS duplicate activation succeeds
+PASS activation replay zero business writes
+PASS activation replay zero fee changes
+PASS completion requester_confirmed
+PASS truthful completion requester_confirmed
+PASS completion drains only C
+PASS offerer exact C-O
+PASS terminal completion replay
+PASS zero duplicate completion settlement
+PASS R never charged twice or rewritten
+PASS completion response_timeout
+PASS truthful completion response_timeout
+PASS completion drains only C
+PASS offerer exact C-O
+PASS terminal completion replay
+PASS zero duplicate completion settlement
+PASS R never charged twice or rewritten
+PASS first explicit no-travel consent
+PASS one-sided refund remains impossible
+PASS second explicit no-travel consent
+PASS safe projection never claims release
+PASS contribution remains held for future review
+PASS distinct no-travel receipt state
+PASS no-travel moves no R / C / O
+PASS mutual consent cannot release C or R
+PASS no fabricated old release receipt
+PASS schedule change does not invent allegation
+PASS held no-travel blocks request_my_funded_movement_start
+PASS held no-travel blocks confirm_my_funded_movement_start
+PASS held no-travel blocks request_my_funded_movement_completion
+PASS held no-travel blocks confirm_my_funded_movement_completion
+PASS no requester-fee release
+PASS no-travel replay
+PASS no duplicate release
+PASS 0086 pre-start dispute
+PASS pre-start dispute blocks actual start
+PASS 0086 freezes C and retains R
+PASS 0087 requester review
+PASS review blocks settlement
+PASS 0087 holds C and retains R
+PASS pre-activation exact R+C held
+PASS no pre-activation charge
+PASS successful activation
+PASS activation exact R revenue / C held / O uncharged
+PASS exact finite paired immutable fee provenance
+PASS duplicate activation succeeds
+PASS activation replay zero business writes
+PASS activation replay zero fee changes
+PASS genuine zero R no fabricated transaction
+PASS completion requester_confirmed
+PASS truthful completion requester_confirmed
+PASS completion drains only C
+PASS offerer exact C-O
+PASS terminal completion replay
+PASS zero duplicate completion settlement
+PASS R never charged twice or rewritten
+PASS completion response_timeout
+PASS truthful completion response_timeout
+PASS completion drains only C
+PASS offerer exact C-O
+PASS terminal completion replay
+PASS zero duplicate completion settlement
+PASS R never charged twice or rewritten
+PASS first explicit no-travel consent
+PASS one-sided refund remains impossible
+PASS second explicit no-travel consent
+PASS safe projection never claims release
+PASS contribution remains held for future review
+PASS distinct no-travel receipt state
+PASS no-travel moves no R / C / O
+PASS mutual consent cannot release C or R
+PASS no fabricated old release receipt
+PASS schedule change does not invent allegation
+PASS held no-travel blocks request_my_funded_movement_start
+PASS held no-travel blocks confirm_my_funded_movement_start
+PASS held no-travel blocks request_my_funded_movement_completion
+PASS held no-travel blocks confirm_my_funded_movement_completion
+PASS no requester-fee release
+PASS no-travel replay
+PASS no duplicate release
+PASS 0086 pre-start dispute
+PASS pre-start dispute blocks actual start
+PASS 0086 freezes C and retains R
+PASS 0087 requester review
+PASS review blocks settlement
+PASS 0087 holds C and retains R
+PASS activation rollback zero business writes
+PASS activation rollback zero receipt/charge
+PASS closed account fails activation
+PASS failed activation leaves no partial graph
+PASS failed activation no fee receipt
+PASS unfunded activation cannot charge
+PASS exact authenticated requester only
+PASS unauthorized activation atomic
+PASS exact authenticated requester only
+PASS unauthorized activation atomic
+PASS exact authenticated requester only
+PASS unauthorized activation atomic
+PASS forged alignment rolls back complete graph
+PASS forged alignment no finalization
+PASS forged component rolls back complete graph
+PASS forged component no finalization
+PASS forged requester rolls back complete graph
+PASS forged requester no finalization
+PASS forged amount rolls back complete graph
+PASS forged amount no finalization
+PASS forged currency rolls back complete graph
+PASS forged currency no finalization
+PASS forged receiptTimestamp rolls back complete graph
+PASS forged receiptTimestamp no finalization
+PASS forged transactionAlignment rolls back complete graph
+PASS forged transactionAlignment no finalization
+PASS forged transactionCurrency rolls back complete graph
+PASS forged transactionCurrency no finalization
+PASS forged transactionTimestamp rolls back complete graph
+PASS forged transactionTimestamp no finalization
+PASS forged transactionKind rolls back complete graph
+PASS forged transactionKind no finalization
+PASS forged account rolls back complete graph
+PASS forged account no finalization
+PASS forged direction rolls back complete graph
+PASS forged direction no finalization
+PASS forged postingAmount rolls back complete graph
+PASS forged postingAmount no finalization
+PASS forged postingTimestamp rolls back complete graph
+PASS forged postingTimestamp no finalization
+PASS fee RLS
+PASS private fee anon SELECT
+PASS private fee anon INSERT
+PASS private fee anon UPDATE
+PASS private fee anon DELETE
+PASS private fee anon TRUNCATE
+PASS private fee authenticated SELECT
+PASS private fee authenticated INSERT
+PASS private fee authenticated UPDATE
+PASS private fee authenticated DELETE
+PASS private fee authenticated TRUNCATE
+PASS private fee service_role SELECT
+PASS private fee service_role INSERT
+PASS private fee service_role UPDATE
+PASS private fee service_role DELETE
+PASS private fee service_role TRUNCATE
+PASS fee RLS
+PASS private fee anon SELECT
+PASS private fee anon INSERT
+PASS private fee anon UPDATE
+PASS private fee anon DELETE
+PASS private fee anon TRUNCATE
+PASS private fee authenticated SELECT
+PASS private fee authenticated INSERT
+PASS private fee authenticated UPDATE
+PASS private fee authenticated DELETE
+PASS private fee authenticated TRUNCATE
+PASS private fee service_role SELECT
+PASS private fee service_role INSERT
+PASS private fee service_role UPDATE
+PASS private fee service_role DELETE
+PASS private fee service_role TRUNCATE
+PASS private definer empty search path
+PASS no private app execution
+PASS no private app execution
+PASS no private app execution
+PASS private definer empty search path
+PASS no private app execution
+PASS no private app execution
+PASS no private app execution
+PASS private definer empty search path
+PASS no private app execution
+PASS no private app execution
+PASS no private app execution
+PASS private definer empty search path
+PASS no private app execution
+PASS no private app execution
+PASS no private app execution
+PASS activation authenticated only
+PASS activation authenticated only
+PASS activation authenticated only
+PASS actual private helper denied authenticated
+PASS actual direct table denied authenticated
+PASS actual direct ledger denied authenticated
+PASS actual private helper denied service_role
+PASS actual direct table denied service_role
+PASS actual direct ledger denied service_role
+PASS receiptless charge impossible
+PASS regressed activation observation accepted by immutable provenance: {"ok":true,"rows":[{"activated_at":"2026-10-05T18:42:22.296129+00:00","alignment_id":"635017c0-a8ab-4367-86be-22b951c90711","alignment_status":"activated","agreement_version":1,"financial_agreement_id":"c36f0783-a378-4673-b0f6-1d21fdf56ba2"}]}
+PASS regressed observation relationship actually holds
+PASS later regressed sample preserves activation history
+PASS regressed activation exact replay
+PASS regressed read/replay no business writes
+PASS regressed read/replay no fee writes
+PASS historical private.assert_activation_fee_finalization(uuid) never resamples clock
+PASS historical private.assert_funded_no_travel(uuid) never resamples clock
+PASS historical private.assert_undisposed_funded_graph(uuid) never resamples clock
+PASS current positive-seat economics cannot legitimately produce zero C
+PASS 254 PostgreSQL 0088 behavior/security assertions
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS behavior exit 0

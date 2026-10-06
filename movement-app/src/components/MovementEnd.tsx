@@ -7,6 +7,7 @@ export function MovementEnd({ movementNeedId }: { movementNeedId: string }) {
   return <View style={{ padding: 20, gap: 16 }}>
     <Text style={{ fontSize: 20 }}>Movement ending</Text>
     {busy ? <Text>Updating movement status...</Text> : s ? <>
+      {s.fundingDisposition === 'held' && <Text>Recording no travel does not return the contribution. The platform fee is non-refundable. Any exceptional financial disposition requires future authorized review.</Text>}
       {s.endStatus === 'no_pending_end_request' && <>
         <Text>{s.journeyState === 'not_started' ? 'Ending before travel begins requires both people to agree that no travel took place.' : 'Both people must agree that the movement has ended.'}</Text>
         <Pressable accessibilityRole="button" onPress={() => { void model.requestEnd(); }}><Text>End movement</Text></Pressable>
@@ -19,6 +20,10 @@ export function MovementEnd({ movementNeedId }: { movementNeedId: string }) {
       </>}
       {s.endStatus === 'completed' && <Text>Movement completed</Text>}
       {s.endStatus === 'mutual_no_travel' && <Text>Movement closed. No travel took place.</Text>}
+      {s.endStatus === 'no_travel_held' && <>
+        <Text>No travel recorded. Further movement progress is frozen.</Text>
+        <Text>The contribution remains held pending future authorized review. No money was returned, and the platform fee remains non-refundable.</Text>
+      </>}
       {s.fundingDisposition === 'released_to_me' && <Text>The held movement amount was returned to your Movement Balance.</Text>}
     </> : !error && <Text>Movement ending status unavailable.</Text>}
     {error && <Text accessibilityLiveRegion="polite">Unable to load movement ending status. Refresh and try again.</Text>}

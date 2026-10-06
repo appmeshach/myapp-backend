@@ -1,0 +1,368 @@
+PASS explicit non-travel intent
+PASS requester/offerer cannot self-confirm or self-refund
+PASS pending intent still held
+PASS rollback leaves no partial receipt
+PASS rollback no held receipt
+PASS distinct consent records no travel
+PASS truthful lifecycle disposition
+PASS no invented cancelled/released lifecycle
+PASS truthful financial disposition
+PASS no claimed refund
+PASS no pending terminal action
+PASS no refund approval control
+PASS truthful lifecycle disposition
+PASS no invented cancelled/released lifecycle
+PASS truthful financial disposition
+PASS no claimed refund
+PASS no pending terminal action
+PASS no refund approval control
+PASS exact wallet/transaction/posting equality
+PASS C remains held R earned O unpaid
+PASS old refund receipt absent
+PASS terminal replay
+PASS intent replay
+PASS replays write nothing
+PASS held disposition cannot be reversed
+PASS frozen progress / immutable request replay request_my_funded_movement_start
+PASS frozen progress / immutable request replay confirm_my_funded_movement_start
+PASS frozen progress / immutable request replay request_my_funded_movement_completion
+PASS frozen progress / immutable request replay confirm_my_funded_movement_completion
+PASS frozen start read
+PASS no start capability can_edit_meeting_point
+PASS no start capability can_request_start
+PASS no start capability can_confirm_start
+PASS no false report required for recorded non-travel
+PASS no allegation against offerer invented
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS explicit non-travel intent
+PASS requester/offerer cannot self-confirm or self-refund
+PASS pending intent still held
+PASS rollback leaves no partial receipt
+PASS rollback no held receipt
+PASS distinct consent records no travel
+PASS truthful lifecycle disposition
+PASS no invented cancelled/released lifecycle
+PASS truthful financial disposition
+PASS no claimed refund
+PASS no pending terminal action
+PASS no refund approval control
+PASS truthful lifecycle disposition
+PASS no invented cancelled/released lifecycle
+PASS truthful financial disposition
+PASS no claimed refund
+PASS no pending terminal action
+PASS no refund approval control
+PASS exact wallet/transaction/posting equality
+PASS C remains held R earned O unpaid
+PASS old refund receipt absent
+PASS terminal replay
+PASS intent replay
+PASS replays write nothing
+PASS held disposition cannot be reversed
+PASS frozen progress / immutable request replay request_my_funded_movement_start
+PASS frozen progress / immutable request replay confirm_my_funded_movement_start
+PASS frozen progress / immutable request replay request_my_funded_movement_completion
+PASS frozen progress / immutable request replay confirm_my_funded_movement_completion
+PASS frozen start read
+PASS no start capability can_edit_meeting_point
+PASS no start capability can_request_start
+PASS no start capability can_confirm_start
+PASS no false report required for recorded non-travel
+PASS no allegation against offerer invented
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS explicit non-travel intent
+PASS requester/offerer cannot self-confirm or self-refund
+PASS pending intent still held
+PASS rollback leaves no partial receipt
+PASS rollback no held receipt
+PASS distinct consent records no travel
+PASS truthful lifecycle disposition
+PASS no invented cancelled/released lifecycle
+PASS truthful financial disposition
+PASS no claimed refund
+PASS no pending terminal action
+PASS no refund approval control
+PASS truthful lifecycle disposition
+PASS no invented cancelled/released lifecycle
+PASS truthful financial disposition
+PASS no claimed refund
+PASS no pending terminal action
+PASS no refund approval control
+PASS exact wallet/transaction/posting equality
+PASS C remains held R earned O unpaid
+PASS old refund receipt absent
+PASS terminal replay
+PASS intent replay
+PASS replays write nothing
+PASS held disposition cannot be reversed
+PASS frozen progress / immutable request replay request_my_funded_movement_start
+PASS frozen progress / immutable request replay confirm_my_funded_movement_start
+PASS frozen progress / immutable request replay request_my_funded_movement_completion
+PASS frozen progress / immutable request replay confirm_my_funded_movement_completion
+PASS frozen start read
+PASS no start capability can_edit_meeting_point
+PASS no start capability can_request_start
+PASS no start capability can_confirm_start
+PASS no false report required for recorded non-travel
+PASS no allegation against offerer invented
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS explicit non-travel intent
+PASS requester/offerer cannot self-confirm or self-refund
+PASS pending intent still held
+PASS rollback leaves no partial receipt
+PASS rollback no held receipt
+PASS distinct consent records no travel
+PASS truthful lifecycle disposition
+PASS no invented cancelled/released lifecycle
+PASS truthful financial disposition
+PASS no claimed refund
+PASS no pending terminal action
+PASS no refund approval control
+PASS truthful lifecycle disposition
+PASS no invented cancelled/released lifecycle
+PASS truthful financial disposition
+PASS no claimed refund
+PASS no pending terminal action
+PASS no refund approval control
+PASS exact wallet/transaction/posting equality
+PASS C remains held R earned O unpaid
+PASS old refund receipt absent
+PASS terminal replay
+PASS intent replay
+PASS replays write nothing
+PASS held disposition cannot be reversed
+PASS frozen progress / immutable request replay request_my_funded_movement_start
+PASS frozen progress / immutable request replay confirm_my_funded_movement_start
+PASS frozen progress / immutable request replay request_my_funded_movement_completion
+PASS frozen progress / immutable request replay confirm_my_funded_movement_completion
+PASS frozen start read
+PASS no start capability can_edit_meeting_point
+PASS no start capability can_request_start
+PASS no start capability can_confirm_start
+PASS no false report required for recorded non-travel
+PASS no allegation against offerer invented
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS explicit non-travel intent
+PASS requester/offerer cannot self-confirm or self-refund
+PASS pending intent still held
+PASS rollback leaves no partial receipt
+PASS rollback no held receipt
+PASS distinct consent records no travel
+PASS truthful lifecycle disposition
+PASS no invented cancelled/released lifecycle
+PASS truthful financial disposition
+PASS no claimed refund
+PASS no pending terminal action
+PASS no refund approval control
+PASS truthful lifecycle disposition
+PASS no invented cancelled/released lifecycle
+PASS truthful financial disposition
+PASS no claimed refund
+PASS no pending terminal action
+PASS no refund approval control
+PASS exact wallet/transaction/posting equality
+PASS C remains held R earned O unpaid
+PASS old refund receipt absent
+PASS terminal replay
+PASS intent replay
+PASS replays write nothing
+PASS held disposition cannot be reversed
+PASS frozen progress / immutable request replay request_my_funded_movement_start
+PASS frozen progress / immutable request replay confirm_my_funded_movement_start
+PASS frozen progress / immutable request replay request_my_funded_movement_completion
+PASS frozen progress / immutable request replay confirm_my_funded_movement_completion
+PASS frozen start read
+PASS no start capability can_edit_meeting_point
+PASS no start capability can_request_start
+PASS no start capability can_confirm_start
+PASS no false report required for recorded non-travel
+PASS no allegation against offerer invented
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS explicit non-travel intent
+PASS requester/offerer cannot self-confirm or self-refund
+PASS pending intent still held
+PASS rollback leaves no partial receipt
+PASS rollback no held receipt
+PASS distinct consent records no travel
+PASS truthful lifecycle disposition
+PASS no invented cancelled/released lifecycle
+PASS truthful financial disposition
+PASS no claimed refund
+PASS no pending terminal action
+PASS no refund approval control
+PASS truthful lifecycle disposition
+PASS no invented cancelled/released lifecycle
+PASS truthful financial disposition
+PASS no claimed refund
+PASS no pending terminal action
+PASS no refund approval control
+PASS exact wallet/transaction/posting equality
+PASS C remains held R earned O unpaid
+PASS old refund receipt absent
+PASS terminal replay
+PASS intent replay
+PASS replays write nothing
+PASS held disposition cannot be reversed
+PASS frozen progress / immutable request replay request_my_funded_movement_start
+PASS frozen progress / immutable request replay confirm_my_funded_movement_start
+PASS frozen progress / immutable request replay request_my_funded_movement_completion
+PASS frozen progress / immutable request replay confirm_my_funded_movement_completion
+PASS frozen start read
+PASS no start capability can_edit_meeting_point
+PASS no start capability can_request_start
+PASS no start capability can_confirm_start
+PASS no false report required for recorded non-travel
+PASS no allegation against offerer invented
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS explicit non-travel intent
+PASS requester/offerer cannot self-confirm or self-refund
+PASS pending intent still held
+PASS rollback leaves no partial receipt
+PASS rollback no held receipt
+PASS distinct consent records no travel
+PASS truthful lifecycle disposition
+PASS no invented cancelled/released lifecycle
+PASS truthful financial disposition
+PASS no claimed refund
+PASS no pending terminal action
+PASS no refund approval control
+PASS truthful lifecycle disposition
+PASS no invented cancelled/released lifecycle
+PASS truthful financial disposition
+PASS no claimed refund
+PASS no pending terminal action
+PASS no refund approval control
+PASS exact wallet/transaction/posting equality
+PASS C remains held R earned O unpaid
+PASS old refund receipt absent
+PASS terminal replay
+PASS intent replay
+PASS replays write nothing
+PASS held disposition cannot be reversed
+PASS frozen progress / immutable request replay request_my_funded_movement_start
+PASS frozen progress / immutable request replay confirm_my_funded_movement_start
+PASS frozen progress / immutable request replay request_my_funded_movement_completion
+PASS frozen progress / immutable request replay confirm_my_funded_movement_completion
+PASS frozen start read
+PASS no start capability can_edit_meeting_point
+PASS no start capability can_request_start
+PASS no start capability can_confirm_start
+PASS no false report required for recorded non-travel
+PASS no allegation against offerer invented
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS explicit non-travel intent
+PASS requester/offerer cannot self-confirm or self-refund
+PASS pending intent still held
+PASS rollback leaves no partial receipt
+PASS rollback no held receipt
+PASS distinct consent records no travel
+PASS truthful lifecycle disposition
+PASS no invented cancelled/released lifecycle
+PASS truthful financial disposition
+PASS no claimed refund
+PASS no pending terminal action
+PASS no refund approval control
+PASS truthful lifecycle disposition
+PASS no invented cancelled/released lifecycle
+PASS truthful financial disposition
+PASS no claimed refund
+PASS no pending terminal action
+PASS no refund approval control
+PASS exact wallet/transaction/posting equality
+PASS C remains held R earned O unpaid
+PASS old refund receipt absent
+PASS terminal replay
+PASS intent replay
+PASS replays write nothing
+PASS held disposition cannot be reversed
+PASS frozen progress / immutable request replay request_my_funded_movement_start
+PASS frozen progress / immutable request replay confirm_my_funded_movement_start
+PASS frozen progress / immutable request replay request_my_funded_movement_completion
+PASS frozen progress / immutable request replay confirm_my_funded_movement_completion
+PASS frozen start read
+PASS no start capability can_edit_meeting_point
+PASS no start capability can_request_start
+PASS no start capability can_confirm_start
+PASS no false report required for recorded non-travel
+PASS no allegation against offerer invented
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS trusted attempted refund/lifecycle forgery no money
+PASS receipt denied anon
+PASS private helper denied anon
+PASS private helper denied anon
+PASS private helper denied anon
+PASS private helper denied anon
+PASS receipt denied authenticated
+PASS private helper denied authenticated
+PASS private helper denied authenticated
+PASS private helper denied authenticated
+PASS private helper denied authenticated
+PASS receipt denied service_role
+PASS private helper denied service_role
+PASS private helper denied service_role
+PASS private helper denied service_role
+PASS private helper denied service_role
+PASS RLS
+PASS forged alignment atomic rejection
+PASS forged alignment no receipt
+PASS forged agreement atomic rejection
+PASS forged agreement no receipt
+PASS forged journey atomic rejection
+PASS forged journey no receipt
+PASS forged request atomic rejection
+PASS forged request no receipt
+PASS forged first atomic rejection
+PASS forged first no receipt
+PASS forged second atomic rejection
+PASS forged second no receipt
+PASS forged requested atomic rejection
+PASS forged requested no receipt
+PASS forged pending atomic rejection
+PASS forged pending no receipt
+PASS regressed metadata remains historically valid
+PASS controlled server observation equal
+PASS actual observation relationship equal
+PASS historical replay equal
+PASS historical read equal
+PASS temporal admission/read/replay no money
+PASS historical receipt immutable
+PASS controlled server observation regressed
+PASS actual observation relationship regressed
+PASS historical replay regressed
+PASS historical read regressed
+PASS temporal admission/read/replay no money
+PASS historical receipt immutable
+PASS controlled server observation later_regression
+PASS actual observation relationship later_regression
+PASS historical replay later_regression
+PASS historical read later_regression
+PASS temporal admission/read/replay no money
+PASS historical receipt immutable
+PASS client has no observed_at argument
+PASS 433 held no-travel behavior assertions
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS held-behavior exit 0
