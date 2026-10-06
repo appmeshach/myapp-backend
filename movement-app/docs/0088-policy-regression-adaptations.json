@@ -1,0 +1,86 @@
+{
+  "adaptations": [
+    {
+      "file": "0087_funded_completion_behavior.cjs",
+      "reason": "0088 starts from installed 0087: preserve every existing completion field including completion_method",
+      "from": "SELECT jsonb_agg(to_jsonb(x)-'completion_method' ORDER BY alignment_id) FROM private.funded_movement_completions x;",
+      "to": "SELECT jsonb_agg(to_jsonb(x) ORDER BY alignment_id) FROM private.funded_movement_completions x;",
+      "count": 1
+    },
+    {
+      "file": "0087_funded_completion_behavior.cjs",
+      "reason": "completion debits only C after activation R",
+      "from": "oldBalances.held-amounts.requester_platform_share-amounts.movement_contribution",
+      "to": "oldBalances.held-amounts.movement_contribution",
+      "count": 1
+    },
+    {
+      "file": "0087_funded_completion_behavior.cjs",
+      "reason": "completion credits only O after activation R",
+      "from": "oldBalances.revenue+amounts.requester_platform_share+amounts.offering_platform_share",
+      "to": "oldBalances.revenue+amounts.offering_platform_share",
+      "count": 1
+    },
+    {
+      "file": "0086_funded_dispute_behavior.cjs",
+      "reason": "pre-start freeze preserves already-earned R and forbids every new disposition",
+      "from": "transaction_kind<>'movement_hold'",
+      "to": "transaction_kind NOT IN('movement_hold','requester_platform_charge')",
+      "count": 1
+    },
+    {
+      "file": "0086_funded_dispute_temporal.cjs",
+      "reason": "0088 reuses 0086 finite immutable provenance in affected no-travel validator, so a later regressed clock must remain valid",
+      "from": "assert.throws(()=>c.target(`SELECT private.assert_funded_no_travel('${f.alignment}');`),/Exact unstarted funded lifecycle required/)",
+      "to": "assert.doesNotThrow(()=>c.target(`SELECT private.assert_funded_no_travel('${f.alignment}');`))",
+      "count": 1
+    },
+    {
+      "file": "0086_funded_dispute_concurrency.cjs",
+      "reason": "new-policy no-travel winner has immutable held receipt, never a release receipt; same exclusive dispute/start gates",
+      "from": "SELECT count(*) FROM private.funded_no_travel_closures WHERE alignment_id",
+      "to": "SELECT count(*) FROM private.funded_no_travel_holds WHERE alignment_id",
+      "count": 1
+    },
+    {
+      "file": "0082_financial_movement_completion_test.sql",
+      "reason": "activation R makes revenue nonzero: balanced test transfer drains it before closure, preserving the closed-account completion rejection test",
+      "from": "IF p_kind='closed_platform' THEN UPDATE private.wallet_accounts",
+      "to": "IF p_kind='closed_platform' THEN\n  IF (SELECT coalesce(sum(CASE WHEN direction='credit' THEN amount_minor::numeric ELSE -amount_minor::numeric END),0) FROM private.wallet_postings WHERE account_id=credit_id)>0 THEN\n   PERFORM pg_temp.completion_pair(credit_id,debit_id,(SELECT sum(CASE WHEN direction='credit' THEN amount_minor::numeric ELSE -amount_minor::numeric END)::bigint FROM private.wallet_postings WHERE account_id=credit_id));\n  END IF;\n  UPDATE private.wallet_accounts",
+      "count": 1
+    },
+    {
+      "file": "0082_financial_movement_completion_test.sql",
+      "reason": "R is already final; completion held/revenue deltas include only C/O",
+      "from": " SELECT coalesce(sum(CASE WHEN p.direction='credit' THEN p.amount_minor::numeric ELSE -p.amount_minor::numeric END),0) INTO held",
+      "to": " IF private.activation_fee_is_finalized(g.id) THEN charge:=0; END IF;\n SELECT coalesce(sum(CASE WHEN p.direction='credit' THEN p.amount_minor::numeric ELSE -p.amount_minor::numeric END),0) INTO held",
+      "count": 1
+    },
+    {
+      "file": "0082_financial_movement_completion_test.sql",
+      "reason": "activation R makes revenue nonzero: balanced test transfer drains it before closure, preserving the closed-account completion rejection test",
+      "from": "IF p_kind='closed_platform' THEN UPDATE private.wallet_accounts",
+      "to": "IF p_kind='closed_platform' THEN\n  IF (SELECT coalesce(sum(CASE WHEN direction='credit' THEN amount_minor::numeric ELSE -amount_minor::numeric END),0) FROM private.wallet_postings WHERE account_id=credit_id)>0 THEN\n   PERFORM pg_temp.completion_pair(credit_id,debit_id,(SELECT sum(CASE WHEN direction='credit' THEN amount_minor::numeric ELSE -amount_minor::numeric END)::bigint FROM private.wallet_postings WHERE account_id=credit_id));\n  END IF;\n  UPDATE private.wallet_accounts",
+      "count": 1
+    },
+    {
+      "file": "0082_financial_movement_completion_test.sql",
+      "reason": "R is already final; completion held/revenue deltas include only C/O",
+      "from": " SELECT coalesce(sum(CASE WHEN p.direction='credit' THEN p.amount_minor::numeric ELSE -p.amount_minor::numeric END),0) INTO held",
+      "to": " IF private.activation_fee_is_finalized(g.id) THEN charge:=0; END IF;\n SELECT coalesce(sum(CASE WHEN p.direction='credit' THEN p.amount_minor::numeric ELSE -p.amount_minor::numeric END),0) INTO held",
+      "count": 1
+    }
+  ],
+  "legacyFixturePolicy": "0085 original behavior/concurrency execute unchanged on genuine installed 0087 pre-install state, then 0088 applies and validates/replays every resulting legacy closure; additional pending legacy activation cannot create a future refund; new held-policy races tested separately",
+  "priorProgramHashes": {
+    "0087_funded_completion_behavior.cjs": "edddc296bc81ff21309233fab4507e78ae98ead2c11aa55655c2f6516ec8b22d",
+    "0087_funded_completion_temporal.cjs": "3b3a932200fcf2ef2bbb8c423ef3160d0a0cb8561c0c15759c5835b775dc6172",
+    "0087_funded_completion_concurrency.cjs": "108920772587e7a411c044c7fe71301029f83df20ba9c771637448b5d1429135",
+    "0086_funded_dispute_behavior.cjs": "4d93c365557b25f41659698c576fb7ef0a8446f4c41f408021e436c3ef6cc6e2",
+    "0086_funded_dispute_temporal.cjs": "767ded93edeaee7640a3130ea23a8a007ce29db24916e8ec54a5168f2fe1e000",
+    "0086_funded_dispute_concurrency.cjs": "44b296471a9ee40e64523cb1bff0be94bfc5028c8f85f909f841d8fcce79122d",
+    "0085_funded_no_travel_behavior.cjs": "45f577431605d5260433e187c2a843848a044c23a5a324b8f76ef66c98670ff5",
+    "0085_funded_no_travel_concurrency.cjs": "38b697a9d81ad9f9281000b44bc02bd1ac02b5c813a45afdaf85f5975398a80f",
+    "0085_funded_no_travel_regression.cjs": "dccde62c60aa02880ef33bfdd8340b385625088379a8d2accdd112ae4f76448e"
+  }
+}

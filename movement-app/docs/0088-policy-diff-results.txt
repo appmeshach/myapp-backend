@@ -1,0 +1,13 @@
+ movement-app/src/components/MovementEnd.tsx                  |  5 +++++
+ movement-app/src/services/movementEndService.ts              | 12 +++++++-----
+ .../supabase/tests/0048_offerer_interest_inbox.test.cjs      |  4 ++--
+ movement-app/supabase/tests/financial_agreement.test.cjs     |  1 +
+ movement-app/supabase/tests/financial_proposal.test.cjs      |  2 ++
+ movement-app/supabase/tests/movement_context.test.cjs        |  2 ++
+ movement-app/tests/migrationNumbering.test.cjs               |  7 ++++---
+ 7 files changed, 23 insertions(+), 10 deletions(-)
+
+PASS git diff --check
+PASS all 87 historical migrations normalized bytes unchanged
+PASS persistent baseline 120 functions unchanged; 0088 tables/history absent
+PASS index empty and HEAD unchanged

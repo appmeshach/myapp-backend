@@ -2,12 +2,12 @@ import { supabase } from '../lib/supabase';
 
 export type MovementEndStatus = {
   journeyState: 'not_started' | 'in_progress' | 'completed' | 'cancelled';
-  endStatus: 'no_pending_end_request' | 'awaiting_other_member' | 'action_required_from_me' | 'completed' | 'mutual_no_travel';
+  endStatus: 'no_pending_end_request' | 'awaiting_other_member' | 'action_required_from_me' | 'completed' | 'mutual_no_travel' | 'no_travel_held';
   requestedByMe: boolean;
   actionRequiredFromMe: boolean;
   requestedAt: string | null;
   completedAt: string | null;
-  fundingDisposition?: 'legacy' | 'held' | 'released_to_me' | 'released_to_requester';
+  fundingDisposition?: 'legacy' | 'held' | 'held_review_required' | 'released_to_me' | 'released_to_requester';
   releasedMinor?: number | null;
   currency?: 'NGN' | null;
 };
@@ -34,7 +34,7 @@ function parse(value: unknown): MovementEndStatus {
   keys.sort();
   if (Object.keys(row).sort().join(',') !== keys.join(',')
     || !['not_started', 'in_progress', 'completed', 'cancelled'].includes(row.journey_state as string)
-    || !['no_pending_end_request', 'awaiting_other_member', 'action_required_from_me', 'completed', 'mutual_no_travel'].includes(row.end_status as string)
+    || !['no_pending_end_request', 'awaiting_other_member', 'action_required_from_me', 'completed', 'mutual_no_travel', 'no_travel_held'].includes(row.end_status as string)
     || typeof row.requested_by_me !== 'boolean' || typeof row.action_required_from_me !== 'boolean'
     || !timestamp(row.requested_at) || !timestamp(row.completed_at)
     || row.requested_by_me !== (row.end_status === 'awaiting_other_member')
@@ -43,9 +43,11 @@ function parse(value: unknown): MovementEndStatus {
     || (row.end_status !== 'no_pending_end_request' && row.requested_at === null)
     || (row.end_status === 'completed') !== (row.journey_state === 'completed')
     || (row.end_status === 'mutual_no_travel') !== (row.journey_state === 'cancelled')
-    || (row.end_status === 'completed') !== (row.completed_at !== null)) throw new Error();
+    || (row.end_status === 'completed') !== (row.completed_at !== null)
+    || (row.end_status === 'no_travel_held' && (!extended || row.journey_state !== 'not_started' || row.funding_disposition !== 'held_review_required'))) throw new Error();
   if (extended) {
-    if (!['legacy', 'held', 'released_to_me', 'released_to_requester'].includes(row.funding_disposition as string)) throw new Error();
+    if (!['legacy', 'held', 'held_review_required', 'released_to_me', 'released_to_requester'].includes(row.funding_disposition as string)
+      || (row.funding_disposition === 'held_review_required') !== (row.end_status === 'no_travel_held')) throw new Error();
     const released = row.funding_disposition === 'released_to_me' || row.funding_disposition === 'released_to_requester';
     if (row.funding_disposition === 'legacy') {
       if (row.released_minor !== null || row.currency !== null) throw new Error();

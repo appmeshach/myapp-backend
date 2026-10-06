@@ -261,6 +261,8 @@ test('only reviewed 0070, 0073, 0074, 0075 and 0076 migrations may consume propo
     'supabase/migrations/0085_funded_mutual_no_travel_release.sql',
     // 0087 retains the exact existing settlement/materialization provenance gate.
     'supabase/migrations/0087_funded_completion_timeout_recovery.sql',
+    // 0088 retains the exact audited activation/materialization provenance.
+    'supabase/migrations/0088_funded_activation_fee_finalization.sql',
     // Audited temporal hardening retains proposal provenance and live deadlines.
     'supabase/migrations/0082_trusted_temporal_evidence_hardening.sql',
   ]);

@@ -196,6 +196,8 @@ test('no operational callers or older migrations consume these tables', () => {
     'supabase/migrations/0083_financial_movement_completion.sql',
     // Audited temporal replacements preserve these exact historical bindings.
     'supabase/migrations/0082_trusted_temporal_evidence_hardening.sql',
+    // 0088 retains the audited activation validator's immutable context bindings.
+    'supabase/migrations/0088_funded_activation_fee_finalization.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);

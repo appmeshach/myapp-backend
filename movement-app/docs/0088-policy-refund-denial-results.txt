@@ -1,0 +1,4 @@
+PASS 48 pre-terminal direct refund/old-closure denial assertions
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS refund-denial exit 0
