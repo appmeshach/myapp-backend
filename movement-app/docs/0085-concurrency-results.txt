@@ -1,0 +1,73 @@
+{
+  "scenarios": 13,
+  "blockingProofs": [
+    {
+      "label": "final close vs start; closeWins=true rollback=false",
+      "blocker": 20096,
+      "blocked": 20095
+    },
+    {
+      "label": "final close vs start; closeWins=true rollback=true",
+      "blocker": 20181,
+      "blocked": 20180
+    },
+    {
+      "label": "final close vs start; closeWins=false rollback=false",
+      "blocker": 20273,
+      "blocked": 20272
+    },
+    {
+      "label": "final close vs start; closeWins=false rollback=true",
+      "blocker": 20356,
+      "blocked": 20357
+    },
+    {
+      "label": "duplicate final close rollback=false",
+      "blocker": 20444,
+      "blocked": 20443
+    },
+    {
+      "label": "duplicate final close rollback=true",
+      "blocker": 20521,
+      "blocked": 20520
+    },
+    {
+      "label": "first no-travel request vs start request true",
+      "blocker": 20598,
+      "blocked": 20599
+    },
+    {
+      "label": "first no-travel request vs start request false",
+      "blocker": 20677,
+      "blocked": 20676
+    },
+    {
+      "label": "reciprocal first requests",
+      "blocker": 20761,
+      "blocked": 20762
+    },
+    {
+      "label": "release vs existing top-up member gate",
+      "blocker": 20848,
+      "blocked": 20847
+    },
+    {
+      "label": "no-travel consent FKs vs 0083 sorted principal gates",
+      "blocker": 20953,
+      "blocked": 20954
+    },
+    {
+      "label": "no-travel final confirmation vs request_my_funded_movement_completion",
+      "blocker": 21058,
+      "blocked": 21057
+    },
+    {
+      "label": "no-travel final confirmation vs confirm_my_funded_movement_completion",
+      "blocker": 21143,
+      "blocked": 21142
+    }
+  ],
+  "deadlocks": 0
+}
+PASS disposable database cleanup
+PASS application fingerprint unchanged

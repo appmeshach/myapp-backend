@@ -7,6 +7,9 @@ export type MovementEndStatus = {
   actionRequiredFromMe: boolean;
   requestedAt: string | null;
   completedAt: string | null;
+  fundingDisposition?: 'legacy' | 'held' | 'released_to_me' | 'released_to_requester';
+  releasedMinor?: number | null;
+  currency?: 'NGN' | null;
 };
 
 function timestamp(value: unknown): value is string | null {
@@ -26,6 +29,9 @@ function parse(value: unknown): MovementEndStatus {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error();
   const row = value as Record<string, unknown>;
   const keys = ['action_required_from_me', 'completed_at', 'end_status', 'journey_state', 'requested_at', 'requested_by_me'];
+  const extended = Object.hasOwn(row, 'funding_disposition');
+  if (extended) keys.push('funding_disposition', 'released_minor', 'currency');
+  keys.sort();
   if (Object.keys(row).sort().join(',') !== keys.join(',')
     || !['not_started', 'in_progress', 'completed', 'cancelled'].includes(row.journey_state as string)
     || !['no_pending_end_request', 'awaiting_other_member', 'action_required_from_me', 'completed', 'mutual_no_travel'].includes(row.end_status as string)
@@ -38,9 +44,20 @@ function parse(value: unknown): MovementEndStatus {
     || (row.end_status === 'completed') !== (row.journey_state === 'completed')
     || (row.end_status === 'mutual_no_travel') !== (row.journey_state === 'cancelled')
     || (row.end_status === 'completed') !== (row.completed_at !== null)) throw new Error();
+  if (extended) {
+    if (!['legacy', 'held', 'released_to_me', 'released_to_requester'].includes(row.funding_disposition as string)) throw new Error();
+    const released = row.funding_disposition === 'released_to_me' || row.funding_disposition === 'released_to_requester';
+    if (row.funding_disposition === 'legacy') {
+      if (row.released_minor !== null || row.currency !== null) throw new Error();
+    } else if (row.currency !== 'NGN' || (released
+      ? row.end_status !== 'mutual_no_travel' || !Number.isSafeInteger(row.released_minor) || (row.released_minor as number) < 0
+      : row.released_minor !== null || row.journey_state !== 'not_started')) throw new Error();
+  }
   return { journeyState: row.journey_state as MovementEndStatus['journeyState'],
     endStatus: row.end_status as MovementEndStatus['endStatus'], requestedByMe: row.requested_by_me,
-    actionRequiredFromMe: row.action_required_from_me, requestedAt: row.requested_at, completedAt: row.completed_at };
+    actionRequiredFromMe: row.action_required_from_me, requestedAt: row.requested_at, completedAt: row.completed_at,
+    ...(extended ? { fundingDisposition: row.funding_disposition as MovementEndStatus['fundingDisposition'],
+      releasedMinor: row.released_minor as number | null, currency: row.currency as 'NGN' | null } : {}) };
 }
 
 async function call(name: string, need: string, signal: AbortSignal, reason?: string): Promise<MovementEndStatus> {

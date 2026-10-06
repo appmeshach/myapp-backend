@@ -1,0 +1,36 @@
+ M src/components/MovementEnd.tsx
+ M src/services/movementEndService.ts
+ M supabase/tests/financial_agreement.test.cjs
+ M supabase/tests/financial_proposal.test.cjs
+ M tests/migrationNumbering.test.cjs
+?? ../gseller-app/
+?? ../gtransport-app/
+?? ../gzone-app/
+?? 0061-manual-review.txt
+?? 0062-behavioral-test-review.txt
+?? 0062-input-contract-review.txt
+?? 0062-route-contracts-review.txt
+?? 0062-runtime-review.txt
+?? docs/0059-pricing-geography-concurrency-results.json
+?? docs/0059-pricing-geography-sql-results.txt
+?? docs/0060-pricing-geography-concurrency-results.json
+?? docs/0085-behavior-results.txt
+?? docs/0085-concurrency-results.txt
+?? docs/0085-focused-results.txt
+?? docs/0085-full-node-results.txt
+?? docs/0085-funded-mutual-no-travel-release.md
+?? docs/0085-git-status.txt
+?? docs/0085-integrity.json
+?? docs/0085-regression-results.txt
+?? docs/MOVEMENT_SYSTEM_SPEC.md
+?? src/app/register-vehicle.tsx
+?? supabase/.branches/
+?? supabase/migrations/0085_funded_mutual_no_travel_release.sql
+?? supabase/tests/0085_funded_no_travel_behavior.cjs
+?? supabase/tests/0085_funded_no_travel_concurrency.cjs
+?? supabase/tests/0085_funded_no_travel_harness.cjs
+?? supabase/tests/0085_funded_no_travel_regression.cjs
+?? tests/fundedNoTravelRelease.test.cjs
+?? transport-geography-tooling-corrected-review.txt
+?? transport-geography-tooling-full-review.txt
+?? transport-geography-tooling-review.txt

@@ -1,0 +1,8 @@
+PASS funded no-travel zero=false pendingStart=false
+PASS funded no-travel zero=false pendingStart=true
+PASS funded no-travel zero=true pendingStart=false
+PASS funded no-travel zero=true pendingStart=true
+PASS current 0071 policy rejects zero-only fabricated funded economics
+PASS 420 PostgreSQL behavioral assertions
+PASS disposable database cleanup
+PASS application fingerprint unchanged
