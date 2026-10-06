@@ -1,0 +1,89 @@
+PASS funded no-travel zero=false pendingStart=false
+PASS funded no-travel zero=false pendingStart=true
+PASS funded no-travel zero=true pendingStart=false
+PASS funded no-travel zero=true pendingStart=true
+PASS current 0071 policy rejects zero-only fabricated funded economics
+PASS 420 PostgreSQL behavioral assertions
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS unchanged 0085_funded_no_travel_behavior.cjs against installed 0086
+PASS 149 unchanged 0083 settlement checks with 0085 installed in disposable database
+PASS 34 reputation behavioral checks
+PASS 203 legacy 0019 checks; old no-travel projection has no fabricated financial proof
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS unchanged 0085_funded_no_travel_regression.cjs against installed 0086
+{
+  "scenarios": 13,
+  "blockingProofs": [
+    {
+      "label": "final close vs start; closeWins=true rollback=false",
+      "blocker": 72215,
+      "blocked": 72216
+    },
+    {
+      "label": "final close vs start; closeWins=true rollback=true",
+      "blocker": 72298,
+      "blocked": 72299
+    },
+    {
+      "label": "final close vs start; closeWins=false rollback=false",
+      "blocker": 72391,
+      "blocked": 72392
+    },
+    {
+      "label": "final close vs start; closeWins=false rollback=true",
+      "blocker": 72475,
+      "blocked": 72474
+    },
+    {
+      "label": "duplicate final close rollback=false",
+      "blocker": 72556,
+      "blocked": 72557
+    },
+    {
+      "label": "duplicate final close rollback=true",
+      "blocker": 72634,
+      "blocked": 72633
+    },
+    {
+      "label": "first no-travel request vs start request true",
+      "blocker": 72711,
+      "blocked": 72712
+    },
+    {
+      "label": "first no-travel request vs start request false",
+      "blocker": 72791,
+      "blocked": 72790
+    },
+    {
+      "label": "reciprocal first requests",
+      "blocker": 72874,
+      "blocked": 72875
+    },
+    {
+      "label": "release vs existing top-up member gate",
+      "blocker": 72959,
+      "blocked": 72960
+    },
+    {
+      "label": "no-travel consent FKs vs 0083 sorted principal gates",
+      "blocker": 73066,
+      "blocked": 73065
+    },
+    {
+      "label": "no-travel final confirmation vs request_my_funded_movement_completion",
+      "blocker": 73171,
+      "blocked": 73172
+    },
+    {
+      "label": "no-travel final confirmation vs confirm_my_funded_movement_completion",
+      "blocker": 73264,
+      "blocked": 73265
+    }
+  ],
+  "deadlocks": 0
+}
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS unchanged 0085_funded_no_travel_concurrency.cjs against installed 0086

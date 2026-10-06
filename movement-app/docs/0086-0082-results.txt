@@ -1,0 +1,26 @@
+PASS incompatible historical evidence aborts atomically before schema cutover
+PASS compatible historical evidence preserved byte-for-byte
+PASS temporal ingestion and attestation: 15 persisted checks
+PASS normal construction with regressing producer clocks: 5 persisted checks
+PASS temporal behavioral zero=false: 14 persisted checks
+PASS temporal behavioral zero=true: 14 persisted checks
+PASS impacted 0079_funded_movement_activation_test.sql: 47 persisted checks
+PASS impacted 0080_funded_movement_coordination_entry_test.sql: 65 persisted checks
+PASS impacted 0081_financial_movement_start_test.sql: 96 persisted checks
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS unchanged 0082_trusted_temporal_evidence_hardening_behavior.cjs with reconstructed through-0081 baseline
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+AggregateError: Error: Error: spawnSync docker ETIMEDOUT
+    at command (C:\Users\gt\Desktop\myapp\movement-app\supabase\tests\0073_financial_proposal_movement_context_binding_behavior.cjs:24:40)
+    at Object.disposable (C:\Users\gt\Desktop\myapp\movement-app\supabase\tests\0082_trusted_temporal_evidence_hardening_harness.cjs:38:3)
+    at reconstruct (C:\Users\gt\Desktop\myapp\movement-app\supabase\tests\0086_temporal_0082_regression.cjs:6:52)
+    at Object.main (C:\Users\gt\Desktop\myapp\movement-app\supabase\tests\0082_trusted_temporal_evidence_hardening_concurrency.cjs:14:40)
+    at Object.main (C:\Users\gt\Desktop\myapp\movement-app\supabase\tests\0086_temporal_0082_regression.cjs:35:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at Object.disposable (C:\Users\gt\Desktop\myapp\movement-app\supabase\tests\0082_trusted_temporal_evidence_hardening_harness.cjs:48:27)
+    at reconstruct (C:\Users\gt\Desktop\myapp\movement-app\supabase\tests\0086_temporal_0082_regression.cjs:6:52)
+    at Object.main (C:\Users\gt\Desktop\myapp\movement-app\supabase\tests\0082_trusted_temporal_evidence_hardening_concurrency.cjs:14:40)
+    at Object.main (C:\Users\gt\Desktop\myapp\movement-app\supabase\tests\0086_temporal_0082_regression.cjs:35:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)

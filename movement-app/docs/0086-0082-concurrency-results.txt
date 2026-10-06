@@ -1,0 +1,14 @@
+PASS serialized face creation, sequence rollback gap=false
+PASS serialized face creation, sequence rollback gap=true
+PASS activation waits for committed latest face success=false; replay allocates nothing
+PASS activation waits for committed latest face success=true; replay allocates nothing
+PASS concurrent exact location ingestion replay=false no duplicate evidence
+PASS concurrent exact location ingestion replay=true no duplicate evidence
+PASS concurrent exact route ingestion replay=false no duplicate evidence
+PASS concurrent exact route ingestion replay=true no duplicate evidence
+PASS concurrent exact match ingestion replay=false no duplicate evidence
+PASS concurrent exact match ingestion replay=true no duplicate evidence
+PASS 10 temporal concurrency scenarios; 10 actual PostgreSQL blocking proofs; no deadlock
+PASS disposable database cleanup
+PASS application fingerprint unchanged
+PASS unchanged 0082_trusted_temporal_evidence_hardening_concurrency.cjs with reconstructed through-0081 baseline

@@ -2,6 +2,7 @@ import { Image, Pressable, Text, View } from 'react-native';
 import { useMovementCoordination } from '../hooks/useMovementCoordination';
 import { MeetingJourney } from './MeetingJourney';
 import { MovementEnd } from './MovementEnd';
+import { MovementDispute } from './MovementDispute';
 export function MovementCoordination({ movementNeedId }: { movementNeedId: string }) {
   const { state, refresh } = useMovementCoordination(movementNeedId);
   return <View style={{ gap: 20 }}>
@@ -26,6 +27,7 @@ export function MovementCoordination({ movementNeedId }: { movementNeedId: strin
       <Text>Chat is not available in this build yet.</Text>
     </>}
     <MovementEnd movementNeedId={movementNeedId} />
+    <MovementDispute movementNeedId={movementNeedId} />
     <Pressable accessibilityRole="button" disabled={state.phase === 'loading' || state.phase === 'signed_out'}
       onPress={() => { void refresh(); }} style={{ padding: 16 }}><Text>Refresh coordination</Text></Pressable>
   </View>;
