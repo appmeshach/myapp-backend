@@ -1,0 +1,3 @@
+PASS git diff --check (exit 0)
+PASS all owned source/test/doc trailing whitespace and final newline
+PASS exact source-equivalence of existing settlement gates and complete ordered component/ledger/lifecycle CTE (focused tests)

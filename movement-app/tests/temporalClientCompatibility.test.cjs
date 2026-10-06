@@ -8,7 +8,7 @@ for(const time of [early,late])test('funded start accepts regressed/equal confir
  assert.equal((await load('src/services/meetingJourneyService.ts',[row]).confirmMyFundedMovementStart(need,new AbortController().signal)).startedAt,time);
 });
 for(const time of [early,late])test('completion accepts regressed/equal confirmation '+time,async()=>{
- const row={journey_state:'completed',completion_requested_at:late,completed_at:time,can_request_completion:false,can_confirm_completion:false,settlement_state:'settled'};
+ const row={journey_state:'completed',completion_requested_at:late,completed_at:time,can_request_completion:false,can_confirm_completion:false,response_deadline_at:'2026-10-04T22:00:00.005338Z',completion_method:'requester_confirmed',can_dispute_completion:false,dispute_active:false,settlement_state:'settled'};
  assert.equal((await load('src/services/fundedCompletionService.ts',[row]).confirmFundedCompletion(need,new AbortController().signal)).completedAt,time);
 });
 test('completed recovery accepts settlement before completion',async()=>{

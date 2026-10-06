@@ -1,0 +1,80 @@
+HEAD 05ed8c5938dc7941f050c5709bd6f0e3b01d546c
+Branch feature/0087-completion-timeout-recovery
+
+0087 was intentionally installed to the local Supabase development database only after:
+- pre-install local migration verification,
+- local dry-run showing only 0087 pending,
+- source/security review.
+
+Post-install local verification:
+- local migration history aligned through 0087,
+- final local db push --dry-run reported the local database up to date,
+- migration_0087 installed: true,
+- funded_completion_response_windows exists with RLS enabled,
+- funded_completion_disputes exists with RLS enabled,
+- direct anon/authenticated/service_role grants on the two new private tables: none,
+- public 0087 RPCs executable by authenticated and not anon,
+- audited private helpers not executable by authenticated or service_role,
+- required 0087 trigger graph installed,
+- historical journeys_check chronology constraint removed and replaced by receipt-backed provenance enforcement,
+- completion_method is NOT NULL, defaults historical rows truthfully to requester_confirmed, and is bounded to requester_confirmed/response_timeout,
+- installation created zero completion requests, response windows, completion disputes, completions, wallet transactions or wallet postings.
+
+No remote Supabase migration or production deployment has been executed.
+Nothing has been staged, committed, pushed or merged.
+
+Current working tree follows below.
+ M src/components/FundedCompletion.tsx
+ M src/hooks/useFundedCompletion.ts
+ M src/services/fundedCompletionService.ts
+ M src/state/fundedCompletionController.ts
+ M supabase/tests/financial_agreement.test.cjs
+ M supabase/tests/financial_proposal.test.cjs
+ M tests/financialMovementCompletion.test.cjs
+ M tests/migrationNumbering.test.cjs
+ M tests/temporalClientCompatibility.test.cjs
+?? ../gseller-app/
+?? ../gtransport-app/
+?? ../gzone-app/
+?? 0061-manual-review.txt
+?? 0062-behavioral-test-review.txt
+?? 0062-input-contract-review.txt
+?? 0062-route-contracts-review.txt
+?? 0062-runtime-review.txt
+?? docs/0059-pricing-geography-concurrency-results.json
+?? docs/0059-pricing-geography-sql-results.txt
+?? docs/0060-pricing-geography-concurrency-results.json
+?? docs/0086-0082-baseline-acl-failure.txt
+?? docs/0086-concurrency-restore-timeout.txt
+?? docs/0086-git-status.txt
+?? docs/0086-regression-restore-timeout.txt
+?? docs/0086-regression-retry-timeout.txt
+?? docs/0087-behavior-results.json
+?? docs/0087-behavior-results.txt
+?? docs/0087-concurrency-results.json
+?? docs/0087-concurrency-results.txt
+?? docs/0087-diff-results.txt
+?? docs/0087-focused-results.txt
+?? docs/0087-full-results.txt
+?? docs/0087-funded-completion-timeout-recovery.md
+?? docs/0087-git-status.txt
+?? docs/0087-installed-baseline-audit.json
+?? docs/0087-migration-integrity.json
+?? docs/0087-regression-results.txt
+?? docs/0087-temporal-results.json
+?? docs/0087-temporal-results.txt
+?? docs/0087-types-results.txt
+?? docs/MOVEMENT_SYSTEM_SPEC.md
+?? src/app/register-vehicle.tsx
+?? supabase/.branches/
+?? supabase/migrations/0087_funded_completion_timeout_recovery.sql
+?? supabase/tests/0087_funded_completion_behavior.cjs
+?? supabase/tests/0087_funded_completion_concurrency.cjs
+?? supabase/tests/0087_funded_completion_harness.cjs
+?? supabase/tests/0087_funded_completion_regression.cjs
+?? supabase/tests/0087_funded_completion_temporal.cjs
+?? supabase/tests/0087_funded_completion_test_support.cjs
+?? tests/fundedCompletionTimeout.test.cjs
+?? transport-geography-tooling-corrected-review.txt
+?? transport-geography-tooling-full-review.txt
+?? transport-geography-tooling-review.txt

@@ -1,0 +1,354 @@
+{
+  "head": "05ed8c5938dc7941f050c5709bd6f0e3b01d546c",
+  "historicalCount": 86,
+  "historicalNormalizedUnchanged": true,
+  "migration": "0087_funded_completion_timeout_recovery.sql",
+  "normalizedSha256": "8fc27b609f944d690add84f6866a2528a45ba46b488d7eb3a162b54230c65f8e",
+  "rawSha256": "8fc27b609f944d690add84f6866a2528a45ba46b488d7eb3a162b54230c65f8e",
+  "historical": [
+    {
+      "name": "0001_core_movement_schema.sql",
+      "normalizedSha256": "9d4cc59a9b5b5a6bc5d2b3f1a88ce4ae95e1ef87c3c4b24a669634dfe622d10f"
+    },
+    {
+      "name": "0002_secure_member_vehicle_rpcs.sql",
+      "normalizedSha256": "d447244a0f0a689a7a0d14230ef0d32b6d9b28b643e389fc45885de55ce09cc8"
+    },
+    {
+      "name": "0003_masked_movement_discovery.sql",
+      "normalizedSha256": "366fd0e2cc70c4435f1f8ab4d25ecc50397713e48916cf5f8c9c04b223a9a93a"
+    },
+    {
+      "name": "0004_authenticated_table_privileges.sql",
+      "normalizedSha256": "f1b5840f52f0c92adac6eb0c5b4ce1f0c66a4b02dd0e02865ebec6450dd8e627"
+    },
+    {
+      "name": "0005_secure_masked_movement_offers.sql",
+      "normalizedSha256": "0cd002899245a39eac70325f29489c78e4b2c854c8f0d29a7d47db747280b60d"
+    },
+    {
+      "name": "0006_secure_offer_acceptance_alignment.sql",
+      "normalizedSha256": "9c63819334e6c864e680ec385dce4ff7a711910e200991dec48059364847dd34"
+    },
+    {
+      "name": "0007_activation_payment_foundation.sql",
+      "normalizedSha256": "97cc1c71f0f9ba2699719180819ce38517eb12439ba658c15715b48184a801cc"
+    },
+    {
+      "name": "0008_journey_lifecycle.sql",
+      "normalizedSha256": "87d437a635742cfc0756cb0aa7c6626ea0441e33f5ebd4f44ca6bcd5f1d8949f"
+    },
+    {
+      "name": "0009_movement_participants.sql",
+      "normalizedSha256": "a7ec103fc37bebcfeddf56fdec13c60b55d7d0f9f6f076d093ec23fb9a595855"
+    },
+    {
+      "name": "0010_profile_sharing.sql",
+      "normalizedSha256": "11d8f80df61d5093954c9f96dde7de907ee473fe515a57c5cea5c383255189ed"
+    },
+    {
+      "name": "0011_fix_profile_share_token_generation.sql",
+      "normalizedSha256": "d9e73fa2943d5643587944886d8091a51487df1a1bd07a7d88faad82a76cbc02"
+    },
+    {
+      "name": "0012_mutual_movement_completion.sql",
+      "normalizedSha256": "a766e8046fa0f33845cbc2ce45d73020542d27e520c64663552b3fc2437ba11a"
+    },
+    {
+      "name": "0013_group_capacity_and_masked_discovery.sql",
+      "normalizedSha256": "b1ea5a93ecef0b934df04c6fabac024485ee10d53ea131f18e928130452fe9c9"
+    },
+    {
+      "name": "0014_secure_post_activation_reveal.sql",
+      "normalizedSha256": "729255dbea6a22eac1787ff24585699a5d33f7357bbe5ae920b91ceb959c2111"
+    },
+    {
+      "name": "0015_private_profile_photo_storage.sql",
+      "normalizedSha256": "30c617163ec09533d8bb7e059af3222cfc023dbcfb2b0975d69782889522d351"
+    },
+    {
+      "name": "0016_secure_profile_photo_submissions.sql",
+      "normalizedSha256": "b998cfcfd763056a199cf4c66b5baf612ee69aa3425fc842ea61f1d370a2dec8"
+    },
+    {
+      "name": "0017_face_verification_orchestration.sql",
+      "normalizedSha256": "fb29825a8cfaf836ff5692481ed296cf152f1da96a252a870fd828cdf1202e4c"
+    },
+    {
+      "name": "0018_meeting_point_and_journey_start.sql",
+      "normalizedSha256": "aaeffbe60ac563e5e66f24bd2e2e53ad699daf2e95a96fdbf355c428ac93e5b3"
+    },
+    {
+      "name": "0019_mutual_no_travel_closure.sql",
+      "normalizedSha256": "17027032c0b9f435bc00105b58a4678f608dbd6ebef5ce9587fc82a7f3544899"
+    },
+    {
+      "name": "0020_financial_agreement_foundation.sql",
+      "normalizedSha256": "60652cffd0c19bcc8b69a4e34f7b39f30864feeca2018fa000fe4e3b38221c34"
+    },
+    {
+      "name": "0021_financial_proposal_foundation.sql",
+      "normalizedSha256": "c8fcabaa415f177e5121c3fe8a17b9b921ab8a8f31efa08fd17facb220dd5b7e"
+    },
+    {
+      "name": "0022_movement_context_foundation.sql",
+      "normalizedSha256": "b37117120d3a693064ef336fb19089970123ce4c8f3ba48586356e7a1a5190bb"
+    },
+    {
+      "name": "0023_route_evidence_foundation.sql",
+      "normalizedSha256": "6450422c27bf9cf06c48b3d2ab1cd1a26898c9108a52f0a5067ff551a1521617"
+    },
+    {
+      "name": "0024_movement_planning_horizon.sql",
+      "normalizedSha256": "32a1504e7e132365a57fb3444b38f1863e72c167e5d03ca782a333b0fbb98cbe"
+    },
+    {
+      "name": "0025_trusted_route_producer_boundary.sql",
+      "normalizedSha256": "8739ef54c193de0646c44f5311b902835ac949ed6efaf47755d3be8e1f33ad89"
+    },
+    {
+      "name": "0026_trusted_location_resolution_boundary.sql",
+      "normalizedSha256": "32e1bcd9f29ea451512447e90b3149ca0c179ad98f8e60192ca5536d9d90e481"
+    },
+    {
+      "name": "0027_trusted_selected_location_intake.sql",
+      "normalizedSha256": "037d0a9d2f4afa224b92be6fc06191ca95922f448ebdd699fefae7ba84fa1104"
+    },
+    {
+      "name": "0028_trusted_location_search_intake_boundary.sql",
+      "normalizedSha256": "f3f6f0681c42dc695a4f8fde080c1ef6662df8d2a6640852d6e442dc75655a99"
+    },
+    {
+      "name": "0029_location_provider_rate_limit.sql",
+      "normalizedSha256": "5c41e461d4aa96b6d4b702a548dd985f0f7654f8806b3dd37b5fd9f02aaaf66b"
+    },
+    {
+      "name": "0030_service_role_member_lookup.sql",
+      "normalizedSha256": "0c15845d5cecfbd97891f382bb0c9a30d7ec5e389c9a30a94ad704c33a69cd16"
+    },
+    {
+      "name": "0031_route_generation_context.sql",
+      "normalizedSha256": "6b43619fc6b37b8dbc66d088ca78572877c76df9462812f841697d19f7106845"
+    },
+    {
+      "name": "0032_route_provider_rate_limit.sql",
+      "normalizedSha256": "6e53703ef0c39691fee35d4f8ef93c595ccb250747869f30ac0940f3a0de041e"
+    },
+    {
+      "name": "0033_route_generation_claim_boundary.sql",
+      "normalizedSha256": "3c9e3646400ec49764fa9c6af8cc20a803fbe924d52c566907c4042f595ef5c1"
+    },
+    {
+      "name": "0034_offering_movement_intent_intake.sql",
+      "normalizedSha256": "5b32e7e728d49f4c27ccca0be9c96619a8f1b6862b5d3e9939070d9e9199b67e"
+    },
+    {
+      "name": "0035_requester_movement_need_intake.sql",
+      "normalizedSha256": "80125866f6b13a534627334d02ce1c8183c88e6c9801402d7da6d66ba8722274"
+    },
+    {
+      "name": "0036_trusted_matching_context.sql",
+      "normalizedSha256": "7fcd3ef29623958b192f8ff40ddfb631cf1fe74c2f6cce6c95ec6c0d589b750e"
+    },
+    {
+      "name": "0037_trusted_route_match_evidence_foundation.sql",
+      "normalizedSha256": "3bd5eb98b8f63d72cddf0f86831c7703d5d1fda2a5cd0358d0a5b00bbed64b91"
+    },
+    {
+      "name": "0038_trusted_route_match_evidence_writer.sql",
+      "normalizedSha256": "d309d970d989ac00b633895c661e70765e561e8f0cc6bbd4a624c830db14bfe9"
+    },
+    {
+      "name": "0039_authorized_trusted_matching_context.sql",
+      "normalizedSha256": "0af3824fd2f7caff041593f124d9dec0b79ffe2a5f41c8443ab9e72979842a57"
+    },
+    {
+      "name": "0040_trusted_location_discovery_area.sql",
+      "normalizedSha256": "4046740a73bb737a08bed812cd55e07e907d6c0f0a11c76f5077d0f5c030e5f6"
+    },
+    {
+      "name": "0041_trusted_masked_movement_discovery.sql",
+      "normalizedSha256": "1d4da70919ef8e02e0ed49a890d2774f242ba03e629ac7d0f695c7346bcaad7f"
+    },
+    {
+      "name": "0042_trusted_movement_offer_authorization.sql",
+      "normalizedSha256": "c41da59fc4051e4cdb805e77337627fc7789460834f64530ee0f4897756f18ab"
+    },
+    {
+      "name": "0043_route_evidence_provider_identity_scope.sql",
+      "normalizedSha256": "223d28035c1321165cba849f06f3ea0acc443217cc96a64a62f7805e153cc573"
+    },
+    {
+      "name": "0044_offering_movement_availability_foundation.sql",
+      "normalizedSha256": "9bd7080c7023401afd622352e111a89d5c08f19c6c153202d9ec71462529149c"
+    },
+    {
+      "name": "0045_movement_offer_availability_capacity.sql",
+      "normalizedSha256": "e6525b9fa19e5354555ab0c406109d17329df58855b5accb083e12b967e95e27"
+    },
+    {
+      "name": "0046_requester_availability_matching_context.sql",
+      "normalizedSha256": "2cd9a3fa4aa63859f7035e60462e78cb10768fab57a460d299eeb599999bebff"
+    },
+    {
+      "name": "0047_requester_movement_interest_foundation.sql",
+      "normalizedSha256": "31d1e92f46975280cbf1e1fa51166302a74c5aa9f76c71ecf002db23f850433a"
+    },
+    {
+      "name": "0048_offerer_interest_inbox.sql",
+      "normalizedSha256": "324e24682ff56ddfb2702b0a4e1c34cf41b0d3b5a2ddd7e6181a42189f6a30fd"
+    },
+    {
+      "name": "0049_interest_authorized_offer_continuation.sql",
+      "normalizedSha256": "125a9a0a99755df5bdc0f51360d5c4d33b98d2197905c3ca62c0b8988364b27a"
+    },
+    {
+      "name": "0050_state_bound_movement_matching.sql",
+      "normalizedSha256": "98fb2180476e3677c81b99fa821e9330ab4e1528fbb2f82e5b88121cbc551d89"
+    },
+    {
+      "name": "0051_current_movement_need_lifecycle.sql",
+      "normalizedSha256": "a6e4f259bfd16030045a950919182a06e3f836eaa35565141f08fa6561a476a2"
+    },
+    {
+      "name": "0052_downstream_requester_movement_deadline.sql",
+      "normalizedSha256": "b40d600535348235044e3c89578b0e77f44afdd4c78f3b0a41a8428117582aee"
+    },
+    {
+      "name": "0053_requester_alignment_continuation_recovery.sql",
+      "normalizedSha256": "1f973c5961564adf2f72d12582b8515a6522306fc2aa26851e0837c0af255440"
+    },
+    {
+      "name": "0054_offerer_open_availability_recovery.sql",
+      "normalizedSha256": "89c5e7b22a01304a8025b38f94817fb85fd8e6ab863657ef92361be9ff57f610"
+    },
+    {
+      "name": "0055_offerer_alignment_continuation_recovery.sql",
+      "normalizedSha256": "fb0026f9f69e9f5b2866498d1d9e9fb1710c5ddb50766f0b0cff6afc915b701c"
+    },
+    {
+      "name": "0056_active_movement_coordination_recovery.sql",
+      "normalizedSha256": "b52573c694f17b32342642c59d4862066f965ffa032654da4beff810c6b91296"
+    },
+    {
+      "name": "0057_mutual_movement_completion.sql",
+      "normalizedSha256": "b10a327c8fd08a9f3d1320fd6773542eac208c48df7023d5d49e023eb5aebbf3"
+    },
+    {
+      "name": "0058_completed_movement_recovery.sql",
+      "normalizedSha256": "28ec91ca1b19a82f15f5cd78dc940eaa36a040f64f539555109389bc3491aa15"
+    },
+    {
+      "name": "0059_pricing_geography_evidence_foundation.sql",
+      "normalizedSha256": "37a0f5c6f44ed4749149fba3a9764a4cc774587dce7c9e5eae030717992e80b9"
+    },
+    {
+      "name": "0060_trusted_pricing_geography_producer_boundary.sql",
+      "normalizedSha256": "3484865b1c5467cfb216e61ff9ea41712efa35c51888dd534b845c02af883a1f"
+    },
+    {
+      "name": "0061_pricing_quote_foundation.sql",
+      "normalizedSha256": "dbde15236c47e0930c524d92366ff91e312c67e8ba34908f09f3f27babdb2d69"
+    },
+    {
+      "name": "0062_pricing_classification_context.sql",
+      "normalizedSha256": "6feb1dc584774b1582168786ec45c83dd0c9c6f994471af04eef0e304dddae69"
+    },
+    {
+      "name": "0063_transport_geography_dataset_registry.sql",
+      "normalizedSha256": "0d5b6a418d0a55c3aae55df6da91b3ecb7767bd2a781c87eca274312965ad35d"
+    },
+    {
+      "name": "0064_wallet_ledger_foundation.sql",
+      "normalizedSha256": "0cf94c27080322a3c6c903a886ec8778d02d1c13f467ab806cc911eaa1284fac"
+    },
+    {
+      "name": "0065_wallet_access_foundation.sql",
+      "normalizedSha256": "1a9a059d59a4c1be8e58469d460c30ee754da63af099378f2ff92266339c341b"
+    },
+    {
+      "name": "0066_wallet_top_up_foundation.sql",
+      "normalizedSha256": "dbedc642cd30d5a2b5fe40bfed514b2902bbff4c8762bd5977d72e9d2bcf7457"
+    },
+    {
+      "name": "0067_wallet_provisioning_fail_closed.sql",
+      "normalizedSha256": "5b747ac1f571bb540dc20563d529672ffd44dcfb4228d5d247fc0ba466b1936b"
+    },
+    {
+      "name": "0068_wallet_ledger_hardening.sql",
+      "normalizedSha256": "202303a35ff5c1a7776875601400e3527ee8dbe5d9dd53ab01fd9fb7e6a6cd65"
+    },
+    {
+      "name": "0069_trusted_pricing_quote_producer_boundary.sql",
+      "normalizedSha256": "dce9fce95e0b6c9fc2c8903afda2447030adcacc014e23414391265e81e1a9f3"
+    },
+    {
+      "name": "0070_financial_proposal_quote_binding_foundation.sql",
+      "normalizedSha256": "6eef24782cc114b9517c94b14dbf77ab1f62491c86f0941cd69c04a2818d891a"
+    },
+    {
+      "name": "0071_financial_proposal_economics_policy_foundation.sql",
+      "normalizedSha256": "59169d421a8f25658b9fcabfe9706954dcabec59dcbe8d9e19a724dd889b5116"
+    },
+    {
+      "name": "0072_trusted_movement_context_snapshot_producer.sql",
+      "normalizedSha256": "f792b72d9d9addcc6e2c944deffda3cb9eb2c9604117447f2aaf4104faf04aba"
+    },
+    {
+      "name": "0073_financial_proposal_movement_context_binding_foundation.sql",
+      "normalizedSha256": "82d0a280b617b77bceba1311653a50176d630121cebc5fcec13c7dd9b5fd83f2"
+    },
+    {
+      "name": "0074_trusted_financial_proposal_issuer.sql",
+      "normalizedSha256": "fa7f55a629fa69dbb71d961191a6fd98288baa6fe8de13c5100dd430406a6f16"
+    },
+    {
+      "name": "0075_safe_financial_proposal_projection.sql",
+      "normalizedSha256": "709bcc0c778c844da5bdbe4bca9052cd02e355ba2e93a74cd5e7d5f7d47d0b43"
+    },
+    {
+      "name": "0076_financial_proposal_offerer_consent.sql",
+      "normalizedSha256": "600d5e4bf8a9cd711474a17038f79c11bbb75d9279a92d67e8088392a0667122"
+    },
+    {
+      "name": "0077_financial_proposal_requester_materialization.sql",
+      "normalizedSha256": "731cf927f58436cb39530f4a8cef6a8d8cc9c63796627376381e5e0b5aecf0a2"
+    },
+    {
+      "name": "0078_requester_movement_funding_hold.sql",
+      "normalizedSha256": "4daf6db67e64dbe0211006c43534664c8c62e6c913e82a1c2ab4bf7a5faa77bc"
+    },
+    {
+      "name": "0079_funded_movement_activation.sql",
+      "normalizedSha256": "fb8ce089d4ec8a4054145245b5d73382d6b4ad5c7da640bebd30d59b61d0c4f5"
+    },
+    {
+      "name": "0080_funded_movement_coordination_entry.sql",
+      "normalizedSha256": "85a8935c93e3bbfc71b767710bdefb0fad978d7a8d41c94f76fd5608788b956d"
+    },
+    {
+      "name": "0081_financial_movement_start.sql",
+      "normalizedSha256": "7f8c4716e9d0b23cc845ca3147748ba0117197b834534474c2be87f87350a0bd"
+    },
+    {
+      "name": "0082_trusted_temporal_evidence_hardening.sql",
+      "normalizedSha256": "75cba03be6dc31d9869861ba53e50623d9756028d2b0be281ddac903d3b15351"
+    },
+    {
+      "name": "0083_financial_movement_completion.sql",
+      "normalizedSha256": "c9df4dedc931b090b0615fc79c4af3bfc5cd51af66b28b05d42229d4e428a976"
+    },
+    {
+      "name": "0084_completed_movement_reputation.sql",
+      "normalizedSha256": "f18dabb6f74f4cdb41118d2e9cc58292aaf6d706b051c7a1d1679e4f25f8f2ef"
+    },
+    {
+      "name": "0085_funded_mutual_no_travel_release.sql",
+      "normalizedSha256": "7dab4e1a78cb5066c69f57cd9362bf5ada64fd51e343edf7ac1538caa3756c27"
+    },
+    {
+      "name": "0086_funded_unilateral_dispute_freeze.sql",
+      "normalizedSha256": "7902a653ef242a2a2e1ed74521c2ede66f9d1f53e4192a0cf4d86c8033957ef8"
+    }
+  ]
+}
