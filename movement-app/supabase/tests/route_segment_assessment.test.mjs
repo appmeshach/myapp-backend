@@ -63,6 +63,30 @@ test('distance away from corridor does not introduce universal detour exclusion'
   assert.equal(assessment.authorizesAdmission, false);
 });
 
+test('untrusted projected coordinates are rejected before classification', () => {
+  const g = calculate(0.02, 0.08);
+  assert.throws(
+    () => assessRouteSegmentProjection({
+      ...g,
+      requesterOrigin: {
+        ...g.requesterOrigin,
+        closestRoutePoint: { latitude: NaN, longitude: 0.02 },
+      },
+    }),
+    /Invalid trusted route-segment assessment input/,
+  );
+  assert.throws(
+    () => assessRouteSegmentProjection({
+      ...g,
+      requesterDestination: {
+        ...g.requesterDestination,
+        closestRoutePoint: { latitude: 0, longitude: 181 },
+      },
+    }),
+    /Invalid trusted route-segment assessment input/,
+  );
+});
+
 test('invalid or corrupted measurements are rejected before advisory classification', () => {
   const g = calculate(0.02, 0.08);
   assert.throws(
