@@ -51,6 +51,17 @@ test('zero-length intermediate segment does not introduce a second traversal', (
   assert.equal(r.hasMultipleRoutePositions, false);
 });
 
+test('long segmented route keeps projection checks bounded and deterministic', () => {
+  const coordinates = Array.from({ length: 1201 }, (_, i) => [i / 12000, 0]);
+  const r = assessRouteProjectionAmbiguity(
+    point(0.05),
+    shape(...coordinates),
+  );
+  assert.equal(r.hasMultipleRoutePositions, false);
+  assert.equal(r.plausiblePositionsAlongRouteMeters.length, 1);
+  assert.equal(r.authorizesAdmission, false);
+});
+
 test('malformed route and coordinate fail closed', () => {
   assert.throws(
     () => assessRouteProjectionAmbiguity(point(0), shape([0, 0], [181, 0])),
