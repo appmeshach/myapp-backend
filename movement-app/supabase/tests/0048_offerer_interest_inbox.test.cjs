@@ -142,9 +142,9 @@ test('0048 has no operational mutations notification or evidence production', ()
   assert.doesNotMatch(sql, /CREATE\s+(?:TABLE|TRIGGER|POLICY)|ALTER TABLE/i);
 });
 
-test('protected context consumer allowlist remains pinned after sanctioned additions through 0088', () => {
+test('protected context consumer allowlist remains pinned after sanctioned additions through 0091', () => {
   assert.equal(crypto.createHash('sha256').update(read('movement_context.test.cjs')).digest('hex'),
-    '0b4ae5d15063c120a9c98f797b0c2a8ee95243ed19e69cad644ccdc57d2b4407');
+    '52b0ae5428f745d7adcc96e973bfea96ca96f4ad99155ae61db6b963032a9358');
   assert.doesNotMatch(sql, /\b(?:movement_location_references|offering_movement_intents|offering_movement_intent_locations|movement_context_snapshots|movement_context_snapshot_travellers)\b/);
 });
 

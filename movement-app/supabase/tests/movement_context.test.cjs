@@ -171,6 +171,9 @@ test('no operational callers or older migrations consume these tables', () => {
   'supabase/migrations/0050_state_bound_movement_matching.sql',
   'supabase/migrations/0052_downstream_requester_movement_deadline.sql',
   'supabase/migrations/0054_offerer_open_availability_recovery.sql',
+  // 0091 closes immutable intent-bound availability on authoritative start;
+  // matching remains read-only and snapshot/economics implementations unchanged.
+  'supabase/migrations/0091_pre_departure_roster_freeze.sql',
   // Private evidence foundation references immutable intent ownership only;
   // its live validation delegates to the existing trusted matching assertion.
   'supabase/migrations/0059_pricing_geography_evidence_foundation.sql',
