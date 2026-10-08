@@ -1,5 +1,6 @@
 import {
   calculateTrustedRouteMatchGeometry,
+  calculateTrustedRoutePointSegmentProjections,
   type TrustedRouteMatchLineString,
 } from './route-match-geometry.ts';
 import type { TrustedRouteCoordinate } from './route-contracts.ts';
@@ -47,27 +48,11 @@ export function assessRouteProjectionAmbiguity(
     routeShape,
   });
 
-  let cumulative = 0;
-  const candidates: { distance: number; position: number }[] = [];
-  for (let i = 0; i < coordinates.length - 1; i += 1) {
-    const segment: TrustedRouteMatchLineString = {
-      type: 'LineString',
-      coordinates: [coordinates[i], coordinates[i + 1]],
-    };
-    // Zero-length segments do not represent an additional traversal.
-    if (coordinates[i][0] === coordinates[i + 1][0]
-      && coordinates[i][1] === coordinates[i + 1][1]) continue;
-    const measured = calculateTrustedRouteMatchGeometry({
-      requesterOrigin: point,
-      requesterDestination: point,
-      routeShape: segment,
-    });
-    candidates.push({
-      distance: measured.requesterOrigin.distanceToRouteMeters,
-      position: cumulative + measured.requesterOrigin.positionAlongRouteMeters,
-    });
-    cumulative += measured.calculatedRouteShapeLengthMeters;
-  }
+  const candidates = calculateTrustedRoutePointSegmentProjections(point, routeShape)
+    .map(projection => ({
+      distance: projection.distanceToRouteMeters,
+      position: projection.positionAlongRouteMeters,
+    }));
 
   // Avoid spreading route-sized arrays as function arguments; sufficiently
   // detailed routes can otherwise exceed JavaScript argument limits.
