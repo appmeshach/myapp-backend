@@ -18,8 +18,7 @@ export type RouteSegmentProjectionClassification =
 export type RouteSegmentProjectionReason =
   | 'ordered_projection_unverified'
   | 'reverse_projection'
-  | 'same_position'
-  | 'zero_length_forward_projection';
+  | 'same_position';
 
 export interface RouteSegmentProjectionAssessment {
   assessmentVersion: typeof ROUTE_SEGMENT_ASSESSMENT_VERSION;
@@ -30,6 +29,20 @@ export interface RouteSegmentProjectionAssessment {
   confirmsUsableSharedSegment: false;
   /** This module never makes an admission decision. */
   authorizesAdmission: false;
+}
+
+function validCoordinate(value: unknown, min: number, max: number): value is number {
+  return typeof value === 'number'
+    && Number.isFinite(value)
+    && value >= min
+    && value <= max;
+}
+
+function validRoutePoint(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false;
+  const point = value as { latitude?: unknown; longitude?: unknown };
+  return validCoordinate(point.latitude, -90, 90)
+    && validCoordinate(point.longitude, -180, 180);
 }
 
 function nonnegativeInteger(value: unknown): value is number {
@@ -56,6 +69,8 @@ export function assessRouteSegmentProjection(
     || !nonnegativeInteger(geometry.requesterDestination?.distanceToRouteMeters)
     || !nonnegativeInteger(geometry.requesterOrigin?.positionAlongRouteMeters)
     || !nonnegativeInteger(geometry.requesterDestination?.positionAlongRouteMeters)
+    || !validRoutePoint(geometry.requesterOrigin?.closestRoutePoint)
+    || !validRoutePoint(geometry.requesterDestination?.closestRoutePoint)
     || geometry.requesterOrigin.positionAlongRouteMeters
       > geometry.calculatedRouteShapeLengthMeters
     || geometry.requesterDestination.positionAlongRouteMeters
