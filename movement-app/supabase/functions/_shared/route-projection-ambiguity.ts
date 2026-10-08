@@ -69,7 +69,12 @@ export function assessRouteProjectionAmbiguity(
     cumulative += measured.calculatedRouteShapeLengthMeters;
   }
 
-  const nearest = Math.min(...candidates.map(x => x.distance));
+  // Avoid spreading route-sized arrays as function arguments; sufficiently
+  // detailed routes can otherwise exceed JavaScript argument limits.
+  let nearest = Number.POSITIVE_INFINITY;
+  for (const candidate of candidates) {
+    if (candidate.distance < nearest) nearest = candidate.distance;
+  }
   const positions = candidates
     .filter(x => x.distance <= nearest + EQUIVALENT_DISTANCE_TOLERANCE_METERS)
     .map(x => x.position)
