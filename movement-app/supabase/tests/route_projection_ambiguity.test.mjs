@@ -62,6 +62,26 @@ test('long segmented route keeps projection checks bounded and deterministic', (
   assert.equal(r.authorizesAdmission, false);
 });
 
+test('densely segmented route positions agree with trusted whole-route geometry', async () => {
+  const { calculateTrustedRouteMatchGeometry } = await import(
+    '../functions/_shared/route-match-geometry.ts'
+  );
+  const coordinates = Array.from({ length: 1201 }, (_, i) => [i / 12000, 0]);
+  const pointOnRoute = point(0.075);
+  const routeShape = shape(...coordinates);
+  const whole = calculateTrustedRouteMatchGeometry({
+    requesterOrigin: pointOnRoute,
+    requesterDestination: pointOnRoute,
+    routeShape,
+  });
+  const ambiguity = assessRouteProjectionAmbiguity(pointOnRoute, routeShape);
+  assert.equal(ambiguity.hasMultipleRoutePositions, false);
+  assert.ok(
+    Math.abs(ambiguity.plausiblePositionsAlongRouteMeters[0]
+      - whole.requesterOrigin.positionAlongRouteMeters) <= 1,
+  );
+});
+
 test('malformed route and coordinate fail closed', () => {
   assert.throws(
     () => assessRouteProjectionAmbiguity(point(0), shape([0, 0], [181, 0])),
