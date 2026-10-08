@@ -1853,46 +1853,42 @@ Future sessions must independently inspect the repository and production state b
 
 ---
 
-# 52. OPEN PRE-LAUNCH PRODUCT DECISION — MEDIA ACCESS
+# 52. APPROVED PRODUCT DIRECTION — ASYMMETRIC MEDIA ACCESS
 
-## STATUS: PROPOSED, NOT FINALIZED, NOT IMPLEMENTED
+## STATUS: PRODUCT BEHAVIOR APPROVED; IMPLEMENTATION DEFERRED
 
-**Feature:** Consent-Based Pre-Activation Media Access.
+**Feature:** Consent-Based Pre-Activation Requester Media Access and Automatic Post-Activation Mutual Profile Media.
 
-This proposal refines the existing media-permission principles documented in Sections 20, 26 and Decisions 029–035.
+This approved product direction refines the existing media-permission principles documented in Sections 20, 26 and Decisions 029–035. Where older visibility language conflicts, reconcile those passages before implementation; do not silently rely on the older avatar or interest-visibility rule.
 
-Proposed behavior:
+**Approved behavior:**
 
-1. An offerer independently declares movement and may discover eligible requesters through the Movement matching system.
-2. The offerer may request permission to view a particular eligible requester's approved profile or voluntarily saved media before activation.
-3. The requester may approve or decline that request.
-4. Approval grants only the specific authorized access. Declining does not cancel movement interest or automatically reduce priority.
-5. Requesters cannot view the offerer's identifying profile media before activation, but may see truthful account-verification status and permitted nonidentifying trust information.
-6. After activation, both participants may view the approved profile media permitted by the agreed product rules.
-7. Security verification documents, biometric evidence and liveness material must never be exposed through ordinary profile-media permission.
-8. Movement deliberately accepts that an offerer who recognizes a requester may communicate outside the platform. This is a conscious product trade-off, not a security guarantee.
+1. An offerer independently declares a genuine journey and may discover eligible requesters through Movement's matching system.
+2. Before activation, an offerer may request permission to see a particular eligible requester's ordinary profile or voluntarily saved media, including at eligible-candidate discovery stage before explicit requester interest.
+3. The requester may approve or decline. Without approval the requested media remains inaccessible. Declining does not cancel movement interest or reduce eligibility or priority.
+4. Before activation, the requester cannot view the offerer's identifying profile media. Permitted nonidentifying trust signals and truthful verification status may be shown.
+5. **Once a movement is activated, ordinary offerer and requester profile media becomes mutually available automatically to the activated participants. Neither side needs a separate post-activation media request or approval.** This applies to ordinary participant profile media, not sensitive verification or identity evidence.
+6. Security-verification photographs, identity documents, biometric/liveness evidence, and internal security records remain excluded from ordinary profile visibility before and after activation.
+7. The product knowingly accepts the limited possibility that an offerer recognizes a requester and communicates outside Movement. This is a product trade-off, not a promise to prevent off-platform contact.
+8. Access must be tied to the correct participants and activation status, with server-enforced authorization. This approval does not authorize exposing media publicly or to unrelated members.
 
-## UNRESOLVED QUESTIONS
+## SECURITY AND IMPLEMENTATION DETAILS STILL TO DESIGN
 
-The following require deliberate product review:
+The above product behavior is decided. The following implementation details require review before coding:
 
-- Whether media requests are permitted before the requester explicitly expresses interest, and how that interacts with the existing visibility rule.
-- Whether the existing basic profile avatar remains visible after interest or becomes permission-gated.
-- Which exact media items are covered by approval.
-- How long approval remains active.
-- Whether and how access can be revoked.
-- How repeated requests, misuse, unauthorized media URLs and caching are prevented.
-- How media-access decisions interact with eligibility, discovery, activation and account safety.
+- Exact distinction between ordinary avatar/profile media and requester saved-media gallery, and reconciliation with historical decisions.
+- Scope and duration of pre-activation approval; revocation, expiration and changes in eligibility.
+- Whether post-activation automatic access is revoked upon cancellation, failed activation, completed movement or account suspension, and any permitted ongoing social connection.
+- Storage authorization, signed URLs, caching and leakage protection.
+- Repeated media requests, harassment/abuse controls, requester blocking and privacy safeguards.
+- Precise discovery, interest, activation, participant, and identity/verification checks.
+- Backward compatibility with existing profile/media permissions and already-implemented tables or RPCs.
 
-## MANDATORY IMPLEMENTATION RESTRICTION
+## IMPLEMENTATION SCHEDULING
 
-**Do not write code, design database migrations, commission Codex implementation, or change media-access policies based solely on this proposal.**
+**The product direction is approved. Implementation is intentionally deferred to an appropriate milestone.** Do not interrupt the current backend sequence or implement from this outline alone. Before coding, inspect the existing discovery, media, identity, consent, and post-activation access paths; prepare exact authorization and regression tests; then seek confirmation on unresolved lifecycle/security decisions.
 
-The project owner must explicitly finalize and authorize implementation.
-
-Before that decision, inspect the existing media, discovery, identity and post-activation access systems to avoid duplicate functionality or contradictory authorization rules.
-
-**PRE-LAUNCH REVIEW REQUIRED:** The proposal must be brought back for explicit consideration before V1 scope freeze. Review does not automatically mean implementation is mandatory.
+**Pre-launch review is required** to ensure the approved behavior is correctly implemented or deliberately rescheduled.
 
 ---
 
