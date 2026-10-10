@@ -1,6 +1,6 @@
 # Movement — Launch Readiness & Algorithm Dependency Register
 
-Status: **audit in progress; planning artifact, not approval of migration 0092**. Updated 2026-10-08. Source of product authority: `docs/MOVEMENT_SYSTEM_SPEC.md`. Implementation evidence must be refreshed at every milestone.
+Status: **audit in progress; planning artifact, not approval of migration 0092**. Updated 2026-10-10. Source of product authority: `docs/MOVEMENT_SYSTEM_SPEC.md`. Implementation evidence must be refreshed at every milestone.
 
 ## Purpose and evidence standard
 
@@ -11,10 +11,22 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
 ## Verified checkpoint
 
 - GitHub `main` merged PR #31 (0091), #32 (canonical specification), and #33 (approved media-access decision). PR #33 merge: `4aa3ec57865c618c1c5d844ffea1ca5a04737779`.
-- Supabase production project `xdfmoggrsucisfybqctb`: migrations 0001–0091 reported installed; roster-freeze private table and RLS verified. Before deployment the availability-backed already-started count was zero; this was not an end-to-end journey test.
+- Supabase production project `xdfmoggrsucisfybqctb`: migrations 0001–0091 reported installed; roster-freeze private table and RLS verified. Before deployment the availability-backed already-started count was zero; this was not an end-to-end journey test. **Production remains verified only through migration 0091.**
 - 0091 portable CI and local PostgreSQL regression/concurrency work passed in its implementation checkpoint. See `docs/0091-pre-departure-roster-freeze.md` (its historical "candidate only" and git status sections are pre-merge snapshots).
-- Current working branch `feature/0092-movement-lifecycle-continuation` was locally created from `origin/main`; **the number 0092 and its scope remain unassigned**.
+- Current working branch `feature/0092-shared-segment-suitability` is a protected development worktree at `C:\Users\gt\Desktop\movement-0092-review\movement-app` and is not production deployed. Draft PR #35 is open for review; latest pushed commit: `45e1882 feat(matching): add requester route evidence foundation`.
+- The requester-route-evidence foundation passed a fresh local reset through migration 0092 and a focused SQL regression of 24/24. This is NOT production deployed.
+- 0092 work currently belongs to trusted requester-route / shared-segment eligibility evidence, not behavioural ranking.
 - Current mobile inspection: `meetingJourneyService.ts`, `fundedCompletionService.ts`, `movementEndService.ts`, `movementDisputeService.ts` contain RPC calls. A name-specific search in `src/app` returned no direct usages; **indirect usage and full screen coverage have not been established**.
+
+## DEVELOPMENT-BRANCH CHECKPOINT
+
+- Protected worktree: `C:\Users\gt\Desktop\movement-0092-review\movement-app`
+- Branch: `feature/0092-shared-segment-suitability`
+- Draft PR #35
+- Latest pushed commit: `45e1882 feat(matching): add requester route evidence foundation`
+- Requester-route-evidence foundation passed a fresh local reset through migration 0092 and focused SQL regression 24/24.
+- This is NOT production deployed.
+- 0092 work currently belongs to trusted requester-route / shared-segment eligibility evidence, not behavioural ranking.
 
 ## Matching and cascading algorithm — highest-priority audit
 
@@ -25,7 +37,10 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
 | Trusted same-state and route evidence | Canonical §§6–16, location chain; earlier migrations described in canonical history | Requires inspection | Verify actual GIS/corridor geometry, state boundaries, evidence expiry and current tests |
 | Corridor overlap, useful partial route segments, correct direction/time | Canonical §§6,7,10,33–34 | Requires inspection | Inspect latest matching function bodies and real segment-selection tests; distinguish proximity from corridor overlap |
 | No universal maximum detour rule | Canonical §11 | Requires inspection | Test actual eligibility criteria do not silently impose universal detour threshold |
-| Candidate priority both directions | 0089 `movement_priority_v1` (completed, reputation, waiting weighted by context), 0090 requester-offer ranking | Verified components, not complete algorithm | Verify deterministic ranking, tie-breaks, eligibility after ranking, stale evidence, priority fairness and offerer-side behavior |
+| Candidate priority both directions | 0089 `movement_priority_v1` (completed, reputation, waiting weighted by context), 0090 requester-offer ranking; evidence includes authoritative completion/reputation/waiting inputs and offerer-first original-seat policies | VERIFIED COMPONENTS | Preserve eligibility-before-ranking as 0092 geographic suitability is added; ensure no route micro-fit becomes an unintended ranking boost; later verify outcome measurement/group recommendation separately |
+| Priority-engine constitutional specification | Canonical §23A; 0089/0090 implementation history | FROZEN V1 PRODUCT CONTRACT / VERIFIED IMPLEMENTED CORE | Keep deferred group recommendation, mutual reservation, controlled media and future REVIEW distinct from deployed ranking |
+| Shared-segment geographic eligibility | 0092 contract/prototype; requester-route-evidence foundation commit `45e1882` | IN DEVELOPMENT / NOT PRODUCTION DEPLOYED | Requester generation claim/idempotency; provider requester route generation; trusted two-route comparison; later admission integration; fail-closed ambiguity/staleness tests |
+| Mutual-selection pre-activation reservation | Approved Priority Engine design only | DEFERRED / NOT DEPLOYED | Exact lifecycle integration; bilateral mutual choice; capacity concurrency/lock ordering; up-to-10-minute expiry/release; no pre-activation fee; conflict-pool exclusion |
 | Seat capacity, group all-or-none, concurrency | Canonical §§18–19; 0091 preserves unused places and accepted siblings | Partially verified | Verify acceptance and group-ready tests end-to-end, capacity under race |
 | Departure admission freeze | 0091 production installed, PostgreSQL concurrency tests | Verified component; no production E2E | Validate real user activation/start/discovery closure, accepted sibling continuation |
 | Chaining with ordinary transport and multiple matched legs | Canonical §§8–9, Decisions 014–017 | **Deferred by decision** (architecture must allow it) | Define minimal v1 manual handoff vs future automatic chaining; no premature automation |
@@ -37,7 +52,7 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
 
 | Subsystem | Status now | Launch acceptance evidence still required |
 |---|---|---|
-| Core matching, cascading and priority | Partially verified | Bidirectional matching, segment/time/state/privacy/race tests, user flows |
+| Core matching, cascading and priority | Partially verified; priority core implemented, geographic shared-segment eligibility remains under active 0092 work, automatic chaining deferred | Bidirectional matching, segment/time/state/privacy/race tests, user flows; preserve eligibility-before-ranking while 0092 suitability evidence is added |
 | Offer/need creation and acceptance | Requires full current inspection | Authenticated end-to-end flow, trusted route and capacity enforcement |
 | Activation, coordination, start, completion, recovery | Implemented backend components (0079–0088,0091); UI unknown | Service-screen mapping, two-account device runs, safe interruption/recovery |
 | Pricing and financial custody | Backend component tests; provider launch status unknown | Pricing anchors and 70/30 economics, funded settlement, provider integration, reconciliation |
