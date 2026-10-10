@@ -749,6 +749,485 @@ The human decides whether the arrangement works for them, except where security,
 
 ---
 
+# 23A. MOVEMENT PRIORITY ENGINE V1
+
+## 23A.1 STATUS AND PURPOSE
+
+### CONSTITUTIONAL RULE / CURRENT V1 DECISION
+
+The priority engine determines which ALREADY-ELIGIBLE people/opportunities receive attention first.
+
+It does NOT:
+- establish geographic eligibility,
+- rescue an ineligible candidate,
+- automatically create an offer,
+- automatically accept an offer,
+- automatically create an alignment,
+- automatically create a journey,
+- automatically reserve capacity merely because somebody ranks first,
+- automatically activate a movement,
+- automatically expose controlled media,
+- eliminate human choice.
+
+The governing order is:
+
+eligibility
+→ priority
+→ human choice
+→ mutual progression
+→ activation/lifecycle
+
+Preserve the mother rule:
+
+WE DO NOT CREATE JOURNEYS.
+WE CONNECT JOURNEYS THAT WERE ALREADY GOING TO HAPPEN.
+
+---
+
+## 23A.2 FROZEN HIGH-LEVEL V1 PRINCIPLES
+
+Record these 25 principles as the high-level Priority Engine v1 product contract:
+
+1. Eligibility before ranking.
+2. Route fit is mainly an eligibility gate, not a dominant ranking signal.
+3. Seat count selects the behavioural policy.
+4. Use original seats offered, not remaining seats, to select that policy.
+5. One seat strongly prioritizes trusted history/reputation.
+6. Waiting grows progressively more important from 1 → 4 seats.
+7. Four-seat ranking is primarily fairness/waiting-oriented.
+8. Completed history uses diminishing returns.
+9. Reputation uses confidence, not raw stars alone.
+10. New users start unknown/neutral, not bad.
+11. Group fit is a secondary optimisation factor, never the backbone.
+12. Movement optimises human opportunity first, capacity efficiency second.
+13. Algorithm determines visibility/order; humans make the final selection.
+14. Controlled media is optional and belongs outside the ranking score.
+15. One-sided selection/invitation alone does NOT create exclusivity.
+16. Temporary pre-activation exclusivity begins only after the required mutual choice/acceptance state is reached.
+17. During that future reservation state, conflicting candidate availability and relevant capacity must be protected transactionally.
+18. Pre-activation cancellation or reservation expiry releases both person and reserved capacity where the underlying movement remains otherwise eligible.
+19. No platform fee is earned merely because of ranking, invitation or pre-activation reservation.
+20. Activation remains the commercial boundary established by 0088.
+21. Ranking decisions/policies are versioned.
+22. Behavioural outcomes should be measurable so policies can later be tuned from real usage.
+23. No ranking advantage without authoritative evidence.
+24. Exact score/weights remain internal; users may be told which positive behaviours matter.
+25. No automatic journey creation, forced match or automatic final human selection.
+
+IMPORTANT:
+Principles 15–18 are the LATER REFINEMENT and supersede any older shorthand saying that one person's unilateral "selection" itself creates exclusivity.
+
+Do NOT describe the reservation mechanism as currently deployed.
+
+---
+
+## 23A.3 ELIGIBILITY VS PRIORITY
+
+State explicitly:
+
+Eligibility is authoritative and runs first.
+
+Examples include, as applicable:
+- supported route/corridor/shared-segment relationship,
+- same-state rule,
+- valid/current trusted evidence,
+- active lifecycle state,
+- timing validity,
+- requester/offer/interest validity,
+- sufficient remaining places,
+- group all-or-none capacity,
+- vehicle/access requirements,
+- future conflicting-reservation exclusion.
+
+Ranking cannot override any failed gate.
+
+Route/shared-corridor evidence should primarily answer:
+
+"May this candidate enter the valid pool?"
+
+Once two candidates are genuinely eligible, minor geometry differences must not silently become the dominant behavioural ranking factor.
+
+The current 0092 shared-segment work therefore belongs to the ELIGIBILITY/EVIDENCE side, not to the behavioural ranking equations.
+
+---
+
+## 23A.4 AUTHORITATIVE COMPLETED-HISTORY STRENGTH
+
+Record:
+
+H = 100 * n / (n + 3)
+
+where:
+n = authoritative completed Movement principal count.
+
+The authoritative source for the implemented v1 ranking is:
+
+private.completed_movement_principals
+
+Do not use client-provided counts.
+
+Explain:
+- 0 completions → H = 0
+- 1 → 25
+- 2 → 40
+- 3 → 50
+- 5 → 62.5
+- 10 → about 76.9
+- 20 → about 87.0
+- 50 → about 94.3
+
+The purpose is diminishing returns:
+early successful Movements matter strongly,
+but established members do not become permanently untouchable.
+
+---
+
+## 23A.5 CONFIDENCE-ADJUSTED REPUTATION
+
+Record the frozen v1 model:
+
+adjusted_rating =
+    (4.0 * 5 + rating_average * rating_count)
+    / (5 + rating_count)
+
+R =
+    clamp(
+        100 * (adjusted_rating - 3.0) / 2.0,
+        0,
+        100
+    )
+
+For no ratings:
+
+R = 50
+
+Authoritative rating evidence comes from:
+
+private.completed_movement_ratings
+
+Do not derive confidence from arbitrary client data.
+
+Explain:
+- 4.0 is the neutral prior
+- five conceptual prior observations prevent one rating from creating extreme status
+- no-rating newcomer = neutral/unknown, not bad
+- rating confidence matters, not raw stars alone
+
+---
+
+## 23A.6 OFFERER-FIRST WAITING
+
+Record:
+
+W = 100 * t / (t + tau)
+
+where:
+t = server-derived valid waiting minutes
+
+tau is selected using ORIGINAL seats voluntarily offered:
+
+1 seat → tau = 135 minutes
+2 seats → tau = 75 minutes
+3 seats → tau = 45 minutes
+4 seats → tau = 20 minutes
+
+State explicitly:
+
+original_places_offered selects the behavioural policy.
+
+remaining_places affects:
+- eligibility,
+- whether a requester group still fits,
+- later composition possibilities,
+
+but does NOT switch the behavioural policy.
+
+Example:
+
+original_places_offered = 4
+remaining_places = 1
+
+still uses the four-seat priority policy.
+
+This is a frozen design invariant.
+
+---
+
+## 23A.7 OFFERER-FIRST V1 EQUATIONS
+
+Record exactly:
+
+P1 = 0.40H + 0.35R + 0.25W
+
+P2 = 0.30H + 0.25R + 0.45W
+
+P3 = 0.22H + 0.18R + 0.60W
+
+P4 = 0.15H + 0.10R + 0.75W
+
+Explain the intended behaviour:
+
+1 seat:
+trust/history/reputation dominate strongly.
+
+2 seats:
+mixed trust + fairness.
+
+3 seats:
+waiting becomes a major force.
+
+4 seats:
+waiting/fairness is deliberately dominant.
+
+Do NOT add route score or group-fit score into these equations.
+
+---
+
+## 23A.8 REQUESTER-FIRST V1
+
+Record:
+
+PR = 0.35H + 0.40R + 0.25O
+
+where:
+
+O =
+    100 * valid_offer_wait_minutes
+    / (valid_offer_wait_minutes + 60)
+
+State:
+
+Requester-first does not simply reverse the offerer-first seat-policy equation.
+
+Route/corridor suitability remains an eligibility gate.
+
+Extra unused seats do not automatically increase an offerer's requester-first rank once enough places exist for the request.
+
+---
+
+## 23A.9 GROUP/CAPACITY COMPOSITION
+
+State:
+
+Group recommendation/composition is separate from individual priority ranking.
+
+Its governing rule is:
+
+Movement optimises human opportunity first,
+capacity efficiency second.
+
+The current design permits at most approximately
+10 priority-equivalent points of group/composition influence.
+
+It must not become the backbone of ranking.
+
+It must not optimize directly for:
+- maximum platform revenue,
+- maximum offerer earnings,
+- profit,
+- perfect packing at the expense of materially higher-priority people.
+
+Human final choice remains authoritative.
+
+IMPORTANT:
+Group-set recommendation is DEFERRED / NOT DEPLOYED unless current code independently proves otherwise.
+
+---
+
+## 23A.10 DETERMINISTIC TIES AND PRIVACY
+
+State:
+
+Ranking must be deterministic for the same authoritative evidence and policy version.
+
+Tie-breaking must use stable server-authoritative facts.
+
+Raw internal:
+- score,
+- weights,
+- anti-gaming mechanics,
+- private ranking evidence
+
+must not be exposed unnecessarily to clients.
+
+Users may understand positive behaviours such as:
+- completing Movements,
+- maintaining reliable behaviour,
+- building good reputation,
+- waiting fairly,
+
+without receiving exact private scoring internals.
+
+---
+
+## 23A.11 CONTROLLED MEDIA
+
+State:
+
+Controlled media is not a ranking input in movement_priority_v1.
+
+Priority decides who is surfaced.
+
+Optional permitted inspection happens afterward.
+
+Human preference belongs in the human-decision layer rather than being encoded as hidden demographic/sex-based ranking.
+
+Do not introduce demographic or sex-based ranking.
+
+Reconcile wording with existing approved Section 52 asymmetric media direction, but do NOT redesign Section 52 in this task.
+
+---
+
+## 23A.12 ONE-SIDED INVITATION VS MUTUAL SELECTION
+
+This distinction must be explicit.
+
+One-sided invitation/selection:
+- may identify another member as someone the chooser wishes to proceed with,
+- does not by itself create bilateral exclusivity,
+- does not automatically reserve the other person's availability,
+- does not charge money.
+
+Only after the required other-side acceptance/mutual choice should future pre-activation exclusivity begin.
+
+Conceptual future sequence:
+
+discovery
+→ ranked presentation
+→ one-sided invitation/selection
+→ other-side deliberate acceptance
+→ mutual choice
+→ temporary bilateral pre-activation reservation
+→ activation OR cancellation/expiry
+
+Do NOT claim this reservation is deployed.
+
+---
+
+## 23A.13 FUTURE PRE-ACTIVATION RESERVATION DESIGN
+
+### CLASSIFIED AS:
+
+DEFERRED / APPROVED DESIGN, NOT CURRENTLY DEPLOYED
+
+Record:
+
+- mutual selection may create up to a 10-minute reservation;
+- 10 minutes is a MAXIMUM, not a mandatory waiting period;
+- either side may cancel immediately;
+- immediate cancellation releases the person and seats where still otherwise valid;
+- expiry automatically releases abandoned reservation;
+- conflicting candidate pools should exclude a valid reserved member;
+- relevant seats must be transactionally protected;
+- concurrency must prevent the same final seat/person being reserved twice;
+- no fee before activation;
+- one cancellation alone should not automatically damage ranking;
+- repeated patterns may become future REVIEW/reliability evidence.
+
+IMPORTANT:
+Do not overwrite existing CURRENT IMPLEMENTED acceptance/capacity behavior in Section 18.
+
+Instead state that Section 18 documents current implemented capacity/acceptance behavior, while this subsection records the approved future reservation layer that must be integrated carefully.
+
+---
+
+## 23A.14 VERSIONING AND MEASUREMENT
+
+Record policy identifiers conceptually:
+
+movement_priority_v1
+
+offerer_initiated_1_seat_v1
+offerer_initiated_2_seat_v1
+offerer_initiated_3_seat_v1
+offerer_initiated_4_seat_v1
+
+requester_initiated_v1
+
+State that ranking/outcome measurement should eventually preserve privacy-safe server-side facts such as:
+- policy version
+- initiator context
+- original places offered
+- remaining places
+- candidate rank/buckets
+- selection
+- later reservation result
+- activation
+- completion
+- review outcome
+
+Do not introduce invasive analytics such as inferred ethnicity, attractiveness or biometric/social profiling.
+
+Do not claim every measurement field is already implemented.
+
+---
+
+## 23A.15 AUTHORITATIVE-EVIDENCE / ANTI-GAMING RULE
+
+State:
+
+No ranking advantage without authoritative evidence.
+
+Examples:
+
+history:
+authoritative completed Movement principals
+
+reputation:
+authoritative completed Movement ratings
+
+waiting:
+server timestamps
+
+seat policy:
+authoritative original availability capacity
+
+requester offer-wait:
+authoritative offer lifecycle timestamp
+
+Clients must never be trusted to submit:
+- their own priority
+- completed count
+- rating strength
+- waiting duration
+- seat-policy identity
+
+---
+
+## 23A.16 IMPLEMENTATION STATUS
+
+Document separately:
+
+IMPLEMENTED / VERIFIED COMPONENTS:
+- movement_priority_v1 foundation from 0089
+- authoritative history curve
+- confidence-adjusted reputation
+- neutral newcomer treatment
+- offerer-first original-seat policies
+- server-derived waiting policy
+- deterministic ordering/privacy-safe projection as established by 0089
+- requester-first ranking integration from 0090
+- 0091 departure admission freeze remains separate
+
+DEFERRED / NOT DEPLOYED AS PART OF THE RANKING FOUNDATION:
+- group-set recommendation engine
+- mutual-selection exclusivity/reservation
+- 10-minute reservation implementation
+- controlled-media implementation where still deferred
+- REVIEW/reliability ranking inputs
+- prior-positive-relationship input
+- personalized ranking
+- machine-learning ranking
+- demographic/sex-based ranking
+- paid boosting
+- automatic matching
+
+Also state:
+
+0092 requester-route/shared-segment work is an ELIGIBILITY/EVIDENCE milestone and must not silently rewrite movement_priority_v1.
+
+---
+
 # 24. CURRENT CLIENT OFFER FLOW
 
 ## IMPLEMENTED — BUT INCOMPLETE AS THE FULL PRODUCT
@@ -1742,6 +2221,56 @@ Use forward-only migration changes rather than editing production history.
 ## Decision 039
 
 Deferred features must be explicitly tracked before launch.
+
+## Decision 040
+
+Eligibility precedes ranking. Route/shared-corridor suitability is primarily an admission gate, not a dominant behavioural ranking score.
+
+## Decision 041
+
+movement_priority_v1 uses original places offered to select the offerer-first behavioural policy; remaining places affect eligibility and composition, not policy identity.
+
+## Decision 042
+
+Freeze offerer-first equations:
+P1=.40H+.35R+.25W
+P2=.30H+.25R+.45W
+P3=.22H+.18R+.60W
+P4=.15H+.10R+.75W
+
+## Decision 043
+
+Freeze H = 100*n/(n+3); reputation uses the 4.0/5-observation confidence prior and no-rating R=50; offerer waiting uses W=100*t/(t+tau) with tau 135/75/45/20 for original 1/2/3/4 seats.
+
+## Decision 044
+
+Requester-first v1 uses:
+PR=.35H+.40R+.25O
+with O=100*valid_offer_wait_minutes/(valid_offer_wait_minutes+60).
+
+## Decision 045
+
+Group composition is subordinate to ranking, capped at approximately 10 priority-equivalent points of influence; Movement optimises human opportunity first and capacity efficiency second.
+
+## Decision 046
+
+The algorithm controls visibility/order only. Human beings make the final selection. Controlled media remains outside the ranking score.
+
+## Decision 047
+
+One-sided invitation does not create exclusivity. Future pre-activation exclusivity begins only after required mutual choice.
+
+## Decision 048
+
+Approved future reservation design: up to 10 minutes, cancellable immediately by either side, automatic expiry/release, transactional person/capacity protection, and no fee before activation. This is not a claim that the mechanism is currently deployed.
+
+## Decision 049
+
+No ranking advantage without authoritative evidence; raw priority scores/weights remain internal.
+
+## Decision 050
+
+No automatic journey creation, forced match, demographic/sex-based ranking, paid priority boosting, or automatic final human selection is part of movement_priority_v1.
 
 ---
 
