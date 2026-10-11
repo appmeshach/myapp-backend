@@ -1,6 +1,6 @@
 # Movement — Launch Readiness & Algorithm Dependency Register
 
-Status: **development components locally verified through 0094; full user-flow audit remains in progress**. Updated 2026-10-10. Source of product authority: `docs/MOVEMENT_SYSTEM_SPEC.md`. Implementation evidence must be refreshed at every milestone.
+Status: **development components locally verified through 0095; full user-flow audit remains in progress**. Updated 2026-10-10. Source of product authority: `docs/MOVEMENT_SYSTEM_SPEC.md`. Implementation evidence must be refreshed at every milestone.
 
 ## Purpose and evidence standard
 
@@ -35,6 +35,13 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
 - Requester Node tests 86/86; offerer runtime/orchestration/provider plus two-route prototype 103/103. Full Node: 2,004 tests, 2,003 pass, one existing skip, zero failures. App and Edge typechecks pass.
 - Requester provider generation is lazy per current need, JWT authenticated, uses the existing shared quota and one claimed provider attempt with exact publication replay. Reference-path non-overlap alone is not definitive incompatibility. See [0094 implementation and cost ledger](0094-requester-route-provider-generation.md).
 - Mobile UI wiring, trusted shared-segment assessment and admission integration remain deferred. No production/provider/deployment action was performed; production verification remains through 0091.
+
+## 0095 REQUESTER DEADLINE REPAIR
+
+- Forward repair of the lost 0052 requester departure guards in the complete 0091 matching context; initial and final database wall-clock checks preserve the effective latest-or-earliest deadline.
+- Final fresh reset applied 0001?0095 (exit 0); 0095 SQL 13/13 and genuine deadline concurrency 7/7, original 0052 25/25. Full Node: 2,009 tests, 2,008 pass, one existing skip, zero failures; both typechecks pass. Historical 0001?0094 content remains unchanged.
+- Local validation results are recorded in [0095 repair evidence](0095-requester-deadline-matching-context-repair.md). Production verification remains through 0091; no deployment is implied.
+- Shared-segment assessment is not implemented by this repair. It remains the next milestone, expected as 0096; discovery/admission integration is separately reviewed.
 
 ## Matching and cascading algorithm — highest-priority audit
 

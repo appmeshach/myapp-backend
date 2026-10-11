@@ -851,6 +851,8 @@ The current 0092 shared-segment work therefore belongs to the ELIGIBILITY/EVIDEN
 
 0094 requester evidence uses one private provider-derived automotive-road-network reference path between the requester's trusted endpoints, only as compatibility support geometry. It does not mean the requester drives, intends to follow that path, must follow it, or has only that possible journey. Non-overlap with this single reference path alone must not establish definitive geographic incompatibility. Useful shared segments remain possible with ordinary transport, keke, walking, or other connecting legs. Provider generation is lazy per current movement need; fresh compatible evidence is reused across candidate comparisons. Shared-segment comparison and admission integration remain deferred.
 
+0095 restores the requester current-use matching-context departure guard lost in the 0091 replacement: `COALESCE(latest_departure_at, earliest_departure_at)` must remain strictly later than database wall-clock time, including a final check after dependency validation. It preserves the complete 0091 context and roster behavior. It does not implement shared-segment geographic assessment; that remains the next milestone, expected as 0096, with admission integration separately reviewed.
+
 ---
 
 ## 23A.4 AUTHORITATIVE COMPLETED-HISTORY STRENGTH
