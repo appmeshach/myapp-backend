@@ -201,6 +201,9 @@ test('no operational callers or older migrations consume these tables', () => {
     'supabase/migrations/0082_trusted_temporal_evidence_hardening.sql',
     // 0088 retains the audited activation validator's immutable context bindings.
     'supabase/migrations/0088_funded_activation_fee_finalization.sql',
+    // Requester evidence and claim context consume only trusted endpoint refs.
+    'supabase/migrations/0092_requester_route_evidence_foundation.sql',
+    'supabase/migrations/0093_requester_route_generation_claim_boundary.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);
