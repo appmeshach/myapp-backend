@@ -142,8 +142,11 @@ test('0048 has no operational mutations notification or evidence production', ()
   assert.doesNotMatch(sql, /CREATE\s+(?:TABLE|TRIGGER|POLICY)|ALTER TABLE/i);
 });
 
-test('protected context consumer allowlist remains pinned after sanctioned additions through 0095', () => {
-  assert.equal(crypto.createHash('sha256').update(read('movement_context.test.cjs')).digest('hex'),
+test('0096 sanctioned context read preserves the pinned consumer allowlist through 0095', () => {
+  const current = read('movement_context.test.cjs');
+  const addition = "    // Service-only stored-route assessment reads exact trusted pair context;\n    // it neither writes these declarations nor changes operational admission.\n    'supabase/migrations/0096_trusted_shared_segment_geographic_assessment.sql',\n";
+  assert.equal(current.split(addition).length, 2, 'exactly the sanctioned 0096 addition');
+  assert.equal(crypto.createHash('sha256').update(current.replace(addition, '')).digest('hex'),
     '39f4b5df839837e02c9a51a07cdbf0c526a609d2a5fefd5183ff3cf5a9c7d3ff');
   assert.doesNotMatch(sql, /\b(?:movement_location_references|offering_movement_intents|offering_movement_intent_locations|movement_context_snapshots|movement_context_snapshot_travellers)\b/);
 });

@@ -207,6 +207,9 @@ test('no operational callers or older migrations consume these tables', () => {
     'supabase/migrations/0094_requester_route_generation_context.sql',
     // Surgical forward replacement preserves the existing trusted consumers.
     'supabase/migrations/0095_requester_deadline_matching_context_repair.sql',
+    // Service-only stored-route assessment reads exact trusted pair context;
+    // it neither writes these declarations nor changes operational admission.
+    'supabase/migrations/0096_trusted_shared_segment_geographic_assessment.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);
