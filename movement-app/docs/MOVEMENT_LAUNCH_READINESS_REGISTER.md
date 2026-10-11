@@ -1,10 +1,12 @@
 # Movement — Launch Readiness & Algorithm Dependency Register
 
-Status: **development components locally verified through 0095; full user-flow audit remains in progress**. Updated 2026-10-10. Source of product authority: `docs/MOVEMENT_SYSTEM_SPEC.md`. Implementation evidence must be refreshed at every milestone.
+Status: **0097 reuse boundary locally verified; full user-flow audit remains in progress**. Updated 2026-10-11. Source of product authority: `docs/MOVEMENT_SYSTEM_SPEC.md`. Implementation evidence must be refreshed at every milestone.
 
 ## Purpose and evidence standard
 
 This register prevents milestone drift. A SQL migration's existence proves only that a change was authored; "production installed" requires remote migration evidence, "behavior verified" requires relevant tests, and "end-to-end verified" requires real user-flow testing. Do not infer completeness from filenames or UI appearance.
+
+0097 local verification: the service-only exact-current shared-segment assessment lookup and reuse-first one-pair orchestration pass focused SQL/runtime tests, genuine concurrency, both typechecks, full Node suites, 0096 concurrency regression, and a fresh disposable reset through 0097. Broad discovery, participant UI, provider generation, admission, and Priority v1 remain unchanged. Production remains verified only through migration 0091; 0097 is not deployed.
 
 Statuses: **verified component**, **partially verified**, **requires inspection**, **deferred by decision**, **blocked**. Do not mark a full subsystem complete because one of its components passed.
 
@@ -13,7 +15,7 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
 - GitHub `main` merged PR #31 (0091), #32 (canonical specification), and #33 (approved media-access decision). PR #33 merge: `4aa3ec57865c618c1c5d844ffea1ca5a04737779`.
 - Supabase production project `xdfmoggrsucisfybqctb`: migrations 0001–0091 reported installed; roster-freeze private table and RLS verified. Before deployment the availability-backed already-started count was zero; this was not an end-to-end journey test. **Production remains verified only through migration 0091.**
 - 0091 portable CI and local PostgreSQL regression/concurrency work passed in its implementation checkpoint. See `docs/0091-pre-departure-roster-freeze.md` (its historical "candidate only" and git status sections are pre-merge snapshots).
-- Current working branch `feature/0092-shared-segment-suitability` is a protected development worktree at `C:\Users\gt\Desktop\movement-0092-review\movement-app` and is not production deployed. Draft PR #35 was the recorded review context. Local base HEAD: `8783bb4 feat(matching): add requester route generation claim boundary`; external PR/push state was not refreshed in 0094.
+- Current working branch `feature/0092-shared-segment-suitability` is a protected development worktree at `C:\Users\gt\Desktop\movement-0092-review\movement-app` and is not production deployed. Draft PR #35 is the recorded review context. Local base HEAD before 0097 work: `b7bdc9d1521e0b1365a50cf8abf5df8f2a8b15f7`.
 - The requester-route-evidence foundation passed a fresh local reset through migration 0092 and a focused SQL regression of 24/24. This is NOT production deployed.
 - 0092 work currently belongs to trusted requester-route / shared-segment eligibility evidence, not behavioural ranking.
 - Current mobile inspection: `meetingJourneyService.ts`, `fundedCompletionService.ts`, `movementEndService.ts`, `movementDisputeService.ts` contain RPC calls. A name-specific search in `src/app` returned no direct usages; **indirect usage and full screen coverage have not been established**.

@@ -45,7 +45,13 @@ export interface AssessmentContext {
   expires_at: string | null; offerer_shape: unknown; requester_shape: unknown;
 }
 export interface PublishedAssessment { assessment_id: string; publication_state: 'published' | 'reuse_existing'; }
+export type AssessmentLookup =
+  | { lookup_state: 'reuse_existing'; assessment_id: string; algorithm_version: string;
+      parameter_fingerprint: string; canonical_result: AssessmentResult }
+  | { lookup_state: 'not_found' | 'not_ready'; assessment_id: null; algorithm_version: null;
+      parameter_fingerprint: null; canonical_result: null };
 export interface AssessmentBackend {
+  lookup(pair: PairIdentity, signal: AbortSignal): Promise<AssessmentLookup>;
   context(pair: PairIdentity, signal: AbortSignal): Promise<AssessmentContext>;
   publish(pair: PairIdentity, context: Record<string, unknown>, result: AssessmentResult, signal: AbortSignal): Promise<PublishedAssessment>;
 }

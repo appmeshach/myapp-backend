@@ -2460,6 +2460,10 @@ Before launch, produce a dedicated budget covering minimum unavoidable costs, re
 
 # 54. CONTINUITY AND PRE-LAUNCH REVIEW GATE
 
+## 0097 TRUSTED ASSESSMENT REUSE BOUNDARY
+
+The server may reuse an immutable 0096 shared-segment assessment only when its complete canonical identity remains current: the exact pair, both current route-evidence IDs and versions, algorithm and parameter fingerprint, input-context fingerprint, canonical context, dependencies, and expiry. A missing row is not a geographic result. Missing or unavailable evidence is an internal not-ready state and cannot trigger requester-route generation, provider work, admission, filtering, priority changes, or other product side effects. Geometry production remains limited to one explicitly selected authorized pair after a legitimate reuse miss.
+
 ## AUTHORITATIVE SOURCES
 
 Use this specification for established product intent, invariants and decision history.
