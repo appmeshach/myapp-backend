@@ -204,6 +204,7 @@ test('no operational callers or older migrations consume these tables', () => {
     // Requester evidence and claim context consume only trusted endpoint refs.
     'supabase/migrations/0092_requester_route_evidence_foundation.sql',
     'supabase/migrations/0093_requester_route_generation_claim_boundary.sql',
+    'supabase/migrations/0094_requester_route_generation_context.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);

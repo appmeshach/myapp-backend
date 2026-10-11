@@ -11,6 +11,35 @@ import {
 
 const TOKEN = 'test-mapbox-token';
 
+test('requester opt-in returns bounded snapped waypoints without changing offerer defaults', async () => {
+  const body=routeBody();body.waypoints=[{location:[3.501,6.437]},{location:[3.401,6.428]}];
+  const make=options=>createMapboxDirectionsProvider(TOKEN,{fetchImpl:async()=>jsonResponse(body),...options});
+  assert.equal(Object.hasOwn(await make({}).route(routeInput(),signal()),'snappedWaypoints'),false);
+  assert.deepEqual((await make({includeSnappedWaypoints:true,maxGeometryPoints:2000}).route(routeInput(),signal())).snappedWaypoints,[{longitude:3.501,latitude:6.437},{longitude:3.401,latitude:6.428}]);
+});
+for(const waypoints of [undefined,[],[{location:[NaN,6]}],Array(26).fill({location:[3,6]}),[{location:[181,6]}]]) {
+  test(`requester missing/malformed snapped waypoints ${JSON.stringify(waypoints)}`,async()=>{
+    const body=routeBody();body.waypoints=waypoints;
+    const provider=createMapboxDirectionsProvider(TOKEN,{includeSnappedWaypoints:true,fetchImpl:async()=>jsonResponse(body)});
+    // Empty arrays normalize but cannot satisfy the requester's exact-two rule.
+    if(Array.isArray(waypoints)&&waypoints.length===0)assert.deepEqual((await provider.route(routeInput(),signal())).snappedWaypoints,[]);
+    else await assert.rejects(()=>provider.route(routeInput(),signal()),MapboxDirectionsProviderError);
+  });
+}
+for(const count of [2000,2001])test(`requester point cap ${count} never downsamples`,async()=>{
+  const body=routeBody();body.routes[0].geometry.coordinates=Array.from({length:count},(_,i)=>[3+i/100000,6]);
+  const provider=createMapboxDirectionsProvider(TOKEN,{maxGeometryPoints:2000,fetchImpl:async()=>jsonResponse(body)});
+  if(count===2000)assert.equal((await provider.route(routeInput(),signal())).routeShape.coordinates.length,2000);
+  else await assert.rejects(()=>provider.route(routeInput(),signal()),e=>e.code==='processing_limit');
+});
+test('provider body timeout cancels an uncooperative response stream',async()=>{
+  let cancelled=false;const stream=new ReadableStream({start(c){c.enqueue(new TextEncoder().encode('{'));},cancel(){cancelled=true;}});
+  const provider=createMapboxDirectionsProvider(TOKEN,{timeoutMs:10,fetchImpl:async()=>new Response(stream,{headers:{'Content-Type':'application/json'}})});
+  // Keep Node alive while AbortSignal.timeout uses its unref timer.
+  const keeper=setTimeout(()=>{},1000);
+  try {await assert.rejects(()=>provider.route(routeInput(),signal()));assert.equal(cancelled,true);}finally{clearTimeout(keeper);}
+});
+
 function signal() {
   return new AbortController().signal;
 }

@@ -54,6 +54,8 @@ export interface MapboxDirectionsResult {
 
   generatedAt: string;
   expiresAt: null;
+  // Opt-in generic provenance. Never returned to clients by orchestration.
+  snappedWaypoints?: TrustedRouteCoordinate[];
 }
 
 export interface MapboxDirectionsProvider {
@@ -73,6 +75,8 @@ export interface MapboxDirectionsProviderOptions {
   fetchImpl?: FetchLike;
   timeoutMs?: number;
   now?: () => Date;
+  includeSnappedWaypoints?: boolean;
+  maxGeometryPoints?: number;
 }
 
 export class MapboxDirectionsProviderError
@@ -81,6 +85,7 @@ export class MapboxDirectionsProviderError
     | 'provider_unavailable'
     | 'invalid_input'
     | 'invalid_response'
+    | 'processing_limit'
     | 'route_unavailable';
 
   constructor(
@@ -88,6 +93,7 @@ export class MapboxDirectionsProviderError
       | 'provider_unavailable'
       | 'invalid_input'
       | 'invalid_response'
+      | 'processing_limit'
       | 'route_unavailable',
   ) {
     super(
@@ -286,6 +292,7 @@ function combineWithTimeout(
 
 async function readBoundedBody(
   response: Response,
+  signal: AbortSignal,
 ): Promise<string> {
   const rawLength =
     response.headers.get(
@@ -314,6 +321,8 @@ async function readBoundedBody(
 
   const reader =
     response.body.getReader();
+  const cancel = () => { void reader.cancel().catch(() => {}); };
+  signal.addEventListener('abort', cancel, { once: true });
 
   const decoder =
     new TextDecoder();
@@ -321,11 +330,14 @@ async function readBoundedBody(
   let total = 0;
   let text = '';
 
+  try {
   while (true) {
+    signal.throwIfAborted();
     const {
       done,
       value,
     } = await reader.read();
+    signal.throwIfAborted();
 
     if (done) {
       break;
@@ -363,6 +375,10 @@ async function readBoundedBody(
   text += decoder.decode();
 
   return text;
+  } finally {
+    signal.removeEventListener('abort', cancel);
+    reader.releaseLock();
+  }
 }
 
 async function fetchProviderJson(
@@ -453,7 +469,7 @@ async function fetchProviderJson(
     }
 
     const text =
-      await readBoundedBody(response);
+      await readBoundedBody(response, bounded.signal);
 
     bounded.signal.throwIfAborted();
 
@@ -582,6 +598,7 @@ function routeReference(
 
 function normalizedGeometry(
   value: unknown,
+  maxPoints?: number,
 ): {
   type: 'LineString';
   coordinates: number[][];
@@ -595,6 +612,9 @@ function normalizedGeometry(
     throw new MapboxDirectionsProviderError(
       'invalid_response',
     );
+  }
+  if (maxPoints !== undefined && value.coordinates.length > maxPoints) {
+    throw new MapboxDirectionsProviderError('processing_limit');
   }
 
   const coordinates =
@@ -676,6 +696,7 @@ function positiveRoundedInteger(
 function normalizeResponse(
   value: unknown,
   now: () => Date,
+  options: MapboxDirectionsProviderOptions,
 ): MapboxDirectionsResult {
   if (!isPlainObject(value)) {
     throw new MapboxDirectionsProviderError(
@@ -725,6 +746,7 @@ function normalizeResponse(
     );
   }
 
+  const snappedWaypoints = options.includeSnappedWaypoints ? normalizedWaypoints(value.waypoints) : undefined;
   return {
     providerNamespace:
       MAPBOX_DIRECTIONS_NAMESPACE,
@@ -741,6 +763,7 @@ function normalizeResponse(
     routeShape:
       normalizedGeometry(
         route.geometry,
+        options.maxGeometryPoints,
       ),
 
     routeDistanceMeters:
@@ -757,7 +780,19 @@ function normalizeResponse(
       generatedAt.toISOString(),
 
     expiresAt: null,
+    ...(snappedWaypoints === undefined ? {} : { snappedWaypoints }),
   };
+}
+
+function normalizedWaypoints(value: unknown): TrustedRouteCoordinate[] {
+  if (!Array.isArray(value) || value.length > 25) throw new MapboxDirectionsProviderError('invalid_response');
+  return value.map(point => {
+    if (!isPlainObject(point) || !Array.isArray(point.location) || point.location.length !== 2
+      || !validCoordinate(point.location[0],-180,180) || !validCoordinate(point.location[1],-90,90)) {
+      throw new MapboxDirectionsProviderError('invalid_response');
+    }
+    return { longitude: point.location[0], latitude: point.location[1] };
+  });
 }
 
 export function createMapboxDirectionsProvider(
@@ -780,7 +815,8 @@ export function createMapboxDirectionsProvider(
   const available =
     validAccessToken(accessToken)
     && Number.isInteger(timeoutMs)
-    && timeoutMs > 0;
+    && timeoutMs > 0
+    && (options.maxGeometryPoints === undefined || (Number.isSafeInteger(options.maxGeometryPoints) && options.maxGeometryPoints >= 2));
 
   const requireAvailable = (): string => {
     if (
@@ -836,6 +872,7 @@ export function createMapboxDirectionsProvider(
       return normalizeResponse(
         raw,
         now,
+        options,
       );
     },
   };

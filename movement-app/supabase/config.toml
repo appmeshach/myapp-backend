@@ -56,3 +56,8 @@ entrypoint = "./functions/generate-offering-route/index.ts"
 enabled = true
 verify_jwt = true
 entrypoint = "./functions/calculate-route-match/index.ts"
+
+[functions.generate-requester-route]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/generate-requester-route/index.ts"

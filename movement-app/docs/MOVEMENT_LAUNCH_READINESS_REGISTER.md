@@ -1,6 +1,6 @@
 # Movement — Launch Readiness & Algorithm Dependency Register
 
-Status: **audit in progress; planning artifact, not approval of migration 0092**. Updated 2026-10-10. Source of product authority: `docs/MOVEMENT_SYSTEM_SPEC.md`. Implementation evidence must be refreshed at every milestone.
+Status: **development components locally verified through 0094; full user-flow audit remains in progress**. Updated 2026-10-10. Source of product authority: `docs/MOVEMENT_SYSTEM_SPEC.md`. Implementation evidence must be refreshed at every milestone.
 
 ## Purpose and evidence standard
 
@@ -13,7 +13,7 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
 - GitHub `main` merged PR #31 (0091), #32 (canonical specification), and #33 (approved media-access decision). PR #33 merge: `4aa3ec57865c618c1c5d844ffea1ca5a04737779`.
 - Supabase production project `xdfmoggrsucisfybqctb`: migrations 0001–0091 reported installed; roster-freeze private table and RLS verified. Before deployment the availability-backed already-started count was zero; this was not an end-to-end journey test. **Production remains verified only through migration 0091.**
 - 0091 portable CI and local PostgreSQL regression/concurrency work passed in its implementation checkpoint. See `docs/0091-pre-departure-roster-freeze.md` (its historical "candidate only" and git status sections are pre-merge snapshots).
-- Current working branch `feature/0092-shared-segment-suitability` is a protected development worktree at `C:\Users\gt\Desktop\movement-0092-review\movement-app` and is not production deployed. Draft PR #35 is open for review; latest pushed commit: `45e1882 feat(matching): add requester route evidence foundation`.
+- Current working branch `feature/0092-shared-segment-suitability` is a protected development worktree at `C:\Users\gt\Desktop\movement-0092-review\movement-app` and is not production deployed. Draft PR #35 was the recorded review context. Local base HEAD: `8783bb4 feat(matching): add requester route generation claim boundary`; external PR/push state was not refreshed in 0094.
 - The requester-route-evidence foundation passed a fresh local reset through migration 0092 and a focused SQL regression of 24/24. This is NOT production deployed.
 - 0092 work currently belongs to trusted requester-route / shared-segment eligibility evidence, not behavioural ranking.
 - Current mobile inspection: `meetingJourneyService.ts`, `fundedCompletionService.ts`, `movementEndService.ts`, `movementDisputeService.ts` contain RPC calls. A name-specific search in `src/app` returned no direct usages; **indirect usage and full screen coverage have not been established**.
@@ -23,10 +23,18 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
 - Protected worktree: `C:\Users\gt\Desktop\movement-0092-review\movement-app`
 - Branch: `feature/0092-shared-segment-suitability`
 - Draft PR #35
-- Latest pushed commit: `45e1882 feat(matching): add requester route evidence foundation`
+- Local base HEAD: `8783bb4 feat(matching): add requester route generation claim boundary` (external push state not refreshed)
 - Requester-route-evidence foundation passed a fresh local reset through migration 0092 and focused SQL regression 24/24.
 - This is NOT production deployed.
 - 0092 work currently belongs to trusted requester-route / shared-segment eligibility evidence, not behavioural ranking.
+
+## 0094 LOCAL COMPONENT CHECKPOINT
+
+- Fresh local reset applied 0001-0094, including the final requester-generation context RPC. Installed 0094 and all seven 0093 function bodies/security settings match source. Historical 0001-0093 content matches HEAD modulo checkout line endings.
+- 0094 SQL 26/26; 0094 genuine concurrency 9/9. Regressions: 0093 SQL 49/49 and genuine concurrency 16/16, 0092 24/24, 0032 56/56, 0033 29/29. Disposable harness application data/catalog/ACL/RLS/history fingerprints remain unchanged.
+- Requester Node tests 86/86; offerer runtime/orchestration/provider plus two-route prototype 103/103. Full Node: 2,004 tests, 2,003 pass, one existing skip, zero failures. App and Edge typechecks pass.
+- Requester provider generation is lazy per current need, JWT authenticated, uses the existing shared quota and one claimed provider attempt with exact publication replay. Reference-path non-overlap alone is not definitive incompatibility. See [0094 implementation and cost ledger](0094-requester-route-provider-generation.md).
+- Mobile UI wiring, trusted shared-segment assessment and admission integration remain deferred. No production/provider/deployment action was performed; production verification remains through 0091.
 
 ## Matching and cascading algorithm — highest-priority audit
 
@@ -39,7 +47,7 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
 | No universal maximum detour rule | Canonical §11 | Requires inspection | Test actual eligibility criteria do not silently impose universal detour threshold |
 | Candidate priority both directions | 0089 `movement_priority_v1` (completed, reputation, waiting weighted by context), 0090 requester-offer ranking; evidence includes authoritative completion/reputation/waiting inputs and offerer-first original-seat policies | VERIFIED COMPONENTS | Preserve eligibility-before-ranking as 0092 geographic suitability is added; ensure no route micro-fit becomes an unintended ranking boost; later verify outcome measurement/group recommendation separately |
 | Priority-engine constitutional specification | Canonical §23A; 0089/0090 implementation history | FROZEN V1 PRODUCT CONTRACT / VERIFIED IMPLEMENTED CORE | Keep deferred group recommendation, mutual reservation, controlled media and future REVIEW distinct from deployed ranking |
-| Shared-segment geographic eligibility | 0092 contract/prototype; requester-route-evidence foundation commit `45e1882` | IN DEVELOPMENT / NOT PRODUCTION DEPLOYED | Requester generation claim/idempotency; provider requester route generation; trusted two-route comparison; later admission integration; fail-closed ambiguity/staleness tests |
+| Shared-segment geographic eligibility | 0092 contract/prototype; requester-route-evidence foundation commit `45e1882` | IN DEVELOPMENT / NOT PRODUCTION DEPLOYED | 0093 claim and 0094 provider generation locally verified; mobile invocation, trusted two-route comparison and later admission integration remain deferred; full user-flow proof still needed |
 | Mutual-selection pre-activation reservation | Approved Priority Engine design only | DEFERRED / NOT DEPLOYED | Exact lifecycle integration; bilateral mutual choice; capacity concurrency/lock ordering; up-to-10-minute expiry/release; no pre-activation fee; conflict-pool exclusion |
 | Seat capacity, group all-or-none, concurrency | Canonical §§18–19; 0091 preserves unused places and accepted siblings | Partially verified | Verify acceptance and group-ready tests end-to-end, capacity under race |
 | Departure admission freeze | 0091 production installed, PostgreSQL concurrency tests | Verified component; no production E2E | Validate real user activation/start/discovery closure, accepted sibling continuation |

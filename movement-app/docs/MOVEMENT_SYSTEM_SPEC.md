@@ -849,6 +849,8 @@ Once two candidates are genuinely eligible, minor geometry differences must not 
 
 The current 0092 shared-segment work therefore belongs to the ELIGIBILITY/EVIDENCE side, not to the behavioural ranking equations.
 
+0094 requester evidence uses one private provider-derived automotive-road-network reference path between the requester's trusted endpoints, only as compatibility support geometry. It does not mean the requester drives, intends to follow that path, must follow it, or has only that possible journey. Non-overlap with this single reference path alone must not establish definitive geographic incompatibility. Useful shared segments remain possible with ordinary transport, keke, walking, or other connecting legs. Provider generation is lazy per current movement need; fresh compatible evidence is reused across candidate comparisons. Shared-segment comparison and admission integration remain deferred.
+
 ---
 
 ## 23A.4 AUTHORITATIVE COMPLETED-HISTORY STRENGTH
