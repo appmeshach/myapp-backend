@@ -2464,6 +2464,14 @@ Before launch, produce a dedicated budget covering minimum unavoidable costs, re
 
 The server may reuse an immutable 0096 shared-segment assessment only when its complete canonical identity remains current: the exact pair, both current route-evidence IDs and versions, algorithm and parameter fingerprint, input-context fingerprint, canonical context, dependencies, and expiry. A missing row is not a geographic result. Missing or unavailable evidence is an internal not-ready state and cannot trigger requester-route generation, provider work, admission, filtering, priority changes, or other product side effects. Geometry production remains limited to one explicitly selected authorized pair after a legitimate reuse miss.
 
+## 0098 CURRENT SELECTED-AVAILABILITY ROUTE-MATCH REUSE
+
+An explicitly selected availability check may reuse trusted route-match evidence only after the existing requester ownership, selected-availability, current route, trusted endpoint, same-state, lifecycle, capacity and departure-deadline checks succeed. Reuse preserves the existing route-match evidence meaning and six-field public response. It performs no new geometry calculation or publication and does not express interest.
+
+A reuse miss permits one calculation and one frozen canonical publication payload, including one calculatedAt. Publication revalidates the exact selected context under the existing SQL lock hierarchy after geometry completes. Concurrent workers may converge on identical current facts while retaining the winning row's timestamp. An uncertain publication response instead requires one bounded lookup matching the caller's complete frozen payload, including its timestamp; otherwise the request fails closed. The historical writer's strict replay rules remain unchanged.
+
+This component does not integrate requester-route generation or shared-segment assessment into the app, change discovery or Priority v1, authorize interest automatically, reserve capacity, or affect acceptance, admission or finances. Requester geographic-support integration remains a separate milestone.
+
 ## AUTHORITATIVE SOURCES
 
 Use this specification for established product intent, invariants and decision history.

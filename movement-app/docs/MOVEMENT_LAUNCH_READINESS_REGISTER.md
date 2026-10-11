@@ -1,6 +1,6 @@
 # Movement — Launch Readiness & Algorithm Dependency Register
 
-Status: **0097 reuse boundary locally verified; full user-flow audit remains in progress**. Updated 2026-10-11. Source of product authority: `docs/MOVEMENT_SYSTEM_SPEC.md`. Implementation evidence must be refreshed at every milestone.
+Status: **0098 selected-availability route-match reuse locally verified; full user-flow audit remains in progress**. Updated 2026-10-11. Source of product authority: `docs/MOVEMENT_SYSTEM_SPEC.md`. Implementation evidence must be refreshed at every milestone.
 
 ## Purpose and evidence standard
 
@@ -44,6 +44,14 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
 - Final fresh reset applied 0001?0095 (exit 0); 0095 SQL 13/13 and genuine deadline concurrency 7/7, original 0052 25/25. Full Node: 2,009 tests, 2,008 pass, one existing skip, zero failures; both typechecks pass. Historical 0001?0094 content remains unchanged.
 - Local validation results are recorded in [0095 repair evidence](0095-requester-deadline-matching-context-repair.md). Production verification remains through 0091; no deployment is implied.
 - Shared-segment assessment is not implemented by this repair. It remains the next milestone, expected as 0096; discovery/admission integration is separately reviewed.
+
+## 0098 CURRENT ROUTE-MATCH REUSE CHECKPOINT
+
+- Baseline `3a09bb914cf9e16c36e34311329fdc9feedca94f` on `feature/0092-shared-segment-suitability`; work remains unstaged and uncommitted. Production verification remains through 0091.
+- Service-only exact current lookup and selected-availability publication revalidation preserve 0046 authorization and the effective 0082 writer. Repeat hits perform zero geometry and zero publication. Uncertain writes recover only the complete frozen canonical payload, including calculatedAt; concurrent current-use convergence retains the winning row's timestamp.
+- Focused SQL security 5/5, SQL behavior 22/22, real SQL-backed HTTP 5/5, genuine 0098 concurrency 6/6 with zero deadlocks, route runtime/orchestration 74/74. Full Supabase Node 1,193/1,193; root 956 passed with one existing skip. App/Edge typechecks and a fresh disposable reset through all 98 migrations pass. Original local application fingerprints and historical migrations remain unchanged.
+- Evidence and regression details: [0098 implementation and validation](0098-current-route-match-reuse-boundary.md). This verifies the route-match component, not a deployed or device-tested complete requester flow.
+- Requester geographic-support UI, 0094 app wiring, 0097 app invocation and a geographic-support endpoint remain deferred. Discovery, Priority v1, explicit interest, acceptance/admission, roster/capacity and financial semantics are unchanged. New vendor/provider usage: NONE; classified REQUIRED before geographic-support integration.
 
 ## Matching and cascading algorithm — highest-priority audit
 

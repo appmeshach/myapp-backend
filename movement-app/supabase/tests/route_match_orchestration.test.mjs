@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import {
   createRouteMatchHandler,
 } from '../functions/_shared/route-match-orchestration.ts';
+import { routeMatchContextIdentity } from '../functions/_shared/route-contracts.ts';
 
 const member =
   '11111111-1111-4111-8111-111111111111';
@@ -227,6 +228,14 @@ function backend(overrides = {}) {
       ]);
 
       return matchingContext();
+    },
+
+    async getCurrentRequesterAvailabilityRouteMatch() {
+      return { state: 'not_found', identity: routeMatchContextIdentity(matchingContext(), availability) };
+    },
+    async publishRequesterAvailabilityRouteMatch(_member, _need, _availability, identity, payload, signal) {
+      const evidence = await this.recordTrustedRouteMatchEvidence(payload, signal);
+      return evidence ? { state: 'reuse_existing', identity, payload, evidence } : null;
     },
 
     async recordTrustedRouteMatchEvidence(

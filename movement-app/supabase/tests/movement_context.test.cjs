@@ -212,6 +212,8 @@ test('no operational callers or older migrations consume these tables', () => {
     'supabase/migrations/0096_trusted_shared_segment_geographic_assessment.sql',
     // Service-only exact-current assessment reuse reads the same trusted pair.
     'supabase/migrations/0097_shared_segment_assessment_reuse_boundary.sql',
+    // Service-only route-match recovery checks exact trusted dependency expiry.
+    'supabase/migrations/0098_current_route_match_reuse_boundary.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);
