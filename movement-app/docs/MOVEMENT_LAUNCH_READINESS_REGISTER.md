@@ -105,6 +105,24 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
 - Future qualification order only: Railway, Fly.io, Render, conventional host.
   No provider was selected, accessed for deployment, purchased or provisioned.
 
+## 0102 DISPOSABLE REMOTE STAGING QUALIFICATION
+
+- [0102 tooling and workflow](0102-disposable-remote-staging-worker-qualification.md)
+  preserve all immutability guards and the local 0101 harness. No migration.
+- Dedicated disposable environment, explicit acknowledgement, canonical URL/ref
+  validation and both forbidden-project checks precede network. Operator catalog
+  preflight and fixture preparation require no hosted Postgres admin credential.
+- Immutable synthetic records require whole-environment operator teardown.
+  Tooling does not create/destroy environments or certify teardown/acceptance.
+- User-reported Railway Hobby offline PASS: correctness, reliability, lease and
+  memory; worst normal wall 277.75 ms; parent/child peak RSS 110.34/136.84 MiB.
+  Candidate already paid; no staging environment or new provider created here.
+- Remote process/integration/security proof remains outstanding. Provider restart
+  and host secret-storage/access controls require explicit operator evidence.
+  Production activation remains **BLOCKED**. Broad service-role secret authority,
+  production credential narrowing, rotation and host access controls remain launch
+  decisions. Check exact staging cost before provisioning.
+
 ## Matching and cascading algorithm — highest-priority audit
 
 | Required capability / constitutional rule | Evidence already inspected | Status | Next proof needed |

@@ -34,13 +34,25 @@ const schema=object({schemaVersion:enumOf('movement_worker_host_qualification_v1
  reasons:array(enumOf('correctness_gate_failed','reliability_gate_failed','lease_gate_failed','memory_gate_failed','process_gate_failed','integration_gate_failed','security_gate_failed',
  'memory_budget_not_supplied','integration_not_measured','process_not_measured','security_not_measured','insufficient_repetitions','qualification_execution_failed'))});
 schema.$schema='https://json-schema.org/draft/2020-12/schema';
-function validate(value,s=schema){
+const remoteSchema=JSON.parse(JSON.stringify(schema));
+remoteSchema.properties.schemaVersion=enumOf('movement_worker_remote_qualification_v2');
+remoteSchema.properties.mode=enumOf('remote-staging');
+remoteSchema.properties.classification=enumOf('TARGET_HOST_TECHNICALLY_QUALIFIED','HOST_UNQUALIFIED','QUALIFICATION_INCOMPLETE');
+remoteSchema.properties.remote=object({projectRefHash:hash,environmentKind:enumOf('disposable'),
+ fixtureCleanup:object({strategy:enumOf('disposable_environment_teardown'),recordLevelCleanupAttempted:enumOf(false),environmentTeardownRequired:enumOf(true),environmentTeardownCompleted:enumOf(false)}),
+ schema:object({operatorCatalogVerified:enumOf(true),runtimeCompatible:bool,fullCatalogVerifiedOnHost:enumOf(false)}),
+ measurements:object({startup:bool,idleSigterm:bool,jobExecution:bool,exactReuse:bool,staleFencing:bool,childCrash:bool,claimedLeaseRecovery:bool,lostAcknowledgementRecovery:bool,platformRestart:bool,hostSecretStorage:bool,participantAcl:bool}),
+ safeLogs:{type:'boolean'},dbCalls:number,jobsCompleted:number,childCpuMs:number,peakChildRssBytes:number,newComputes:number,publications:number,failure:nullable(enumOf('staging_schema_mismatch','remote_execution_failed'))});
+remoteSchema.required.push('remote');
+function validate(value,s=value?.mode==='remote-staging'?remoteSchema:schema){
  if(s.anyOf){if(s.anyOf.some(v=>{try{validate(value,v);return true;}catch{return false;}}))return;throw Error('Invalid qualification report');}
  if(s.enum){if(!s.enum.includes(value))throw Error('Invalid qualification report');return;}
  if(s.type==='null'){if(value!==null)throw Error('Invalid qualification report');return;}
  if(s.type==='object'){
   if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join('|')!==s.required.slice().sort().join('|'))throw Error('Invalid qualification report');
-  for(const [k,v] of Object.entries(s.properties))validate(value[k],v);return;
+  for(const [k,v] of Object.entries(s.properties))validate(value[k],v);
+  if(s===remoteSchema&&value.classification==='TARGET_HOST_TECHNICALLY_QUALIFIED'&&(value.result!=='qualified'||Object.values(value.gates).some(v=>v!==true)||Object.values(value.remote.measurements).some(v=>v!==true)||value.remote.failure!==null||!value.remote.safeLogs||value.remote.schema.runtimeCompatible!==true))throw Error('Unproven target qualification');
+  return;
  }
  if(s.type==='array'){if(!Array.isArray(value))throw Error('Invalid qualification report');value.forEach(v=>validate(v,s.items));return;}
  if(typeof value!==s.type||s.type==='number'&&(!Number.isFinite(value)||value<s.minimum)||s.pattern&&!new RegExp(s.pattern).test(value))throw Error('Invalid qualification report');
@@ -61,13 +73,15 @@ function verdict(report,runs){
  if(gates.process===null)reasons.push('process_not_measured');
  if(gates.security===null)reasons.push('security_not_measured');
  if(runs<5)reasons.push('insufficient_repetitions');
- const result=Object.values(gates).includes(false)?'unqualified':reasons.length?'incomplete':'qualified';
- return {result,classification:result==='unqualified'?'HOST_UNQUALIFIED':result==='qualified'?'LOCAL_SAMPLE_QUALIFIED':'QUALIFICATION_INCOMPLETE',reasons};
+ const allRequired=['correctness','reliability','lease','memory','process','integration','security'].every(name=>gates[name]===true);
+ const result=Object.values(gates).includes(false)?'unqualified':reasons.length||!allRequired?'incomplete':'qualified';
+ return {result,classification:result==='unqualified'?'HOST_UNQUALIFIED':result==='qualified'?(report.mode==='remote-staging'?'TARGET_HOST_TECHNICALLY_QUALIFIED':'LOCAL_SAMPLE_QUALIFIED'):'QUALIFICATION_INCOMPLETE',reasons};
 }
 function markdown(r){
  validate(r);
  const ms=v=>v===null?'not measured':v.toFixed(2),mib=v=>(v/1048576).toFixed(2);
- return `# 0101 worker host qualification\n\nResult: **${r.result.toUpperCase()}** (${r.classification}). Production host remains UNSELECTED / UNQUALIFIED; geographic support activation BLOCKED.\n\n`+
+ const remote=r.mode==='remote-staging'?`## ENVIRONMENT TEARDOWN REQUIRED\n\nImmutable synthetic Movement records remain in the disposable environment. The operator must destroy that temporary Supabase environment. Teardown is not performed or certified by this command. Production activation must not use this environment. Operator acceptance is separate and requires confirmed teardown.\n\nProject SHA-256: ${r.remote.projectRefHash}. Record cleanup attempted: false. Full catalog equality verified on host: false; external operator preflight required. Runtime compatibility: ${r.remote.schema.runtimeCompatible}.\n\nRemote measurements: ${Object.entries(r.remote.measurements).map(([k,v])=>k+': '+(v===null?'NOT MEASURED':v?'PASS':'FAIL')).join('; ')}.\n\n`:'';
+ return `# ${r.mode==='remote-staging'?'0102 disposable remote':'0101'} worker host qualification\n\nResult: **${r.result.toUpperCase()}** (${r.classification}). Production host remains UNSELECTED / UNQUALIFIED; geographic support activation BLOCKED.\n\n`+remote+
  `Host: ${r.host.provider}; machine: ${r.host.machine}; region: ${r.host.region}. Mode: ${r.mode}. Commit: ${r.gitCommit||'unknown'}; dirty working tree: ${r.gitDirty}; worker source SHA-256: \`${r.workerSourceSha256}\`.\n\n`+
  `Environment: ${r.environment.nodeVersion}, ${r.environment.platform}/${r.environment.arch}; ${r.environment.cpuModel}; ${r.environment.logicalCpus} logical CPUs. OS total/available memory: ${mib(r.environment.totalMemoryBytes)}/${mib(r.environment.availableMemoryBytes)} MiB. Operator memory budget: ${r.environment.memoryLimitBytes===null?'not supplied':mib(r.environment.memoryLimitBytes)+' MiB'}.\n\n`+
  `Algorithm: ${r.algorithm.version}; parameter fingerprint: \`${r.algorithm.parameterFingerprint}\`. Geometry SHA-256: \`${r.algorithm.geometrySha256}\`; contracts SHA-256: \`${r.algorithm.contractsSha256}\`.\n\n`+
@@ -86,4 +100,4 @@ function markdown(r){
  `Usage/cost inputs: wall ${ms(r.usage.wallMs)} ms; child CPU ${ms(r.usage.totalChildCpuMs)} ms; parent CPU ${ms(r.usage.parentCpuMs)} ms; idle polling interval ${r.worker.pollMs} ms. Monthly fixed cost: ${r.host.monthlyFixedCost===null?'unknown':r.host.monthlyFixedCost+' '+r.host.currency} (operator entered). No provider prices inferred.\n\n`+
  `Gates: ${Object.entries(r.gates).map(([k,v])=>k+': '+(v===null?'NOT MEASURED':v?'PASS':'FAIL')).join('; ')}.\n\nBlockers: ${r.reasons.length?r.reasons.join(', '):'none within this local sample; actual production host still unselected/unqualified'}.\n`;
 }
-module.exports={schema,validate,stats,verdict,markdown};
+module.exports={schema,remoteSchema,validate,stats,verdict,markdown};

@@ -2541,6 +2541,24 @@ host selection, enforced CPU/memory, supervision, connectivity, secure secrets
 and successful target-allocation qualification. See the 0101 deployment runbook
 and qualification report. No new paid service or queue is introduced.
 
+## 0102 DISPOSABLE REMOTE QUALIFICATION CHECKPOINT
+
+Remote worker qualification is separate from the fixed local 0101 integration
+harness. Explicit disposable acknowledgement, dedicated variables, canonical
+project/ref matching and a qualification-only production/inactive denylist are
+required before network access. Operator-side relevant catalog verification and
+synthetic fixture preparation keep Postgres credentials off the candidate host.
+Existing immutable records remain until the operator destroys the temporary
+environment; no deletion guard or Movement migration changes.
+
+The user reports Railway Hobby offline correctness/reliability/lease/memory PASS
+(277.75 ms worst normal wall; 110.34 MiB parent / 136.84 MiB child peak RSS).
+Process, integration and security target-host evidence remains incomplete.
+Technical qualification and confirmed environment teardown precede separate
+operator acceptance. Production activation remains BLOCKED; service-role blast
+radius and production credential hardening remain launch decisions. See
+[0102 workflow and evidence](0102-disposable-remote-staging-worker-qualification.md).
+
 ## AUTHORITATIVE SOURCES
 
 Use this specification for established product intent, invariants and decision history.

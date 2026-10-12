@@ -16,7 +16,8 @@ function parseArgs(args){
  const seen=new Set();
  for(let i=0;i<args.length;i++){
   const k=args[i];if(seen.has(k))throw Error('Duplicate qualification argument');seen.add(k);
-  if(k==='--offline'||k==='--integration'){if(out.mode)throw Error('Choose one qualification mode');out.mode=k.slice(2);continue;}
+  if(k==='--offline'||k==='--integration'||k==='--remote-staging'){if(out.mode)throw Error('Choose one qualification mode');out.mode=k.slice(2);continue;}
+  if(k==='--ack-disposable-environment'){out.ackDisposable=true;continue;}
   if(!['--runs','--idle-minutes','--idle-seconds','--memory-limit-mb','--output','--provider','--machine','--region','--monthly-fixed-cost','--currency'].includes(k))throw Error('Unknown qualification argument');
   const v=args[++i];if(!v||v.startsWith('--'))throw Error('Missing qualification argument');
   if(['--provider','--machine','--region','--currency'].includes(k)){
@@ -31,6 +32,7 @@ function parseArgs(args){
   }
  }
  if(!out.mode)throw Error('Explicit qualification mode required');
+ if(out.mode==='remote-staging'&&!out.ackDisposable||out.mode!=='remote-staging'&&out.ackDisposable)throw Error('Disposable acknowledgement requires remote staging mode');
  if(out.host.monthlyFixedCost!==null&&out.host.currency==='unspecified')throw Error('Cost requires currency');
  return out;
 }
@@ -85,6 +87,14 @@ function securitySources(){
 }
 async function qualify(options){
  validateRuntime();const started=performance.now(),cpu=process.cpuUsage();
+ // Fail closed before benchmarks, process creation or any network activity.
+ let remoteConfig,remoteCapsule;
+ if(options.mode==='remote-staging'){
+  const boundary=require('./qualification-remote.cjs');remoteConfig=boundary.configuration(process.env,options.ackDisposable);
+  remoteCapsule=boundary.open(process.env.MOVEMENT_QUALIFICATION_FIXTURE_CAPSULE,process.env.MOVEMENT_QUALIFICATION_FIXTURE_KEY,remoteConfig.projectRefHash);
+  if(Object.values(options.host).some(v=>typeof v==='string'&&[remoteConfig.ref,remoteConfig.secret].some(s=>v.includes(s))))throw Error('Private host label');
+  process.stderr.write(boundary.WARNING);
+ }
  const git=cp.spawnSync('git',['rev-parse','HEAD'],{cwd:ROOT,encoding:'utf8',windowsHide:true});
  const commit=git.status===0&&/^[a-f0-9]{40}$/.test(git.stdout.trim())?git.stdout.trim():null;
  const state=cp.spawnSync('git',['status','--porcelain'],{cwd:ROOT,encoding:'utf8',windowsHide:true});
@@ -98,6 +108,10 @@ async function qualify(options){
  if(options.mode==='integration'){
   try{integration=await require('./qualification-integration.cjs').integration(options.idleMs);}
   catch{integrationFailed=true;}
+ }
+ if(options.mode==='remote-staging'){
+  r.schemaVersion='movement_worker_remote_qualification_v2';
+  r.remote=await require('./qualification-remote.cjs').remote(remoteConfig,remoteCapsule);
  }
  if(integration){r.queue=integration.queue;r.dedup=integration.dedup;r.restart=integration.restart;r.idle=integration.idle;r.security.processLeakCheck=integration.processLeakCheck;r.security.installedSqlVerified=true;}
  else if(options.idleMs)r.idle=await observeIdle(options.idleMs);
@@ -113,13 +127,29 @@ async function qualify(options){
  memory:options.memoryLimitBytes===null?null:parentPeak+childPeak<=options.memoryLimitBytes*0.8,
  process:integration?(process.platform==='win32'?null:integration.restart.every(v=>v.passed)):integrationFailed?false:null,integration:integration?integration.queue.every(q=>q.failures===0&&q.retries===0&&q.duplicatePublications===0)&&integration.dedup.canonicalJobs===1&&integration.dedup.newComputes===0&&integration.dedup.publications===1:integrationFailed?false:null,
  security:integration?r.security.logAllowlist&&r.security.childIsolation&&r.security.processLeakCheck:null};
- Object.assign(r,verdict(r,options.runs));if(integrationFailed)r.reasons.push('qualification_execution_failed');validate(r);return r;
+ if(options.mode==='remote-staging'){
+  const remote=r.remote,m=remote.measurements;
+  r.usage.dbCalls=remote.dbCalls;r.usage.jobsCompleted=remote.jobsCompleted;r.usage.totalChildCpuMs+=remote.childCpuMs;
+  r.usage.peakChildRssBytes=Math.max(childPeak,remote.peakChildRssBytes);
+  r.usage.peakParentRssBytes=Math.max(parentPeak,process.resourceUsage().maxRSS*1024);
+  const finalCpu=process.cpuUsage(cpu);r.usage.parentCpuMs=(finalCpu.user+finalCpu.system)/1000;r.usage.wallMs=performance.now()-started;
+  r.gates.memory=options.memoryLimitBytes===null?null:r.usage.peakParentRssBytes+r.usage.peakChildRssBytes<=options.memoryLimitBytes*0.8;
+  r.gates.integration=remote.failure==='staging_schema_mismatch'?null:remote.failure?false:[m.jobExecution,m.exactReuse,m.staleFencing,m.childCrash,m.claimedLeaseRecovery,m.lostAcknowledgementRecovery].every(v=>v===true);
+  r.gates.process=[m.startup,m.idleSigterm,m.platformRestart].some(v=>v===false)?false:[m.startup,m.idleSigterm,m.platformRestart].every(v=>v===true)?true:null;
+  r.security.processLeakCheck=remote.safeLogs;r.security.installedSqlVerified=null;
+  r.gates.security=!remote.safeLogs||!r.security.childIsolation?false:m.hostSecretStorage===true&&m.participantAcl===true?true:null;
+ }
+ Object.assign(r,verdict(r,options.runs));if(integrationFailed)r.reasons.push('qualification_execution_failed');
+ if(remoteConfig&&[remoteConfig.ref,remoteConfig.url,remoteConfig.secret].some(v=>JSON.stringify(r).includes(v)))throw Error('Private qualification report');
+ validate(r);return r;
 }
 async function main(args=process.argv.slice(2)){
  const options=parseArgs(args),report=await qualify(options);
- if(options.output){fs.mkdirSync(options.output,{recursive:true});fs.writeFileSync(path.join(options.output,'qualification.json'),JSON.stringify(report,null,2)+'\n');fs.writeFileSync(path.join(options.output,'qualification.md'),markdown(report));fs.writeFileSync(path.join(options.output,'qualification.schema.json'),JSON.stringify(schema,null,2)+'\n');}
+ if(options.output){fs.mkdirSync(options.output,{recursive:true});fs.writeFileSync(path.join(options.output,'qualification.json'),JSON.stringify(report,null,2)+'\n');fs.writeFileSync(path.join(options.output,'qualification.md'),markdown(report));fs.writeFileSync(path.join(options.output,'qualification.schema.json'),JSON.stringify(options.mode==='remote-staging'?require('./qualification-report.cjs').remoteSchema:schema,null,2)+'\n');}
  process.stdout.write(markdown(report));if(report.result==='unqualified')process.exitCode=1;
  return report;
 }
 module.exports={parseArgs,offline,observeIdle,qualify,main,EXPECTED,summarize};
-if(require.main===module)main().catch(()=>{process.stderr.write('Qualification unavailable; no geographic evidence produced\n');process.exitCode=1;});
+if(require.main===module)main().catch(()=>{
+ process.stderr.write(process.argv.includes('--remote-staging')?'Remote qualification unavailable; ENVIRONMENT TEARDOWN REQUIRED if remote writes began\n':'Qualification unavailable; no geographic evidence produced\n');process.exitCode=1;
+});
