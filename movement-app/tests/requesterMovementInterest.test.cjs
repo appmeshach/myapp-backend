@@ -240,7 +240,8 @@ function screen(kind) {
         return handlers.listMyOpenOfferingMovementAvailabilities(...args);
       },
       calculateRouteMatch: wrap('calculateRouteMatch'),
-      discoverOfferingMovementAvailability: async () => [offered(availability), offered(otherAvailability)],
+      discoverOfferingMovementAvailability: async () => handlers.discoverOfferingMovementAvailability
+        ? handlers.discoverOfferingMovementAvailability() : [offered(availability), offered(otherAvailability)],
       createOfferingMovementIntent: async input => {
         declarationCalls.push(plain(input));
         return { offeringMovementIntentId: id(30) };
@@ -280,6 +281,15 @@ function screen(kind) {
     unmount() { for (const v of values) v?.cleanup?.(); mounted = false; },
   };
 }
+
+test('0099 browsing fifty candidates performs no selected route or private job action', async () => {
+  const h = screen('request');
+  h.handlers.discoverOfferingMovementAvailability = async () => Array.from({ length: 50 }, (_, i) => offered(id(1000 + i)));
+  await h.settle();
+  for (let i = 0; i < 50; i++) assert(h.find(n => n.type === 'Pressable' && n.key === id(1000 + i)));
+  assert(!h.calls.some(c => /calculateRouteMatch|createRequesterMovementInterest|assessment|job/i.test(c[0])));
+  h.unmount();
+});
 
 test('recovered current movement need alone cannot check route or express interest', async () => {
   const h = screen('request');

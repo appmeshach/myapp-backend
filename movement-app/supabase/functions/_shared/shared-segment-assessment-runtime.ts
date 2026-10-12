@@ -12,7 +12,7 @@ function object(v:unknown):Record<string,unknown> {
   if(!v || typeof v!=='object' || Array.isArray(v))return unavailable();
   return v as Record<string,unknown>;
 }
-function assessmentResult(v:unknown):AssessmentResult {
+export function assessmentResult(v:unknown):AssessmentResult {
   const r=object(v),keys=['algorithmVersion','inputState','assessmentState','geographicResult','reasons','alternativeCorridors',
     'authorizesAdmission','confirmsUsableSharedSegment','roadTopologyVerified','offererTotal','requesterTotal','offererSupported',
     'requesterSupported','offererFraction','requesterFraction','supportIntervals','ambiguityCount','sameDirectionCount',

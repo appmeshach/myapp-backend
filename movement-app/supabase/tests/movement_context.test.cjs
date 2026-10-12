@@ -214,6 +214,8 @@ test('no operational callers or older migrations consume these tables', () => {
     'supabase/migrations/0097_shared_segment_assessment_reuse_boundary.sql',
     // Service-only route-match recovery checks exact trusted dependency expiry.
     'supabase/migrations/0098_current_route_match_reuse_boundary.sql',
+    // Private selected assessment jobs retain exact trusted context bindings.
+    'supabase/migrations/0099_shared_segment_assessment_job_foundation.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);

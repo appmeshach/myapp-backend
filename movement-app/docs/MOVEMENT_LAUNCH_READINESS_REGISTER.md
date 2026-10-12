@@ -53,6 +53,19 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
 - Evidence and regression details: [0098 implementation and validation](0098-current-route-match-reuse-boundary.md). This verifies the route-match component, not a deployed or device-tested complete requester flow.
 - Requester geographic-support UI, 0094 app wiring, 0097 app invocation and a geographic-support endpoint remain deferred. Discovery, Priority v1, explicit interest, acceptance/admission, roster/capacity and financial semantics are unchanged. New vendor/provider usage: NONE; classified REQUIRED before geographic-support integration.
 
+## 0099 PRIVATE JOB / WORKER DEVELOPMENT CHECKPOINT
+
+- Baseline `e5fda80`; private foundation only. Production remains verified through
+  0091. No production host is selected or deployed.
+- Service-only selected registration is reuse-first; private canonical jobs use
+  bounded attempts, lease tokens and current-context fencing. Isolated Node compute
+  imports the frozen 0096 engine. Selected validation and trusted publication are
+  atomic with completion; runtime failure never becomes immutable geometry evidence.
+- Local evidence is recorded in [0099 foundation](0099-shared-segment-assessment-job-foundation.md).
+  Target-host CPU/memory/lease validation remains blocked on future hosting selection.
+- Participant-facing requester integration belongs to 0100. No UI, provider,
+  discovery fanout, interest, priority, admission, roster/capacity or money change.
+
 ## Matching and cascading algorithm — highest-priority audit
 
 | Required capability / constitutional rule | Evidence already inspected | Status | Next proof needed |

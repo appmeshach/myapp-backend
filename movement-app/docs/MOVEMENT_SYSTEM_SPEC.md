@@ -2472,6 +2472,25 @@ A reuse miss permits one calculation and one frozen canonical publication payloa
 
 This component does not integrate requester-route generation or shared-segment assessment into the app, change discovery or Priority v1, authorize interest automatically, reserve capacity, or affect acceptance, admission or finances. Requester geographic-support integration remains a separate milestone.
 
+## 0099 PRIVATE ASSESSMENT JOB AND WORKER FOUNDATION
+
+Cold shared-segment geometry runs in an isolated, credential-free Node child;
+hosted Edge CPU headroom was not demonstrated. A service-only selected-action
+registration reuses exact current 0097 assessment evidence before creating one
+canonical private job. Jobs bind the selected availability, both evidence IDs
+and versions, parameter/version identity, complete canonical context and expiry.
+No job may retarget newer evidence. Short claims use fenced leases, at most three
+attempts and bounded backoff; no SQL transaction spans computation. Final selected
+validation and unchanged 0096 publication precede atomic completion. Deterministic
+processing limits are persistable assessment results; infrastructure termination
+and calculation failure are not geographic verdicts. Geometry loads require a
+running live lease. Completed-result recovery does not expose geometry.
+
+This is a local private foundation, not a participant endpoint or deployed worker.
+Production hosting and target-host execution/lease validation remain prerequisites.
+0100 requester annotation integration is deferred. Interest, discovery, offerer
+activity, admission, priority, capacity, roster and financial lifecycles are unchanged.
+
 ## AUTHORITATIVE SOURCES
 
 Use this specification for established product intent, invariants and decision history.
