@@ -2,13 +2,16 @@
 const {getOrProduceSharedSegmentAssessment}=require('../../supabase/functions/_shared/shared-segment-assessment-orchestration.ts');
 const {calculateIsolated}=require('./compute.cjs');
 const {ASSESSMENT_VERSION,parameterFingerprint}=require('../../supabase/functions/_shared/shared-segment-assessment-contracts.ts');
+const {event}=require('./runtime.cjs');
 // One supervisor operation; no SQL transaction or lock spans the child process.
 async function executeOne(backend,{signal=new AbortController().signal,compute=calculateIsolated,log=(_event)=>{}}={}){
+ signal.throwIfAborted();
  const io=()=>AbortSignal.any([signal,AbortSignal.timeout(5000)]);
  const claim=await backend.claim(io());if(claim.state==='idle')return {state:'idle'};
  const started=performance.now();let loaded,metrics,computed;
- const finish=(state,result)=>{log({jobId:claim.job_id,state,attemptCount:claim.attempt_count,durationMs:performance.now()-started,
-  ...(result?{resultCategory:result.geographicResult||result.reasons[0]||result.inputState,workUnits:result.workUnits}:{})});return {state,...(metrics?{metrics}:{}),...(result?{result}:{} )};};
+ const finish=(state,result)=>{log(event('job_transition',{state,attemptCount:claim.attempt_count,durationMs:performance.now()-started,
+  ...(metrics?{computeMs:metrics.computeMs,cpuMs:metrics.cpuMs,peakRssBytes:metrics.peakRssBytes}:{}),
+  ...(result?{resultCategory:result.geographicResult||result.reasons[0]||result.inputState}:{})}));return {state,...(metrics?{metrics}:{}),...(result?{result}:{} )};};
  try{
   loaded=await backend.load(claim.job_id,claim.lease_token,io());if(loaded.state!=='ready')return finish(loaded.state);
   const fingerprint=await parameterFingerprint();

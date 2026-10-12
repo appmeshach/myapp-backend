@@ -57,7 +57,11 @@ test('preflight rejects actual modern starts without fabricating history',()=>{a
 test('no new finance or provider implementation outside the exact sanctioned 0100 requester annotation',()=>{
  assert.doesNotMatch(sql,/CREATE(?: OR REPLACE)? FUNCTION[^\n]*(?:settle|pricing|priority|funding|activation|completion)/i);
  assert.doesNotMatch(sql,/INSERT INTO private\.(?:wallet|financial_components)|https?:\/\//i);
- assert.equal(cp.execFileSync('git',['diff','9308aa06b09a7af83ada68bc111b98254b896854','--','src','package.json','package-lock.json',':(exclude)src/app/request-movement.tsx'],{cwd:root,encoding:'utf8'}),'');
+ // 0100 already committed this one new service. Pin its exact reviewed blob;
+ // retain the historical guard for every other client and dependency file.
+ const service='src/services/requesterGeographicSupportService.ts';
+ assert.equal(cp.execFileSync('git',['hash-object','--path',service,service],{cwd:root,encoding:'utf8'}).trim(),'b0af7a2d67b42206ed2b2942bd3944b255baa80f');
+ assert.equal(cp.execFileSync('git',['diff','9308aa06b09a7af83ada68bc111b98254b896854','--','src','package.json','package-lock.json',':(exclude)src/app/request-movement.tsx',':(exclude)'+service],{cwd:root,encoding:'utf8'}),'');
  const prefix=cp.execFileSync('git',['rev-parse','--show-prefix'],{cwd:root,encoding:'utf8'}).trim();
  const original=cp.execFileSync('git',['show','9308aa06b09a7af83ada68bc111b98254b896854:'+prefix+'src/app/request-movement.tsx'],{cwd:root,encoding:'utf8'}).replace(/\r\n/g,'\n');
  assert.equal(require('./support/requesterGeographicSupportDelta.cjs').stripRequesterGeographicSupport0100(fs.readFileSync(path.join(root,'src/app/request-movement.tsx'),'utf8')),original);

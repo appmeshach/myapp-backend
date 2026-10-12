@@ -81,6 +81,30 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
   Production activation requires worker host selection and target-host benchmarks;
   neither is complete. Offerer annotation and admission work remain deferred.
 
+## 0101 WORKER HOST QUALIFICATION AND DEPLOYMENT BOUNDARY
+
+- Local worker foundation and provider-neutral qualification tooling are verified
+  by the [0101 report](0101-worker-host-qualification.md) and
+  [deployment runbook](0101-worker-deployment-boundary.md). No migration is added.
+- Node 24+, one sequential credential-free compute child, unchanged 0096 geometry,
+  60-second lease, 15-second compute cap and bounded attempts remain in force.
+  Offline correctness/resources, local lifecycle/queues, restart/fencing/recovery,
+  idle smoke and actual Linux signal handling have distinct evidence.
+- ACTUAL production worker host: **UNSELECTED / UNQUALIFIED**. Geographic support
+  production activation: **BLOCKED**. A local report never clears this gate.
+- REQUIRED: qualified Node-capable host; secure secret injection; restart
+  supervision; enforced CPU/memory sufficient for frozen geometry; Supabase
+  connectivity; successful qualification on the target allocation.
+- Service-role credentials remain broader than worker RPC needs. Secure handling,
+  restricted host access and rotation/revocation planning are launch-required.
+  A narrower execution role is feasible but deferred to a separate auth review;
+  modern secret format alone does not narrow authority.
+- STRONGLY RECOMMENDED: logs, CPU/RAM, restart count, queue depth/age, heartbeat
+  and cost alert/budget threshold. OPTIONAL: replicas, autoscaling, PGMQ, Redis,
+  managed queue, monitoring vendor, VPS and orchestration. No new paid service.
+- Future qualification order only: Railway, Fly.io, Render, conventional host.
+  No provider was selected, accessed for deployment, purchased or provisioned.
+
 ## Matching and cascading algorithm — highest-priority audit
 
 | Required capability / constitutional rule | Evidence already inspected | Status | Next proof needed |

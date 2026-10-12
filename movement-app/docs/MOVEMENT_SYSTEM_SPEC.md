@@ -2515,6 +2515,32 @@ This is local implementation evidence, not production activation. Worker hosting
 selection and target-host execution/lease benchmarks remain prerequisites. Offerer
 annotation and admission integration remain deferred.
 
+## 0101 WORKER HOST QUALIFICATION AND DEPLOYMENT BOUNDARY
+
+The private worker has a provider-neutral Node 24 process contract: eager
+configuration validation, authenticated ordinary-poll readiness, structured
+logs without private identities or geometry, one compute slot and bounded
+SIGTERM/SIGINT shutdown. Frozen 0096 geometry, 0099 lease/retry/publication
+authority and 0100 requester behavior remain unchanged. No 0101 migration exists.
+
+Qualification measures offline deterministic results/resources and adversarial
+infrastructure failures, disposable local lifecycle/1-10-100 serialized queues,
+same-pair deduplication/reuse, crash/fence/lost-response recovery and idle usage.
+Strict versioned JSON and Markdown distinguish qualified samples, unqualified
+hosts and incomplete measurements. Host performance failures never become
+processing_limit or geographic evidence. Provider billing inputs are operator
+metadata and measured resource use, not canonical price estimates.
+
+The supervisor's service-role credential retains broad authority; the compute
+child receives none. Secure injection/access/rotation and explicit acceptance of
+that residual risk are launch-required. Credential narrowing is separately deferred.
+
+Local worker/tooling verification does not select or qualify an actual production
+host. Production geographic support activation remains BLOCKED pending target
+host selection, enforced CPU/memory, supervision, connectivity, secure secrets
+and successful target-allocation qualification. See the 0101 deployment runbook
+and qualification report. No new paid service or queue is introduced.
+
 ## AUTHORITATIVE SOURCES
 
 Use this specification for established product intent, invariants and decision history.
