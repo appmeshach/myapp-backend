@@ -66,6 +66,21 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
 - Participant-facing requester integration belongs to 0100. No UI, provider,
   discovery fanout, interest, priority, admission, roster/capacity or money change.
 
+## 0100 REQUESTER SELECTED GEOGRAPHIC SUPPORT — LOCAL CHECKPOINT
+
+- Baseline `1d141a6`; requester selected-card annotation and authenticated endpoint
+  are implemented locally. Production remains verified only through 0091.
+- Unchanged 0094 generation follows selected authorization; exact 0097 assessment
+  hits return coarse results, and misses register/reuse existing private 0099 jobs.
+  Edge never executes cold shared-segment geometry. No 0100 migration is needed.
+- Route-match results and interest remain immediately usable while geographic work
+  is pending or unavailable. Explicit manual refresh replaces automatic polling.
+  Discovery, offerer activity, priority, roster/capacity, admission and finance keep
+  their existing semantics.
+- Evidence and cost classifications: [0100 integration](0100-requester-geographic-support-integration.md).
+  Production activation requires worker host selection and target-host benchmarks;
+  neither is complete. Offerer annotation and admission work remain deferred.
+
 ## Matching and cascading algorithm — highest-priority audit
 
 | Required capability / constitutional rule | Evidence already inspected | Status | Next proof needed |

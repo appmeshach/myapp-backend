@@ -2491,6 +2491,30 @@ Production hosting and target-host execution/lease validation remain prerequisit
 0100 requester annotation integration is deferred. Interest, discovery, offerer
 activity, admission, priority, capacity, roster and financial lifecycles are unchanged.
 
+## 0100 REQUESTER SELECTED GEOGRAPHIC SUPPORT — LOCAL IMPLEMENTATION
+
+After a requester explicitly selects an availability and the existing route-match
+check succeeds, the screen presents the route fact and enables interest under the
+existing route-match rules immediately. A separate authenticated selected-action
+request prepares or reuses the requester reference route through unchanged 0094
+generation semantics. Exact selected authorization precedes provider work and is
+revalidated afterward. Existing 0099 registration atomically performs exact 0097
+assessment reuse before deduplicating a private job; no new migration is required.
+Hosted Edge never performs cold 0096 geographic assessment computation.
+
+Only geometric_corridor_support, overlap_observed, inconclusive, pending or
+unavailable reaches the requester. Processing limits and infrastructure failures
+remain unavailable, never inconclusive. Geography remains advisory: road identity,
+usable shared travel and admission remain unconfirmed. Interest, priority, capacity,
+roster, acceptance and financial/journey semantics are unchanged. No broad-list or
+offerer-triggered requester work is added. Manual selected refresh has no automatic
+polling loop or completion SLA. Selection/declaration changes and unmount invalidate
+in-flight geographic results.
+
+This is local implementation evidence, not production activation. Worker hosting
+selection and target-host execution/lease benchmarks remain prerequisites. Offerer
+annotation and admission integration remain deferred.
+
 ## AUTHORITATIVE SOURCES
 
 Use this specification for established product intent, invariants and decision history.

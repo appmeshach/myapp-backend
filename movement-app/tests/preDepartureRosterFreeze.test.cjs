@@ -54,8 +54,11 @@ test('live admission and intent matching preserve 0090 narrow eligibility contra
  const priority=fs.readFileSync(path.join(dir,'0090_trusted_requester_movement_priority_integration.sql'),'utf8');assert.match(priority,/WHEN check_violation THEN/);assert.match(priority,/IF SQLERRM IN/);assert.match(priority,/END IF;\s*RAISE;/);assert.doesNotMatch(priority,/WHEN check_violation(?: OR no_data_found)? THEN\s*CONTINUE/);
 });
 test('preflight rejects actual modern starts without fabricating history',()=>{assert.match(sql,/JOIN private.movement_offer_availability_bindings b/);assert.match(sql,/j.start_requested_at IS NOT NULL OR j.started_at IS NOT NULL/);assert.match(sql,/0091 preflight:/);assert.doesNotMatch(sql,/INSERT INTO[^;]*SELECT[^;]*start_requested_at/is);});
-test('no new finance implementation, paid provider, or production client change',()=>{
+test('no new finance or provider implementation outside the exact sanctioned 0100 requester annotation',()=>{
  assert.doesNotMatch(sql,/CREATE(?: OR REPLACE)? FUNCTION[^\n]*(?:settle|pricing|priority|funding|activation|completion)/i);
  assert.doesNotMatch(sql,/INSERT INTO private\.(?:wallet|financial_components)|https?:\/\//i);
- assert.equal(cp.execFileSync('git',['diff','9308aa06b09a7af83ada68bc111b98254b896854','--','src','package.json','package-lock.json'],{cwd:root,encoding:'utf8'}),'');
+ assert.equal(cp.execFileSync('git',['diff','9308aa06b09a7af83ada68bc111b98254b896854','--','src','package.json','package-lock.json',':(exclude)src/app/request-movement.tsx'],{cwd:root,encoding:'utf8'}),'');
+ const prefix=cp.execFileSync('git',['rev-parse','--show-prefix'],{cwd:root,encoding:'utf8'}).trim();
+ const original=cp.execFileSync('git',['show','9308aa06b09a7af83ada68bc111b98254b896854:'+prefix+'src/app/request-movement.tsx'],{cwd:root,encoding:'utf8'}).replace(/\r\n/g,'\n');
+ assert.equal(require('./support/requesterGeographicSupportDelta.cjs').stripRequesterGeographicSupport0100(fs.readFileSync(path.join(root,'src/app/request-movement.tsx'),'utf8')),original);
 });

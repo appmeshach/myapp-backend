@@ -99,5 +99,6 @@ test('forward migration has private-only work, no provider/discovery/product wri
  const sql=fs.readFileSync('supabase/migrations/0099_shared_segment_assessment_job_foundation.sql','utf8');
  assert.match(sql,/FOR UPDATE SKIP LOCKED/);assert.match(sql,/attempt_count BETWEEN 0 AND 3/);
  assert.doesNotMatch(sql,/\b(?:INSERT INTO|UPDATE|DELETE FROM)\s+(?:public\.|private\.)(?:movement_interests|movement_offers|movement_needs|offering_movement_availability|financial_\w+)/i);
- assert(!fs.existsSync('supabase/functions/prepare-requester-geographic-support/index.ts'));
+ // 0100 adds a separate selected-action endpoint; 0099 itself stays private.
+ assert.doesNotMatch(sql,/prepare_requester_geographic_support|prepare-requester-geographic-support/);
 });
