@@ -1,5 +1,13 @@
 # 0103 qualification supervisor foundation
 
+The [0104 child and reader foundation](0104-qualification-child-and-provider-adapters.md)
+adds an explicit fixed inherited-IPC child adapter and an injected execution validator.
+It consumes WeakMap authority in the parent after fsync, never serializes the object,
+and waits for acknowledged receipt plus exact Node exit signal. No default adapter
+is installed. Exact live execution input/return/pagination schema remains absent
+locally, and no execution query is guessed. The local reservation limitation and
+platformRestart:null remain unchanged.
+
 This is a local qualification-only orchestration library for a future fresh disposable
 Railway worker scenario. It does not authorize or implement a live qualification.
 `run.cjs` is unchanged: no crash flag, environment switch, supervisor import or kill
@@ -85,7 +93,7 @@ must lie outside the repository/worktree. Exclusive journal creation remains, an
 resume/evidence intake is added. This boundary does not claim to prevent external
 filesystem replacement or deletion; operators must protect the directory.
 
-The future dedicated child adapter wraps `controlledWorker`. Registration must be
+The explicit 0104 dedicated child adapter wraps `controlledWorker` preparation. Registration must be
 pending attempt zero for the designated capsule pair. The supervisor reads the actual
 pending DB snapshot and requires zero publication, no assessment and no lease. Worker
 preparation then claims exactly attempt one and loads the exact fixture context with
@@ -100,15 +108,16 @@ Release additionally requires an unforgeable in-process capability minted only a
 durable authorization. It is bound to the exact nonce/run/job/execution ticket,
 consumed on fire, and revoked on timeout/failure. A nonce, boolean or fabricated
 authorization object cannot directly invoke the worker's termination path. This
-foundation intentionally provides no serialized/remote capability decoder; secure
-cross-process release is a separate adapter-review prerequisite.
+foundation intentionally provides no serialized capability decoder. 0104 consumes
+the capability in the parent and uses an inherited-channel sequence for child release;
+operational host/process qualification remains a prerequisite.
 
-There is no default termination capability. A future reviewed child adapter must
+There is no default termination capability. The explicit 0104 child adapter can
 execute the primitive in its own dedicated worker process, forward the private
 observer handshake, and observe process exit without terminating the supervisor.
 The primitive's existing five-second observer bound remains. Synthetic tests replace
 termination and interpret the primitive's fixed "termination returned" test error.
-This is not a remote process adapter or an operationally qualified supervisor.
+This does not make the supervisor operationally qualified for live use.
 
 Provider reads and DB captures have five-second bounds; recovery polling has a
 three-minute clock deadline and bounded poll count. No restart/deploy/redeploy is

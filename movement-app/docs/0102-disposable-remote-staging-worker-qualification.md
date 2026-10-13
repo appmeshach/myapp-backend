@@ -349,6 +349,14 @@ require new paths. Preserve original report, signed artifact and final report to
 
 ### Controlled failure and two-source restart correlation
 
+The [0104 adapter foundation](0104-qualification-child-and-provider-adapters.md) adds
+a fixed dedicated inherited-IPC child with parent-only one-shot release and validated
+receipt/exit sequencing. No default live adapter or CLI is enabled. The execution
+reader stops at an injected validator because exact query input/return/pagination
+schema is missing locally. observedAt is local acceptance time. platformRestart
+remains null; operational host integration, distributed one-shot authority and
+automatic restart attribution remain unresolved. No live use is authorized.
+
 The [0103 local supervisor foundation](0103-qualification-supervisor.md) now supplies
 an explicit phase sequence, durable local supervisor reservation, exact private
 fixture/claim handshake and DB/provider correlation orchestration. It has no live

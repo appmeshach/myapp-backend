@@ -1,12 +1,21 @@
 'use strict';
-// Qualification-only library. No CLI, remote process adapter, execution query or fault switch.
+// Qualification-only library. No CLI, default live adapter, execution query or fault switch.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const operator=require('./qualification-operator-evidence.cjs'),railway=require('./qualification-railway-evidence.cjs');
 const boundary=require('./qualification-remote.cjs'),admin=require('./qualify-remote-schema.cjs');
 const VERSION='0103-qualification-supervisor-v1',WINDOW=3600000;
-// Unforgeable in-process release capability. There is deliberately no remote token
-// decoder: a future cross-process adapter needs separate review.
+// Unforgeable in-process release capability. The dedicated child adapter consumes
+// it in the parent; no serialized token/object decoder exists.
 const faultAuthorizations=new WeakMap();
+const workerCleanups=new WeakMap();
+function attachWorkerCleanup(worker,cleanup){if(!worker||typeof cleanup!=='function'||workerCleanups.has(worker))fail();workerCleanups.set(worker,cleanup);}
+function consumeFaultAuthorization(authorization,ticket,source){
+ const allowed=authorization&&faultAuthorizations.get(authorization);
+ if(!allowed)fail();faultAuthorizations.delete(authorization);
+ envelopeCheck(allowed.envelope,ticket);
+ exact(source,['workerSourceSha256','migrationDigest']);
+ for(const k of Object.keys(source))if(source[k]!==allowed[k])fail();
+}
 const PHASES=Object.freeze(['initialized','provider_preflight','job_registered','original_claim_observed','fault_authorized','fault_observed','provider_recovery_wait','replacement_execution_observed','lease_reclaim_observed','stale_token_fenced','publication_observed','completed']);
 const fail=()=>{throw Error('Qualification supervisor evidence unavailable');};
 const hash=v=>crypto.createHash('sha256').update(v).digest('hex');
@@ -109,9 +118,8 @@ function controlledWorker(plan,{backend,terminate,now=()=>Date.now()}){
    return {envelope:structuredClone(envelope),claim:structuredClone(claim),fixture:{needId:pair.need,requesterId:pair.requester,availabilityId:pair.availability}};
   },
   async fire(ticket,observe,authorization){
-   const allowed=authorization&&faultAuthorizations.get(authorization);
-   if(!allowed)fail();faultAuthorizations.delete(authorization);
-   envelopeCheck(allowed,envelope);envelopeCheck(ticket,envelope);if(!claim||!loaded||fired||typeof observe!=='function')fail();fired=true;
+   consumeFaultAuthorization(authorization,envelope,{workerSourceSha256:context.bound.workerSourceSha256,migrationDigest:context.bound.migrationDigest});
+   envelopeCheck(ticket,envelope);if(!claim||!loaded||fired||typeof observe!=='function')fail();fired=true;
    const cached={register:async()=>structuredClone(registration),claim:async()=>structuredClone(claim),load:async()=>structuredClone(loaded)};
    // No default termination in this foundation: a reviewed child adapter must supply it.
    if(typeof terminate!=='function')fail();
@@ -158,7 +166,7 @@ async function supervise(plan,{provider,worker,capture,loadOldToken,observer=asy
   await bounded(()=>observer(structuredClone({version:VERSION,...binding,phase:'original_claim_observed'})));
   leaseTimestamp(claim.lease_expires_at,now());
   advance('fault_authorized'); // fsync must finish before the worker can terminate
-  const authorization=Object.freeze({});faultAuthorizations.set(authorization,structuredClone(envelope));
+  const authorization=Object.freeze({});faultAuthorizations.set(authorization,{envelope:structuredClone(envelope),workerSourceSha256:bound.workerSourceSha256,migrationDigest:bound.migrationDigest});
   let controlled;
   try{await bounded(()=>worker.fire(structuredClone(envelope),async receipt=>{
    exact(receipt,['controlled','claim']);envelopeCheck(receipt.claim,claim);
@@ -193,6 +201,6 @@ async function supervise(plan,{provider,worker,capture,loadOldToken,observer=asy
  }catch{
   if(journal&&machine){try{machine.advance('failed',stamp(now()));journal.append({phase:'failed',failure:'supervisor_evidence_unavailable'});}catch{}}
   fail();
- }finally{if(journal)journal.close();}
+ }finally{try{if(journal)journal.close();}finally{const cleanup=workerCleanups.get(worker);if(cleanup)cleanup();}}
 }
-module.exports={VERSION,PHASES,phaseMachine,controlledWorker,supervise,readQuery};
+module.exports={VERSION,PHASES,phaseMachine,controlledWorker,supervise,readQuery,qualificationContext:startup,consumeFaultAuthorization,attachWorkerCleanup};

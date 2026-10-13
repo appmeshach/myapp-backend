@@ -176,6 +176,14 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
   another workstation or journal deletion. Consumed-job protections do not prove a
   global fixture-pair/run lock; cross-process/cross-workstation one-shot authority
   remains an operational qualification prerequisite.
+- [0104 child/reader foundation](0104-qualification-child-and-provider-adapters.md)
+  provides a fixed inherited-IPC child, parent-held WeakMap release after fsync,
+  strict receipt/Node exit checks and an injected execution validator. It introduces
+  no default live adapter, normal-worker switch or provider mutation. Exact execution
+  query input/return/pagination schema remains missing locally; no query was guessed.
+  Local observedAt is not provider evidence. platformRestart stays null; host/process
+  qualification, distributed one-shot authority and restart-origin evidence remain
+  blockers before separately authorized fresh disposable use.
 - Do not rerun the used disposable project or regenerate its fixtures: immutable
   pairs have been consumed, preparation requires an empty environment and the first
   registration requires a fresh job, not assessment reuse. Preserve old evidence
