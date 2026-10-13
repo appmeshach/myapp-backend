@@ -28,9 +28,10 @@ automatic project creation/destruction or automatic host acceptance.
    and key together: they reveal private synthetic fixture identities when combined.
 5. Run remote qualification privately without a public HTTP listener or domain.
    Stop competing workers. Never reuse this disposable environment for production.
-6. Record actual provider restart behavior and host secret/access controls separately.
-   The command cannot inspect Railway secret storage or prove its platform restart
-   policy. It leaves those measurements null; it does not accept self-attestation flags.
+6. Derive participant ACL evidence using the read-only catalog query on the operator
+   workstation and import its signed, run-bound artifact with the finalizer below.
+   Railway restart/sealed-variable technical proof remains unresolved; documentary
+   observations cannot grant PASS and both measurements remain null.
 7. Destroy the whole disposable Supabase environment externally. Verify destruction,
    then record final operator acceptance separately. The tooling never certifies teardown.
 
@@ -184,11 +185,173 @@ requires clean idle exit. Four prepared pairs exercise:
   `processing_limit` or geographic evidence. No lease/backoff SQL edits occur.
 
 The process kill proves worker process behavior, not Railway platform restart.
-`platformRestart`, `hostSecretStorage` and hosted `participantAcl` stay unmeasured.
-Operator ACL checks do not masquerade as participant-authenticated hosted requests.
+`platformRestart`, `hostSecretStorage` and hosted `participantAcl` stay unmeasured
+until the operator evidence finalization step. Participant ACL evidence means actual
+catalog/security verification, not participant-authenticated hosted HTTP requests.
 Exact database job/publication counts are verified by the local SQL validation;
 hosted observations prove typed canonical registration and assessment identity reuse,
 not unrestricted private-table counting.
+
+## Operator evidence collection and finalization
+
+The supplied prior Railway Hobby / europe-west4-drams3a result reports startup,
+idle SIGTERM, execution, reuse, fencing, crash, lease recovery and lost-acknowledgement
+recovery PASS. Correctness/reliability/lease/memory/integration passed; process/security
+remain NOT MEASURED and classification remains QUALIFICATION_INCOMPLETE.
+This is supplied evidence, not new provider verification. Its old-source report must
+not be finalized against updated source.
+
+The former observation-boolean protocol is superseded and rejected. Screenshots,
+operator prose, manually entered counts/booleans, or a hash of an arbitrary record
+cannot establish technical Railway restart or sealed-variable proof. Documentary
+observations may be retained separately for review; they never promote measurements.
+This iteration implements no Railway machine-proof intake and makes no Railway API
+call. platformRestart and hostSecretStorage always remain null, even with successful
+participant ACL proof. TARGET_HOST_TECHNICALLY_QUALIFIED is unavailable through this
+finalizer; incomplete is the correct outcome for otherwise passing runtime evidence.
+
+### Reviewed source-pinned identity
+
+qualification-evidence-trust.cjs contains this exact reviewed public identity:
+
+~~~text
+-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAcYWxHYOyBz21Z1mdST5qlJCC0gb60lsCB3bmfeS3LPA=
+-----END PUBLIC KEY-----
+~~~
+
+Its expected SHA-256 over SPKI DER is
+13228a92e18fb61153185a048c4edb496cdee1b83d1e894f8f216568211f0fa9.
+The module parses Ed25519, independently computes that digest and fails closed on a
+mismatch. No environment/CLI/artifact value can replace the verifier. Identity
+rotation requires a visible source diff and independent review; it also changes the
+worker fingerprint. The closure-held public key is not exported for mutation.
+
+Collection reads only MOVEMENT_QUALIFICATION_EVIDENCE_SIGNING_KEY_FILE. It must be an
+explicit absolute path to a regular file outside the entire repository. Relative,
+missing, directory, repository and links resolving into repository paths reject.
+The private key must parse as Ed25519 and its derived public fingerprint must match
+the source pin before any catalog query or signing. The real private key remains
+workstation-only; never copy it to Git, Railway, Supabase, tests or docs. Collection
+does not print/serialize its contents or path. Finalization requires no private key
+and does not read the signing file.
+
+Both legacy MOVEMENT_QUALIFICATION_EVIDENCE_VERIFY_KEY and private-PEM
+MOVEMENT_QUALIFICATION_EVIDENCE_SIGNING_KEY inputs are explicitly rejected, even when
+empty. Remove them from the operator environment. No new identity generation is
+needed: the operator has already generated and independently verified this pin.
+
+~~~powershell
+Remove-Item Env:MOVEMENT_QUALIFICATION_EVIDENCE_VERIFY_KEY -ErrorAction SilentlyContinue
+Remove-Item Env:MOVEMENT_QUALIFICATION_EVIDENCE_SIGNING_KEY -ErrorAction SilentlyContinue
+$env:MOVEMENT_QUALIFICATION_EVIDENCE_SIGNING_KEY_FILE = 'C:\Users\gt\movement-private\0102\movement-0102-signing.pem'
+~~~
+
+This assignment contains only a path; do not load the private PEM into an environment
+variable. Protect the external private file using Windows access controls.
+
+### ACL artifact and finalization
+
+The strict JSON artifact uses 0102-operator-evidence-v2 with exactly:
+version, provider, machine, region, projectRefHash, workerSourceSha256,
+migrationDigest, qualificationRunSha256, observedAt, evidence, catalogProof and
+signature. No observations or arbitrary metadata are accepted. The measurements are
+{platformRestart:null,hostSecretStorage:null,participantAcl:true|null}.
+catalogProof is null or a generated object containing method
+0102_read_only_catalog_v1, observedAt and catalogSha256. All digests use SHA-256.
+Ed25519 signs recursively key-sorted JSON excluding signature, encoded as canonical
+base64url. Raw project refs, URLs, DB credentials, UUID/private identifiers, geometry,
+catalog contents and signing material/path are never serialized.
+
+The collector's --verify-participant-acl flag runs admin.psql(admin.catalogSql(), ...)
+using only the dedicated disposable operator connection, then admin.verifyCatalog().
+The query remains BEGIN READ ONLY and verifies relevant migration/function source/
+signature/ACL/RLS/trigger/parameter invariants. Only successful verification permits
+participantAcl=true. Failure produces no signed proof; without the flag participantAcl
+stays null. There is no manual ACL input. DB credentials never go to Railway.
+
+The artifact binds the exact project hash, provider/machine/region, current worker
+fingerprint, migration digest and SHA-256 of the complete original report. The worker
+fingerprint incorporates the migration digest and source pin file. Original report,
+artifact and catalog observation must be no older than one hour and not in the
+future. Original runtime reports validate first; old-source and previously asserted
+external-measurement reports reject. Extra fields and altered/mismatched signatures
+reject. No env/CLI measurement boolean can grant a result.
+
+After a separately authorized fresh updated-source run, on the operator workstation:
+
+~~~powershell
+node scripts/assessment-worker/qualification-operator-evidence.cjs collect --ack-disposable-environment --report C:\Users\gt\movement-private\0102\original-qualification.json --verify-participant-acl --output C:\Users\gt\movement-private\0102\operator-evidence.json
+node scripts/assessment-worker/qualification-operator-evidence.cjs finalize --ack-disposable-environment --report C:\Users\gt\movement-private\0102\original-qualification.json --evidence C:\Users\gt\movement-private\0102\operator-evidence.json --output C:\Users\gt\movement-private\0102\final-qualification.json
+~~~
+
+Both outputs require new paths. Import needs only the disposable context and
+source-pinned public identity, with no DB password or private key. It makes no DB or
+provider call. Retain the original report, signed artifact and final report together;
+the artifact supplies provenance without changing the strict remote v2 report schema.
+Runtime samples/usage remain intact, existing false gates remain false, missing
+evidence stays null, and failed runtime evidence cannot become PASS. Even with
+participantAcl=true, process/security remain unmeasured unless already failed.
+Every required gate/measurement, safe logs, compatible runtime and absence of failures
+remain mandatory for technical qualification. The report validator is unchanged.
+
+### Remaining Railway proof and environment constraints
+
+Railway documents authenticated APIs for deployment IDs/statuses/timestamps, runtime
+logs and service restart-policy configuration. These are possible future inputs,
+not a complete verified restart event sequence. Future technical restart proof must
+correlate authenticated provider stop/automatic-restart events with read-only DB lease
+expiry/reclaim/fencing/completion observations and exactly one publication. Manual
+restart/redeploy is not automatic restart proof. No such adapter is implemented.
+
+Railway documents sealed values as unavailable for UI/API readback, but its public
+variable API guide does not establish a per-variable sealed-state metadata field.
+Authenticated schema/capability verification remains necessary before implementing
+technical proof for MOVEMENT_QUALIFICATION_SERVICE_ROLE_KEY,
+MOVEMENT_QUALIFICATION_FIXTURE_CAPSULE and MOVEMENT_QUALIFICATION_FIXTURE_KEY.
+Neither variable existence nor absence of values proves sealed configuration.
+No token is introduced here and no provider call is made.
+
+References: [public API authentication](https://docs.railway.com/integrations/api),
+[service metadata](https://docs.railway.com/integrations/api/manage-services),
+[deployment logs](https://docs.railway.com/integrations/api/api-cookbook),
+[sealed-variable behavior](https://docs.railway.com/variables), and
+[variable API](https://docs.railway.com/integrations/api/manage-variables).
+Documentation and documentary records do not certify this actual service.
+
+Do not rerun full qualification against existing disposable project
+uzkhnslyrhgucijcuoes. Its immutable synthetic pairs have already been consumed:
+fixture preparation requires no members/jobs, initial qualification requires an idle
+queue, and first registration requires job_registered with attempt count zero.
+A completed pair returns assessment_reuse; the prior crash may leave pending work.
+Capsules also expire after one hour. Do not regenerate capsules/fixtures, delete
+records, truncate tables, edit lease clocks or bypass immutability to reuse it.
+
+The existing project may remain for evidence preservation and separately authorized
+read-only inspection. A fresh empty disposable project, migrations through 0099,
+new capsule and updated-source run are required later. No project is created/deleted
+during this correction. Archive evidence and perform whole-environment teardown only
+when separately authorized. Technical qualification never certifies teardown or
+authorizes production. The old report and capsule remain preserved.
+
+Security-correction validation: focused evidence tests 70/70 PASS; combined
+0102/0101/0099 runtime, worker-process and migration-integrity regressions 220 PASS,
+one POSIX-only Windows skip (221 total). Positive signing tests use memory-only
+module copies with temporary random keys outside Git; production rejects that
+identity. No test uses the real operator private file. Local 0102 SQL catalog/fixture/
+completion/reuse/lease/fencing/crash validation PASS; original application data/
+catalog/ACL/RLS/history fingerprint unchanged. App, Edge and worker typechecks PASS;
+tracked/new-file whitespace checks PASS; all 99 migrations unchanged.
+
+Text scan covered 772 worktree files, excluding Git/dependency/build caches and the
+preserved capsule. No embedded private PEM was found, including tracked/new sources.
+The only credential-shaped match was the ignored Supabase local startup-secret cache;
+qualification credential assignments were synthetic values in the two test files.
+Actual private key/capsule contents were not read or compared. No new credential
+material was found in tracked/new source. The real private file remains untouched.
+No stage, commit, push, deploy, provider API call, project create/delete or production
+operation occurred; the capsule remains untracked and unstaged. The existing shared
+fingerprint integration in qualify.cjs is retained without additional edits here.
 
 ## Verdict and reporting
 

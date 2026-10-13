@@ -121,14 +121,35 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
   `session_pooler` mode. Supavisor session access uses an operator-supplied valid
   `.pooler.supabase.com` hostname, port 5432 and exact `postgres.<disposable-ref>`
   username binding; both forbidden refs fail before spawn/network. Hosted worker
-  HTTP transport, fixture SQL and migrations remain unchanged. Actual pooler access
-  still needs operator verification. No IPv4 add-on purchased or required; Railway
+  HTTP transport, fixture SQL and migrations remain unchanged. Supplied follow-up
+  evidence reports successful remote-staging execution. No IPv4 add-on purchased or required; Railway
   configuration unchanged and production remains **BLOCKED**.
 - User-reported Railway Hobby offline PASS: correctness, reliability, lease and
   memory; worst normal wall 277.75 ms; parent/child peak RSS 110.34/136.84 MiB.
   Candidate already paid; no staging environment or new provider created here.
-- Remote process/integration/security proof remains outstanding. Provider restart
-  and host secret-storage/access controls require explicit operator evidence.
+- Supplied Railway Hobby remote result reports startup, idle SIGTERM, execution,
+  reuse, fencing, crash, lease recovery and lost-acknowledgement recovery PASS.
+  Correctness/reliability/lease/memory/integration PASS; process/security NOT MEASURED;
+  classification remains `QUALIFICATION_INCOMPLETE`. Not fresh verification here.
+- Corrected operator evidence v2 pins the reviewed Ed25519 public identity in source
+  and verifies SPKI DER SHA-256
+  `13228a92e18fb61153185a048c4edb496cdee1b83d1e894f8f216568211f0fa9`.
+  Environment/artifact verifier replacement and legacy private-PEM env inputs reject;
+  collection reads an absolute external signing-file path and checks its public pin.
+  Finalization never needs/reads the private file. Rotation requires source review.
+- Only participant ACL proof may pass, after the actual read-only disposable catalog
+  verifies. Signed artifacts bind exact report/project/host/source/migrations and
+  expire after one hour. Railway restart/sealed-variable fields remain null: boolean,
+  screenshot, prose and arbitrary-record hashes cannot grant technical PASS. Provider
+  machine proof is unresolved; documentary observations remain separate. ACL proof
+  alone leaves `QUALIFICATION_INCOMPLETE`. Import never calls Railway/DB; existing
+  false gates and strict report validation are preserved.
+- Do not rerun the used disposable project or regenerate its fixtures: immutable
+  pairs have been consumed, preparation requires an empty environment and the first
+  registration requires a fresh job, not assessment reuse. Preserve old evidence
+  until separately authorized teardown. The old-source report cannot finalize; a
+  fresh disposable project/capsule and updated-source run are required later. No
+  project creation/deletion, provider credential introduction or remote run here.
   Production activation remains **BLOCKED**. Broad service-role secret authority,
   production credential narrowing, rotation and host access controls remain launch
   decisions. Check exact staging cost before provisioning.

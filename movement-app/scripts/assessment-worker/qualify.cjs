@@ -98,7 +98,7 @@ async function qualify(options){
  const git=cp.spawnSync('git',['rev-parse','HEAD'],{cwd:ROOT,encoding:'utf8',windowsHide:true});
  const commit=git.status===0&&/^[a-f0-9]{40}$/.test(git.stdout.trim())?git.stdout.trim():null;
  const state=cp.spawnSync('git',['status','--porcelain'],{cwd:ROOT,encoding:'utf8',windowsHide:true});
- const workerSourceSha256=digest(fs.readdirSync(__dirname).filter(f=>/\.cjs$/.test(f)||f==='package.json').sort().map(f=>f+'\n'+fs.readFileSync(path.join(__dirname,f),'utf8').replace(/\r\n/g,'\n')).join('\n'));
+ const workerSourceSha256=require('./qualification-operator-evidence.cjs').workerSourceHash();
  const model=(os.cpus()[0]?.model||'unknown').replace(/[^A-Za-z0-9 ._()-]/g,' ').slice(0,64);
  const r={schemaVersion:'movement_worker_host_qualification_v1',timestamp:new Date().toISOString(),gitCommit:commit,gitDirty:state.status!==0||Boolean(state.stdout.trim()),workerSourceSha256,mode:options.mode,host:options.host,
  environment:{nodeVersion:process.version,platform:process.platform,arch:process.arch,cpuModel:model,logicalCpus:os.cpus().length,totalMemoryBytes:os.totalmem(),availableMemoryBytes:os.freemem(),memoryLimitBytes:options.memoryLimitBytes,signalDelivery:process.platform==='win32'?'windows_handler_dispatch':'posix_signal'},
