@@ -117,5 +117,5 @@ function main(args=process.argv.slice(2),env=process.env){
  process.stdout.write(command==='collect'?'Operator evidence collected. ENVIRONMENT TEARDOWN REQUIRED.\n':reports.markdown(output));
  return output;
 }
-module.exports={VERSION,WINDOW_MS,canonical,workerSourceHash,context,collect,verify,finalize,main};
+module.exports={VERSION,WINDOW_MS,canonical,workerSourceHash,context,repositoryRoot,within,collect,verify,finalize,main};
 if(require.main===module)try{main();}catch{process.stderr.write('Operator evidence unavailable. ENVIRONMENT TEARDOWN REQUIRED.\n');process.exitCode=1;}

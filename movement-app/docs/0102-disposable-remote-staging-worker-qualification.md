@@ -349,6 +349,19 @@ require new paths. Preserve original report, signed artifact and final report to
 
 ### Controlled failure and two-source restart correlation
 
+The [0103 local supervisor foundation](0103-qualification-supervisor.md) now supplies
+an explicit phase sequence, durable local supervisor reservation, exact private
+fixture/claim handshake and DB/provider correlation orchestration. It has no live
+execution/process adapter or CLI, and normal run.cjs remains isolated. Its sanitized
+artifact is informational only: platformRestart remains null with
+restart_origin_unattributable. Supervisor live integration remains operationally
+unqualified; no live use is authorized and a fresh disposable run is required later.
+O_EXCL excludes duplicates only in the same canonical local journal directory;
+another directory/workstation or journal deletion/loss is not machine-excluded.
+Directories must be outside the repository. Database protections cover consumed
+jobs and unchanged canonical keys, not a global fixture-pair/qualification lock.
+Cross-process/cross-workstation one-shot authority remains a qualification prerequisite.
+
 qualification-railway-evidence.cjs exposes library-only primitives; normal run.cjs
 has no crash switch, provider import or kill endpoint. controlledFailure requires a
 validated current remote-staging report, disposable acknowledgement/denylist,

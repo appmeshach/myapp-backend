@@ -163,6 +163,19 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
   with leaseDurationMs = 60000 and an explicit derivation label, never claimedAt.
   Deadline-capped expiry makes this a conservative derived boundary, not observed
   DB/provider claim evidence; local termination time and RPC expiry remain distinct.
+- [0103's local supervisor foundation](0103-qualification-supervisor.md) adds monotonic
+  phases, durable local supervisor reservation, private claim/fixture binding
+  and strict DB/provider correlation. No provider mutation or normal-worker fault
+  control exists. Execution traversal and a dedicated child adapter remain unreviewed
+  for live use; supervisor integration is not operationally qualified. Automatic
+  restart origin remains unattributable, platformRestart stays null and no process
+  gate or host qualification is promoted. Fresh disposable live use requires later
+  authorization.
+  The reservation excludes duplicates only within the same canonical local directory,
+  required outside the repository. It cannot prevent a different/lost directory,
+  another workstation or journal deletion. Consumed-job protections do not prove a
+  global fixture-pair/run lock; cross-process/cross-workstation one-shot authority
+  remains an operational qualification prerequisite.
 - Do not rerun the used disposable project or regenerate its fixtures: immutable
   pairs have been consumed, preparation requires an empty environment and the first
   registration requires a fresh job, not assessment reuse. Preserve old evidence
