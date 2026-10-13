@@ -70,15 +70,57 @@ Operator-only additions:
 
 | Variable | Requirement |
 | --- | --- |
-| `MOVEMENT_QUALIFICATION_DB_HOST` | Exactly `db.<supplied-ref>.supabase.co` |
+| `MOVEMENT_QUALIFICATION_DB_CONNECTION_MODE` | Required: exactly `direct` or `session_pooler`; never inferred |
+| `MOVEMENT_QUALIFICATION_DB_HOST` | Required: direct mode exactly `db.<supplied-ref>.supabase.co`; session mode a valid lowercase DNS hostname ending exactly `.pooler.supabase.com`, copied explicitly from Supabase Connect UI |
+| `MOVEMENT_QUALIFICATION_DB_USER` | Session mode required: exactly `postgres.<supplied-ref>`; direct mode optional, if supplied exactly `postgres` |
+| `MOVEMENT_QUALIFICATION_DB_PORT` | Optional assertion, exactly `5432`; ambient `PGPORT`, if supplied, must also be exactly `5432`; `6543` rejected |
+| `MOVEMENT_QUALIFICATION_DB_DATABASE` | Optional assertion, exactly `postgres` |
 | `MOVEMENT_QUALIFICATION_DB_PASSWORD` | Disposable Postgres password, passed to `psql` by environment only |
 | `MOVEMENT_QUALIFICATION_DB_SSLROOTCERT` | Optional trusted CA file for `verify-full` TLS |
 | `MOVEMENT_QUALIFICATION_FIXTURE_KEY` | 64 lowercase hex characters representing a fresh random 32-byte AES key; preparation only |
 
-This initial operator implementation supports the canonical direct endpoint, not
-arbitrary pooler/custom hosts. Direct connections may require IPv6 connectivity;
+Both modes fix `PGPORT=5432`, `PGDATABASE=postgres`, `PGSSLMODE=verify-full`,
+`PGCONNECT_TIMEOUT=10`, and `PGOPTIONS=-c client_min_messages=error`. Direct mode
+sets `PGUSER=postgres`; session mode binds project identity through the exact
+`postgres.<MOVEMENT_QUALIFICATION_PROJECT_REF>` username because the shared pooler
+hostname does not encode project identity. The disposable acknowledgement and both
+forbidden refs remain mandatory before any process/network call. Session hosts
+reject URLs, ports, user/path/query decorations, suffix lookalikes, localhost and IP
+literals. Transaction pooling on `6543` is rejected. There are no normal `PGHOST`,
+`PGUSER`, `PGPASSWORD` or `SUPABASE_*` fallbacks. Host, user, password and connection
+strings are never serialized into qualification reports.
+
+Supavisor Session Pooler provides IPv4 on all tiers for these operator catalog and
+fixture sessions only; hosted worker service-role HTTP transport stays unchanged.
+Direct connections may require IPv6 connectivity;
 see [Supabase connection documentation](https://supabase.com/docs/guides/database/connecting-to-postgres).
-No credentials are placed in command arguments. Ambient `PG*` variables are not inherited.
+No credentials are placed in command arguments. Ambient `PG*` variables are not
+inherited; a conflicting ambient port is rejected locally.
+
+### Reported operator network blocker and follow-up
+
+Operator evidence supplied for disposable project `uzkhnslyrhgucijcuoes` records
+schema 0001–0099 successfully provisioned, `db push --dry-run` up to date and local/
+remote migration lists matching through 0099. Its direct hostname resolves AAAA
+only (`2a05:d018:cb1:bb02:43d8:94b9:b82e:b83b`); direct `psql` cannot translate the
+host to a usable address in the current Windows/network environment. These are
+operator-reported observations, not fresh remote verification by this follow-up.
+
+Explicit session-pooler mode is the supported IPv4 path for operator catalog/fixture
+access. No IPv4 add-on was purchased or required. Actual pooler access and target-host
+qualification still require operator execution with the Connect UI hostname and
+disposable credentials. Production remains blocked; Railway configuration has not
+changed. No migration is introduced, and fixture SQL and frozen geometry are unchanged.
+
+Follow-up local validation: combined 0102/0101/0099 Node suite 143 PASS, one
+POSIX-only test skipped on Windows (144 total); focused 0102 rerun PASS after
+adding report-field rejection assertions (71 cases, one skip). Worker process and
+migration-integrity tests 7/7 PASS. 0102 local SQL catalog/fixture/workflow validation
+PASS; 0099 SQL/worker behavior 49/49 PASS; genuine concurrency 10/10 PASS with zero
+deadlocks. Disposable clone validation preserved the original application data/
+catalog/ACL/RLS/history fingerprint. App, Edge and worker typechecks and
+`git diff --check` PASS. Automated tests made no real remote DB call. No stage,
+commit, push, deploy, production operation or provider purchase was performed.
 
 Hosted additions:
 

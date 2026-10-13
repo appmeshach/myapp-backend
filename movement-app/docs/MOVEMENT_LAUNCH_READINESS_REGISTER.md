@@ -114,6 +114,16 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
   preflight and fixture preparation require no hosted Postgres admin credential.
 - Immutable synthetic records require whole-environment operator teardown.
   Tooling does not create/destroy environments or certify teardown/acceptance.
+- Operator-reported disposable project `uzkhnslyrhgucijcuoes` is provisioned through
+  0099; dry-run is up to date and migration lists match. Its direct DB hostname is
+  IPv6-only and unusable from the current operator Windows/network environment.
+- Operator catalog/fixture tooling now requires explicit `direct` or
+  `session_pooler` mode. Supavisor session access uses an operator-supplied valid
+  `.pooler.supabase.com` hostname, port 5432 and exact `postgres.<disposable-ref>`
+  username binding; both forbidden refs fail before spawn/network. Hosted worker
+  HTTP transport, fixture SQL and migrations remain unchanged. Actual pooler access
+  still needs operator verification. No IPv4 add-on purchased or required; Railway
+  configuration unchanged and production remains **BLOCKED**.
 - User-reported Railway Hobby offline PASS: correctness, reliability, lease and
   memory; worst normal wall 277.75 ms; parent/child peak RSS 110.34/136.84 MiB.
   Candidate already paid; no staging environment or new provider created here.

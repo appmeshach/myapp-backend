@@ -61,9 +61,25 @@ function fixtureSql(){
  COMMIT;`;
 }
 function postgresConfiguration(env,config){
- const password=env.MOVEMENT_QUALIFICATION_DB_PASSWORD;
- if(typeof password!=='string'||!password||env.MOVEMENT_QUALIFICATION_DB_HOST!==`db.${config.ref}.supabase.co`)throw Error('Operator database configuration unavailable');
- return {PGHOST:env.MOVEMENT_QUALIFICATION_DB_HOST,PGPORT:'5432',PGDATABASE:'postgres',PGUSER:'postgres',PGPASSWORD:password,PGSSLMODE:'verify-full',PGCONNECT_TIMEOUT:'10',PGOPTIONS:'-c client_min_messages=error',
+ // Revalidate the disposable boundary even when called independently of a CLI.
+ const bound=configuration(env,true);
+ const password=env.MOVEMENT_QUALIFICATION_DB_PASSWORD,host=env.MOVEMENT_QUALIFICATION_DB_HOST,mode=env.MOVEMENT_QUALIFICATION_DB_CONNECTION_MODE;
+ const suppliedUser=env.MOVEMENT_QUALIFICATION_DB_USER;
+ if(bound.ref!==config.ref||typeof password!=='string'||!password||
+  [env.MOVEMENT_QUALIFICATION_DB_PORT,env.PGPORT].some(v=>v!==undefined&&v!=='5432')||
+  (env.MOVEMENT_QUALIFICATION_DB_DATABASE!==undefined&&env.MOVEMENT_QUALIFICATION_DB_DATABASE!=='postgres'))throw Error('Operator database configuration unavailable');
+ let user;
+ if(mode==='direct'){
+  if(host!==`db.${bound.ref}.supabase.co`||(suppliedUser!==undefined&&suppliedUser!=='postgres'))throw Error('Operator database configuration unavailable');
+  user='postgres';
+ }else if(mode==='session_pooler'){
+  // DNS labels only: no URL parsing/normalization, decorations, IPs or suffix lookalikes.
+  if(typeof host!=='string'||host.length>253||!host.endsWith('.pooler.supabase.com')||
+   !host.split('.').every(label=>/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(label))||
+   suppliedUser!==`postgres.${bound.ref}`)throw Error('Operator database configuration unavailable');
+  user=suppliedUser;
+ }else throw Error('Operator database configuration unavailable');
+ return {PGHOST:host,PGPORT:'5432',PGDATABASE:'postgres',PGUSER:user,PGPASSWORD:password,PGSSLMODE:'verify-full',PGCONNECT_TIMEOUT:'10',PGOPTIONS:'-c client_min_messages=error',
   ...(env.MOVEMENT_QUALIFICATION_DB_SSLROOTCERT?{PGSSLROOTCERT:env.MOVEMENT_QUALIFICATION_DB_SSLROOTCERT}:{}),PATH:env.PATH,SystemRoot:env.SystemRoot};
 }
 function psql(sql,env){

@@ -35,9 +35,62 @@ test('capsule authenticates project, repository migrations, freshness and unique
  assert.throws(()=>boundary.open(sealed,'cd'.repeat(32),c.projectRefHash));
 });
 test('operator DB endpoint restricted before spawning psql; password stays environment-only',()=>{
- const c=config(),e={...env(),MOVEMENT_QUALIFICATION_DB_HOST:`db.${ref}.supabase.co`,MOVEMENT_QUALIFICATION_DB_PASSWORD:'test-password'};
+ const c=config(),e={...env(),MOVEMENT_QUALIFICATION_DB_CONNECTION_MODE:'direct',MOVEMENT_QUALIFICATION_DB_HOST:`db.${ref}.supabase.co`,MOVEMENT_QUALIFICATION_DB_PASSWORD:'test-password'};
  const pg=admin.postgresConfiguration(e,c);assert.equal(pg.PGSSLMODE,'verify-full');assert.equal(pg.PGPASSWORD,'test-password');
  for(const host of [`db.${boundary.DENIED[0]}.supabase.co`,'127.0.0.1','evil.test'])assert.throws(()=>admin.postgresConfiguration({...e,MOVEMENT_QUALIFICATION_DB_HOST:host},c));
+});
+const operatorEnv=(mode='session_pooler')=>({...env(),MOVEMENT_QUALIFICATION_DB_CONNECTION_MODE:mode,MOVEMENT_QUALIFICATION_DB_HOST:mode==='direct'?`db.${ref}.supabase.co`:'aws-0-eu-west-1.pooler.supabase.com',MOVEMENT_QUALIFICATION_DB_USER:mode==='direct'?'postgres':`postgres.${ref}`,MOVEMENT_QUALIFICATION_DB_PASSWORD:'synthetic-db-password'});
+for(const mode of ['direct','session_pooler'])test('operator '+mode+' psql environment and secret-free arguments',t=>{
+ const e=operatorEnv(mode),pg=admin.postgresConfiguration(e,config());
+ assert.equal(pg.PGHOST,e.MOVEMENT_QUALIFICATION_DB_HOST);assert.equal(pg.PGUSER,e.MOVEMENT_QUALIFICATION_DB_USER);
+ assert.equal(pg.PGPORT,'5432');assert.equal(pg.PGDATABASE,'postgres');assert.equal(pg.PGPASSWORD,e.MOVEMENT_QUALIFICATION_DB_PASSWORD);
+ assert.equal(pg.PGSSLMODE,'verify-full');assert.equal(pg.PGCONNECT_TIMEOUT,'10');assert.equal(pg.PGOPTIONS,'-c client_min_messages=error');
+ t.mock.method(require('node:child_process'),'spawnSync',(command,args,options)=>{
+  assert.equal(command,'psql');assert.deepEqual(args,['-X','-q','-A','-t','-v','ON_ERROR_STOP=1']);
+  assert.equal(options.env,pg);assert.equal(options.input,admin.catalogSql());assert(options.input.startsWith('BEGIN READ ONLY;'));
+  for(const privateValue of [pg.PGHOST,pg.PGUSER,pg.PGPASSWORD])assert(!JSON.stringify(args).includes(privateValue));
+  return {status:0,stdout:'{}'};
+ });
+ assert.deepEqual(admin.psql(admin.catalogSql(),pg),{});
+});
+const invalidOperatorInputs=[
+ ['missing mode',{MOVEMENT_QUALIFICATION_DB_CONNECTION_MODE:undefined}],
+ ['unknown mode',{MOVEMENT_QUALIFICATION_DB_CONNECTION_MODE:'transaction_pooler'}],
+ ['direct pooler host',{MOVEMENT_QUALIFICATION_DB_CONNECTION_MODE:'direct',MOVEMENT_QUALIFICATION_DB_USER:'postgres'}],
+ ['missing host',{MOVEMENT_QUALIFICATION_DB_HOST:undefined}],
+ ['missing user',{MOVEMENT_QUALIFICATION_DB_USER:undefined}],
+ ['arbitrary user',{MOVEMENT_QUALIFICATION_DB_USER:'postgres'}],
+ ['wrong project user',{MOVEMENT_QUALIFICATION_DB_USER:'postgres.zyxwvutsrqponmlkjihg'}],
+ ...boundary.DENIED.map(v=>['forbidden project user '+v,{MOVEMENT_QUALIFICATION_DB_USER:'postgres.'+v}]),
+ ['transaction port',{MOVEMENT_QUALIFICATION_DB_PORT:'6543'}],
+ ['ambient transaction port',{PGPORT:'6543'}],
+ ['arbitrary database',{MOVEMENT_QUALIFICATION_DB_DATABASE:'other'}],
+ ['missing password',{MOVEMENT_QUALIFICATION_DB_PASSWORD:undefined}],
+ ...['db.'+ref+'.supabase.co','pooler.supabase.com.evil.test','evilpooler.supabase.com.evil.test','pooler.supabase.com','evilpooler.supabase.com','localhost','127.0.0.1','::1','https://aws-0-eu-west-1.pooler.supabase.com','aws-0-eu-west-1.pooler.supabase.com:5432','postgres@aws-0-eu-west-1.pooler.supabase.com','aws-0-eu-west-1.pooler.supabase.com/path','aws-0-eu-west-1.pooler.supabase.com?x=1','aws-0-eu-west-1.pooler.supabase.com#x','-bad.pooler.supabase.com','bad_.pooler.supabase.com','bad..pooler.supabase.com','a'.repeat(64)+'.pooler.supabase.com'].map(v=>['invalid pooler host '+v,{MOVEMENT_QUALIFICATION_DB_HOST:v}]),
+];
+for(const [name,changes] of invalidOperatorInputs)test('operator rejects '+name+' before psql/network',t=>{
+ let spawns=0,network=0;
+ t.mock.method(require('node:child_process'),'spawnSync',()=>{spawns++;throw Error('Unexpected spawn');});
+ t.mock.method(global,'fetch',async()=>{network++;throw Error('Unexpected network');});
+ const e={...operatorEnv(),...changes};
+ assert.throws(()=>admin.main(['--ack-disposable-environment'],e));
+ assert.throws(()=>require('../../scripts/assessment-worker/prepare-remote-fixtures.cjs').main(['--ack-disposable-environment','--output','unused-0102.capsule'],e));
+ assert.equal(spawns,0);assert.equal(network,0);
+});
+for(const mode of ['direct','session_pooler'])for(const forbidden of boundary.DENIED)test('operator '+mode+' denies '+forbidden+' before spawn/network',t=>{
+ let spawns=0,network=0;t.mock.method(require('node:child_process'),'spawnSync',()=>{spawns++;});t.mock.method(global,'fetch',async()=>{network++;});
+ const e={...operatorEnv(mode),MOVEMENT_QUALIFICATION_PROJECT_REF:forbidden,MOVEMENT_QUALIFICATION_SUPABASE_URL:`https://${forbidden}.supabase.co`,MOVEMENT_QUALIFICATION_DB_HOST:mode==='direct'?`db.${forbidden}.supabase.co`:operatorEnv().MOVEMENT_QUALIFICATION_DB_HOST,MOVEMENT_QUALIFICATION_DB_USER:mode==='direct'?'postgres':`postgres.${forbidden}`};
+ assert.throws(()=>admin.main(['--ack-disposable-environment'],e));
+ assert.throws(()=>require('../../scripts/assessment-worker/prepare-remote-fixtures.cjs').main(['--ack-disposable-environment','--output','unused-0102.capsule'],e));
+ assert.throws(()=>admin.postgresConfiguration(e,{ref:forbidden}));assert.equal(spawns,0);assert.equal(network,0);
+});
+test('operator ignores ambient credentials and never falls back to them',()=>{
+ const ambient={PGHOST:'localhost',PGUSER:'arbitrary',PGDATABASE:'arbitrary',PGPASSWORD:'ambient-password',PGSERVICE:'unsafe',PGOPTIONS:'unsafe',SUPABASE_URL:'https://example.invalid',SUPABASE_DB_HOST:'localhost',SUPABASE_DB_USER:'arbitrary',SUPABASE_DB_PASSWORD:'ambient-password'};
+ const e={...operatorEnv(),...ambient},pg=admin.postgresConfiguration(e,config());
+ assert.equal(pg.PGHOST,operatorEnv().MOVEMENT_QUALIFICATION_DB_HOST);assert.equal(pg.PGUSER,`postgres.${ref}`);assert.equal(pg.PGDATABASE,'postgres');assert.equal(pg.PGPASSWORD,'synthetic-db-password');assert.equal(pg.PGSERVICE,undefined);
+ for(const name of ['CONNECTION_MODE','HOST','USER','PASSWORD'])assert.throws(()=>admin.postgresConfiguration({...e,['MOVEMENT_QUALIFICATION_DB_'+name]:undefined},config()));
+ assert.throws(()=>admin.postgresConfiguration(e,{ref:'zyxwvutsrqponmlkjihg'}));
+ assert.throws(()=>admin.postgresConfiguration({...operatorEnv('direct'),MOVEMENT_QUALIFICATION_DB_USER:'arbitrary'},config()));
 });
 test('preflight is read-only; fixture writes preserve guards, use temp helpers and trusted authority',()=>{
  const sql=admin.catalogSql();assert(sql.startsWith('BEGIN READ ONLY'));assert(!/\b(?:DELETE|TRUNCATE|INSERT|UPDATE|ALTER)\s/i.test(sql));
@@ -84,7 +137,7 @@ test('remote schema denies private strings/extra fields and mandates teardown',(
  const local=JSON.parse(fs.readFileSync('docs/0101-offline-qualification/qualification.json','utf8'));
  const remote={...local,schemaVersion:'movement_worker_remote_qualification_v2',mode:'remote-staging',remote:{projectRefHash:boundary.hash(ref),environmentKind:'disposable',fixtureCleanup:boundary.cleanup(),schema:{operatorCatalogVerified:true,runtimeCompatible:true,fullCatalogVerifiedOnHost:false},measurements:Object.fromEntries(Object.keys(remoteSchema.properties.remote.properties.measurements.properties).map(k=>[k,null])),safeLogs:true,dbCalls:0,jobsCompleted:0,childCpuMs:0,peakChildRssBytes:0,newComputes:0,publications:0,failure:null}};
  validate(remote);assert(markdown(remote).includes('ENVIRONMENT TEARDOWN REQUIRED'));
- for(const extra of [{url:config().url},{projectRef:ref},{coordinates:[[1,2]]},{id:crypto.randomUUID()}])assert.throws(()=>validate({...remote,remote:{...remote.remote,...extra}}));
+ for(const extra of [{url:config().url},{projectRef:ref},{coordinates:[[1,2]]},{id:crypto.randomUUID()},{host:operatorEnv().MOVEMENT_QUALIFICATION_DB_HOST},{user:`postgres.${ref}`},{password:operatorEnv().MOVEMENT_QUALIFICATION_DB_PASSWORD},{connectionString:'postgresql://private'}])assert.throws(()=>validate({...remote,remote:{...remote.remote,...extra}}));
  assert.throws(()=>validate({...remote,remote:{...remote.remote,fixtureCleanup:{...boundary.cleanup(),environmentTeardownCompleted:true}}}));
 });
 test('logs reject secrets, private IDs, geometry and raw URLs',()=>{
