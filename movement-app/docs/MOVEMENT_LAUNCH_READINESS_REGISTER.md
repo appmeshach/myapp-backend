@@ -277,3 +277,14 @@ non-production tooling/capture. Fresh disposable qualification still requires
 authenticated complete execution traversal, independent runtime/process provenance,
 qualified host behavior, global one-shot authority and unused fixtures/sequencing.
 No migration, normal-worker change or live qualification is authorized by 0106.
+
+## 0107 read-only schema operator preflight
+
+[0107 operator preflight](0107-railway-readonly-live-preflight.md) provides canonical
+fixed request construction, active disposable target constraints/denylist and
+one-use local per-request review permits. No live call occurred. Outcome B:
+TRANSPORT_NOT_READY. Endpoint/auth syntax, environment-name allowlist, independent
+provider-context/target binding, real approved target/forbidden inventory and
+reviewed capture/transport remain prerequisites for separately authorized inspection.
+Schema readiness remains false; identity/causality/restart proofs remain null and
+runtime provenance unresolved. Fresh disposable qualification remains unauthorized.

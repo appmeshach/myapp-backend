@@ -1,5 +1,10 @@
 # 0106 controlled read-only inspection preparation
 
+0107 follow-up: [local live-inspection operator preflight](0107-railway-readonly-live-preflight.md)
+adds fixed payload construction, operator target constraints and private manual
+review permits only. Transport remains TRANSPORT_NOT_READY; no live action is
+authorized and all 0106 minimization/readiness limitations remain intact.
+
 **NOT AUTHORIZED TO EXECUTE YET.** This is local preparation only. No live
 introspection occurred. No Railway API/CLI call, remote Supabase access, provider
 mutation, production access, project creation/deletion, deployment, restart or
