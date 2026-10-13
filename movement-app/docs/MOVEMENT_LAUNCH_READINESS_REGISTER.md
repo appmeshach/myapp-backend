@@ -255,3 +255,11 @@ At the end of each milestone:
 4. Publish a capability matrix with **verified / partial / missing / deferred** backed by exact code/tests; then assign 0092 with justified dependency order.
 
 **This is an initial roadmap scaffold and auditable work queue, not a claim of a completed system-wide implementation audit.**
+# 0105 local qualification foundation
+
+[0105 schema/topology discovery](0105-railway-execution-schema-and-topology.md) is
+locally implemented only. Exact Railway execution query/pagination and runtime
+identity remain blocked. Owned child spawn/IPC and completed local sequence
+correlation do not prove provider identity, causation or automatic restart origin.
+platformRestart remains null. Global one-shot and fresh disposable qualification
+remain unresolved; no deployment or live provider action is authorized.

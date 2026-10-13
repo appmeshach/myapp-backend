@@ -8,6 +8,9 @@ const VERSION='0103-qualification-supervisor-v1',WINDOW=3600000;
 // it in the parent; no serialized token/object decoder exists.
 const faultAuthorizations=new WeakMap();
 const workerCleanups=new WeakMap();
+// Only successful in-memory supervision creates this correlation record.
+const completedQualifications=new WeakMap();
+function completedQualification(worker){const value=completedQualifications.get(worker);if(!value)fail();return structuredClone(value);}
 function attachWorkerCleanup(worker,cleanup){if(!worker||typeof cleanup!=='function'||workerCleanups.has(worker))fail();workerCleanups.set(worker,cleanup);}
 function consumeFaultAuthorization(authorization,ticket,source){
  const allowed=authorization&&faultAuthorizations.get(authorization);
@@ -197,10 +200,10 @@ async function supervise(plan,{provider,worker,capture,loadOldToken,observer=asy
   const correlation=railway.correlateRestart({instance:before.instance,executions:[before.execution,fault.execution,replacement.execution],controlled,db},ids,bound,now());
   if(correlation.measurement!==null||correlation.limitation!=='restart_origin_unattributable')fail();advance('publication_observed');advance('completed');
   const evidence={version:VERSION,...binding,phases:machine.snapshot(),controlledFailure:controlled,recovery:{...db,replacementExecutionSha256:hash(replacement.execution.id)},executions:[before.execution,fault.execution,replacement.execution].map(({id,deploymentId,...rest})=>({...rest,executionSha256:hash(id),deploymentSha256:hash(deploymentId)})),providerOperations:[],restartAttribution:{measurement:null,limitation:'restart_origin_unattributable'},platformRestart:null,observedAt:stamp(now())};
-  journal.append({evidence});return evidence;
+  journal.append({evidence});completedQualifications.set(worker,structuredClone(evidence));return evidence;
  }catch{
   if(journal&&machine){try{machine.advance('failed',stamp(now()));journal.append({phase:'failed',failure:'supervisor_evidence_unavailable'});}catch{}}
   fail();
  }finally{try{if(journal)journal.close();}finally{const cleanup=workerCleanups.get(worker);if(cleanup)cleanup();}}
 }
-module.exports={VERSION,PHASES,phaseMachine,controlledWorker,supervise,readQuery,qualificationContext:startup,consumeFaultAuthorization,attachWorkerCleanup};
+module.exports={VERSION,PHASES,phaseMachine,controlledWorker,supervise,readQuery,qualificationContext:startup,consumeFaultAuthorization,attachWorkerCleanup,completedQualification};

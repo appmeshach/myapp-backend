@@ -637,3 +637,8 @@ test uses the fixed schema-only clone harness and is separately invoked with
 The clone excludes migration-history rows, so that test supplies only the expected
 history array; all relevant installed sources, ACLs, RLS, signatures, trigger
 attributes and persisted parameter fingerprint are read from actual PostgreSQL.
+# 0105 follow-up
+
+[0105 local discovery](0105-railway-execution-schema-and-topology.md) found no exact
+execution-query contract or authoritative runtime execution identifier. No execution
+query, fresh fixture work or live qualification is authorized; platformRestart is null.

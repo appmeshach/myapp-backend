@@ -183,3 +183,9 @@ The foundation's secret-pattern scan covered 630 source/test/documentation files
 files, credential caches and the preserved capsule; matches were synthetic test
 literals only. No live provider call, production action, staging, commit, push,
 deployment, provider restart/redeploy or Supabase project lifecycle action occurred.
+# 0105 follow-up
+
+[0105](0105-railway-execution-schema-and-topology.md) retains the directory-local
+journal scope. A completed record is now retained privately by worker object only
+after successful final journal persistence, for local adapter sequence correlation.
+Serialized evidence cannot mint that record or prove provider identity/restart origin.

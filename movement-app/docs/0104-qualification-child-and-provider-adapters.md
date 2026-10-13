@@ -1,5 +1,10 @@
 # 0104 local child and execution-reader foundations
 
+0105 follow-up: [local schema discovery and topology foundation](0105-railway-execution-schema-and-topology.md)
+records Outcome B (no execution query), adapter-owned local spawn/IPC observations
+and private completed-sequence correlation. These prove no Railway runtime identity
+or restart origin and authorize no live use.
+
 This is local/synthetic implementation work, with no live qualification authorized.
 Normal run.cjs, operator evidence v3 and all 99 migrations retain their contracts.
 No adapter is installed by default and there is no qualification CLI or crash switch.
