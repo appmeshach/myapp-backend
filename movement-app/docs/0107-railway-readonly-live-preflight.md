@@ -1,5 +1,11 @@
 # 0107 Railway read-only operator preflight
 
+0108 follow-up: [supplied endpoint/auth contract and context preflight](0108-railway-transport-auth-contract.md)
+adds a separate contract-ready state using official facts supplied for that task.
+The historical 0107 TRANSPORT_NOT_READY evidence below is unchanged. No live
+executor or provider observation is added; original-object permit handoff and
+fixed context-request review support still need separate implementation review.
+
 **PREFLIGHT ONLY. NO NETWORK. NO LIVE AUTHORIZATION. Outcome B:
 TRANSPORT_NOT_READY.** No Railway CLI, GraphQL provider or Supabase call occurred.
 No token, credential cache, runtime variable value, log, live schema response or

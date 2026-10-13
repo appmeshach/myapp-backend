@@ -288,3 +288,18 @@ provider-context/target binding, real approved target/forbidden inventory and
 reviewed capture/transport remain prerequisites for separately authorized inspection.
 Schema readiness remains false; identity/causality/restart proofs remain null and
 runtime provenance unresolved. Fresh disposable qualification remains unauthorized.
+
+## 0108 direct project-token transport/context contract
+
+[0108 contract foundation](0108-railway-transport-auth-contract.md) fixes the supplied
+official public endpoint, POST/JSON body and RAILWAY_TOKEN/Project-Access-Token auth
+path; broader tokens and CLI caches are unsupported. transportContractReady and
+providerContextAttestationReady are true locally. Provider observation/project-env
+proof/service proof remain false; execution readiness false and runtime/restart
+authority null. A strict fixed projectToken query validates project/environment
+equality against the private target without minting authenticated evidence.
+Service proof is unnecessary for schema-level inspection and remains a future
+qualification constraint. No live executor exists. Original-object permit handoff,
+context-request review ticket, private exact-invocation result binding, reviewed
+adapter/capture/target inventory and separate live authorization remain gates.
+Fresh qualification remains unauthorized; historical 0107 state is preserved.
