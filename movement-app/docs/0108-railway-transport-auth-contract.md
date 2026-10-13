@@ -1,5 +1,10 @@
 # 0108 Railway direct transport/auth and context foundation
 
+0109 follow-up: [private HTTPS adapter foundation](0109-railway-private-https-adapter-foundation.md)
+implements the original-object handoff, fixed context review ticket and direct HTTPS
+path without invoking it live. The historical 0108 readiness/observation record
+below is preserved. Real provider evidence and first live authorization remain absent.
+
 **PREFLIGHT ONLY. No live executor or live authorization.** No network request,
 Railway/Supabase invocation, token-value/cache inspection, production access,
 deployment, restart/redeploy or project action occurred. No independent browsing

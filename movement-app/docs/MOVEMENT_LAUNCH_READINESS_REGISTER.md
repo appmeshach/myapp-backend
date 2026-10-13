@@ -303,3 +303,17 @@ qualification constraint. No live executor exists. Original-object permit handof
 context-request review ticket, private exact-invocation result binding, reviewed
 adapter/capture/target inventory and separate live authorization remain gates.
 Fresh qualification remains unauthorized; historical 0107 state is preserved.
+
+## 0109 private direct HTTPS adapter foundation
+
+[0109 private adapter](0109-railway-private-https-adapter-foundation.md) implements
+original-target/session one-use handoffs, a fixed context review ticket, captured
+credential lifetimes, context-first gating and private one-use HTTPS results.
+The production path exists but was never executed live; no real token read occurred.
+Tests use separate VM module instances only. Frozen provider observation/project-env
+proof remain false; service/execution readiness false and identity/restart authority
+null. All migrations and normal worker remain unchanged. Exact code/policy/target/
+forbidden-inventory review, operator auth setup and separate first-live authorization
+remain gates; schema additionally requires real same-context attestation and a fresh
+manual stage permit. Fresh qualification/global authority/runtime provenance remain
+unresolved and unauthorized.

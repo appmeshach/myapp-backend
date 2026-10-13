@@ -70,7 +70,7 @@ test('credentials cannot enter target or denylist metadata', () => {
 test('auth/endpoint unresolved; no guessed variable allowlist or transport', () => {
  assert.equal(preflight.contract.outcome, 'TRANSPORT_NOT_READY'); assert.equal(preflight.contract.endpoint, null); assert.equal(preflight.contract.authenticationSyntax, null);
  assert.deepEqual(preflight.contract.authVariableNameAllowlist, []);
- assert.deepEqual(Object.keys(preflight), ['contract', 'reviewNext', 'approveReview', 'consumeApprovedRequest', 'acceptResponseBody']);
+ assert.deepEqual(Object.keys(preflight), ['contract', 'reviewNext', 'approveReview', 'consumeApprovedRequest', 'acceptResponseBody', 'consumeSchemaPermitForAdapter', 'takeSchemaHandoffForAdapter']);
 });
 for (const suffix of modules) test('local '+suffix+' has no environment/network/process execution', () => {
  assert(!/process\.env|\bfetch\s*\(|node:https|node:http|node:child_process|\b(?:spawn|spawnSync|exec|execFile|execSync)\s*\(/.test(source(suffix)));

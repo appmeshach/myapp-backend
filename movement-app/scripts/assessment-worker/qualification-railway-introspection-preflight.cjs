@@ -9,6 +9,7 @@ const contract = freeze({ outcome: 'TRANSPORT_NOT_READY', endpoint: null, authen
  capture: 'local_body_only_then_0106_validation', executionSchemaReady: false,
  ...plan.runtimeProvenance });
 const reviews = new WeakMap(), permits = new WeakMap();
+const adapterHandoffs = new WeakMap();
 const fail = () => { throw Error('Introspection review preflight unavailable'); };
 function reviewNext(...args) {
  if (args.length !== 2) fail();
@@ -44,4 +45,32 @@ function acceptResponseBody(...args) {
  if (args.length !== 2) fail();
  try { return plan.accept(args[0], args[1]); } catch { fail(); }
 }
-module.exports = Object.freeze({ contract, reviewNext, approveReview, consumeApprovedRequest, acceptResponseBody });
+function consumeSchemaPermitForAdapter(...args) {
+ if (args.length !== 2) fail();
+ const [permit, binding] = args, record = permits.get(permit);
+ if (!record) fail();
+ permits.delete(permit); // Wrong original target/stage also burns the permit.
+ let request;
+ try {
+  if (record.binding !== binding) fail();
+  targets.describeTarget(binding); request = builder.buildRequest(record.session);
+ } catch { fail(); }
+ if (JSON.stringify(request) !== JSON.stringify(record.request)) fail();
+ const handoff = Object.freeze({});
+ adapterHandoffs.set(handoff, Object.freeze({ kind: 'schema', permit, binding,
+  session: record.session, request: record.request, meta: record.meta }));
+ return handoff;
+}
+function takeSchemaHandoffForAdapter(...args) {
+ if (args.length !== 2) fail();
+ const [handoff, binding] = args, record = adapterHandoffs.get(handoff);
+ if (!record) fail();
+ adapterHandoffs.delete(handoff);
+ if (record.binding !== binding) fail();
+ let request;
+ try { targets.describeTarget(binding); request = builder.buildRequest(record.session); } catch { fail(); }
+ if (JSON.stringify(request) !== JSON.stringify(record.request)) fail();
+ return record;
+}
+module.exports = Object.freeze({ contract, reviewNext, approveReview, consumeApprovedRequest, acceptResponseBody,
+ consumeSchemaPermitForAdapter, takeSchemaHandoffForAdapter });

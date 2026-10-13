@@ -1,5 +1,11 @@
 # 0107 Railway read-only operator preflight
 
+0109 follow-up: [original-object handoff and private adapter](0109-railway-private-https-adapter-foundation.md)
+adds two narrow schema-permit/handoff methods to the 0107 module while retaining
+its original APIs and historical TRANSPORT_NOT_READY metadata. These new handoffs
+preserve original target/session/permit identity; detached descriptors remain
+non-authoritative. No live request or real credential read occurred.
+
 0108 follow-up: [supplied endpoint/auth contract and context preflight](0108-railway-transport-auth-contract.md)
 adds a separate contract-ready state using official facts supplied for that task.
 The historical 0107 TRANSPORT_NOT_READY evidence below is unchanged. No live
