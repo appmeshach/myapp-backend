@@ -131,19 +131,38 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
   reuse, fencing, crash, lease recovery and lost-acknowledgement recovery PASS.
   Correctness/reliability/lease/memory/integration PASS; process/security NOT MEASURED;
   classification remains `QUALIFICATION_INCOMPLETE`. Not fresh verification here.
-- Corrected operator evidence v2 pins the reviewed Ed25519 public identity in source
+- Corrected operator evidence pins the reviewed Ed25519 public identity in source
   and verifies SPKI DER SHA-256
   `13228a92e18fb61153185a048c4edb496cdee1b83d1e894f8f216568211f0fa9`.
   Environment/artifact verifier replacement and legacy private-PEM env inputs reject;
   collection reads an absolute external signing-file path and checks its public pin.
   Finalization never needs/reads the private file. Rotation requires source review.
-- Only participant ACL proof may pass, after the actual read-only disposable catalog
-  verifies. Signed artifacts bind exact report/project/host/source/migrations and
-  expire after one hour. Railway restart/sealed-variable fields remain null: boolean,
-  screenshot, prose and arbitrary-record hashes cannot grant technical PASS. Provider
-  machine proof is unresolved; documentary observations remain separate. ACL proof
-  alone leaves `QUALIFICATION_INCOMPLETE`. Import never calls Railway/DB; existing
-  false gates and strict report validation are preserved.
+- Provider evidence v3 adds bounded authenticated Railway CLI QUERY-only collection
+  of Variable.isSealed metadata for all three required variables. It checks complete
+  pagination for project environments, project services and environment variables
+  (both pageInfo flags strictly false; missing/malformed/non-boolean rejects),
+  project/environment/service/instance/region identity and duplicate/value
+  rejection; token inputs and child credential inheritance reject. Sanitized signed
+  proofs bind identity hashes, exact report/source/migrations/project/host and one-hour
+  freshness. Storage proof and actual read-only catalog ACL proof are independent.
+  No live Railway proof has been collected. Import never calls Railway/DB and
+  preserves existing false gates and strict report validation.
+- Restart primitives validate configured policy, controlled self-termination, matching
+  execution lifecycle and actual read-only job/lease/publication snapshots. They do
+  not invoke provider mutations or expose a fault switch in normal workers. The
+  inspected execution schema lacks actor/cause, so correlation cannot disprove an
+  outside operator restart: platformRestart remains null, as explicitly authorized
+  under the strict adversarial contract. Qualification remains incomplete. Execution
+  query traversal and a fresh unused-fixture supervisor must be reviewed before any
+  live fault. Build/deployment stages or deploymentRestart are not runtime proof.
+  The controlled-failure primitive is library/preparatory only; supervisor integration
+  has not been operationally qualified. Policy plus execution lifecycle alone cannot
+  attribute an automatic restart; no platformRestart PASS is claimed and live
+  qualification remains incomplete. The claim RPC returns expiry, no authoritative
+  claim timestamp. Receipts use derivedLeaseStartAt = leaseExpiresAt - leaseDurationMs
+  with leaseDurationMs = 60000 and an explicit derivation label, never claimedAt.
+  Deadline-capped expiry makes this a conservative derived boundary, not observed
+  DB/provider claim evidence; local termination time and RPC expiry remain distinct.
 - Do not rerun the used disposable project or regenerate its fixtures: immutable
   pairs have been consumed, preparation requires an empty environment and the first
   registration requires a fresh job, not assessment reuse. Preserve old evidence

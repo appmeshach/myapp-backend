@@ -30,8 +30,9 @@ automatic project creation/destruction or automatic host acceptance.
    Stop competing workers. Never reuse this disposable environment for production.
 6. Derive participant ACL evidence using the read-only catalog query on the operator
    workstation and import its signed, run-bound artifact with the finalizer below.
-   Railway restart/sealed-variable technical proof remains unresolved; documentary
-   observations cannot grant PASS and both measurements remain null.
+   --verify-railway-secrets may collect authenticated Variable.isSealed metadata.
+   Documentary observations cannot grant PASS; restart remains null because the
+   inspected schema cannot attribute automatic versus operator restart.
 7. Destroy the whole disposable Supabase environment externally. Verify destruction,
    then record final operator acceptance separately. The tooling never certifies teardown.
 
@@ -201,14 +202,15 @@ remain NOT MEASURED and classification remains QUALIFICATION_INCOMPLETE.
 This is supplied evidence, not new provider verification. Its old-source report must
 not be finalized against updated source.
 
-The former observation-boolean protocol is superseded and rejected. Screenshots,
-operator prose, manually entered counts/booleans, or a hash of an arbitrary record
-cannot establish technical Railway restart or sealed-variable proof. Documentary
-observations may be retained separately for review; they never promote measurements.
-This iteration implements no Railway machine-proof intake and makes no Railway API
-call. platformRestart and hostSecretStorage always remain null, even with successful
-participant ACL proof. TARGET_HOST_TECHNICALLY_QUALIFIED is unavailable through this
-finalizer; incomplete is the correct outcome for otherwise passing runtime evidence.
+The former observation-boolean protocol remains rejected. Screenshots, operator
+prose, manually entered counts/booleans and arbitrary-record hashes cannot establish
+technical provider proof. This layer adds authenticated Railway Variable metadata
+collection for hostSecretStorage. No live provider call occurred during implementation.
+
+platformRestart remains null under the strict attribution contract: the inspected
+execution fields do not distinguish automatic restart from an operator restart.
+A complete correlated lifecycle is necessary but cannot establish automatic origin.
+Restart primitives are implemented/tested below without claiming provider PASS.
 
 ### Reviewed source-pinned identity
 
@@ -250,74 +252,198 @@ $env:MOVEMENT_QUALIFICATION_EVIDENCE_SIGNING_KEY_FILE = 'C:\Users\gt\movement-pr
 This assignment contains only a path; do not load the private PEM into an environment
 variable. Protect the external private file using Windows access controls.
 
-### ACL artifact and finalization
+### Signed catalog/provider artifact and finalization
 
-The strict JSON artifact uses 0102-operator-evidence-v2 with exactly:
+The strict JSON artifact uses 0102-operator-evidence-v3 with exactly:
 version, provider, machine, region, projectRefHash, workerSourceSha256,
-migrationDigest, qualificationRunSha256, observedAt, evidence, catalogProof and
-signature. No observations or arbitrary metadata are accepted. The measurements are
-{platformRestart:null,hostSecretStorage:null,participantAcl:true|null}.
+migrationDigest, qualificationRunSha256, observedAt, evidence, catalogProof,
+railwaySecretProof and signature. Older artifacts reject. No observations or
+arbitrary metadata/file proofs are accepted.
+
+Each category is independent:
+- Catalog proof alone: participantAcl=true, hostSecretStorage/platformRestart=null.
+- Sealed metadata alone: hostSecretStorage=true, participantAcl/platformRestart=null.
+- Missing collection options: all external measurements stay null.
+- Restart correlation: platformRestart=null with restart_origin_unattributable.
+
 catalogProof is null or a generated object containing method
-0102_read_only_catalog_v1, observedAt and catalogSha256. All digests use SHA-256.
-Ed25519 signs recursively key-sorted JSON excluding signature, encoded as canonical
-base64url. Raw project refs, URLs, DB credentials, UUID/private identifiers, geometry,
-catalog contents and signing material/path are never serialized.
+0102_read_only_catalog_v1, observedAt and catalogSha256. The --verify-participant-acl
+flag still runs admin.psql(admin.catalogSql(), ...) using the dedicated disposable
+operator connection and verifies installed catalog invariants. BEGIN READ ONLY,
+disposable denylist/acknowledgement and environment-only DB passwords remain intact.
 
-The collector's --verify-participant-acl flag runs admin.psql(admin.catalogSql(), ...)
-using only the dedicated disposable operator connection, then admin.verifyCatalog().
-The query remains BEGIN READ ONLY and verifies relevant migration/function source/
-signature/ACL/RLS/trigger/parameter invariants. Only successful verification permits
-participantAcl=true. Failure produces no signed proof; without the flag participantAcl
-stays null. There is no manual ACL input. DB credentials never go to Railway.
+railwaySecretProof is null or generated from the authenticated CLI, with method
+railway_variable_metadata_v1, complete report/source/migration/project/host binding,
+observedAt, hashed project/environment/service/service-instance identities and three
+records containing the variable name, variable ID hash, isSealed=true and matching
+service/environment hashes. Raw IDs, values, credentials, capsule, private key/path
+and catalog contents never enter public proof. Ed25519 signs canonical JSON; the
+reviewed source pin is unchanged. The worker fingerprint includes these new sources,
+so old reports cannot be finalized.
 
-The artifact binds the exact project hash, provider/machine/region, current worker
-fingerprint, migration digest and SHA-256 of the complete original report. The worker
-fingerprint incorporates the migration digest and source pin file. Original report,
-artifact and catalog observation must be no older than one hour and not in the
-future. Original runtime reports validate first; old-source and previously asserted
-external-measurement reports reject. Extra fields and altered/mismatched signatures
-reject. No env/CLI measurement boolean can grant a result.
+Report/artifact/provider observation must be at most one hour old and not future
+dated. Finalization checks every category again, expected identity hashes, exact
+report/source/migration binding and the pinned signature before promoting storage.
+It needs expected provider IDs when importing provider proof, but no CLI call, DB
+password or signing file. Runtime samples and usage remain intact; false gates remain
+false. Technical qualification still requires every measurement/gate true, safe logs,
+runtime compatibility and no failure. Since automatic restart attribution remains
+unresolved, otherwise passing results remain QUALIFICATION_INCOMPLETE.
 
-After a separately authorized fresh updated-source run, on the operator workstation:
+### Authenticated Railway CLI boundary and sealed metadata
+
+The operator uses the already authenticated official CLI (observed version 5.66.0).
+Only an explicit absolute path to a regular railway.exe/railway file is accepted.
+The collector uses spawnSync with argument arrays, shell=false, hidden Windows
+execution, a 10-second timeout and 256 KiB output bound. It rejects any stderr,
+nonzero/error/timeout/overflow result, malformed JSON, GraphQL errors, unexpected
+fields and credential-shaped stdout, with a fixed sanitized error.
+
+Only the two reviewed QUERY documents are permitted: a connection-capability probe
+and the metadata query. Mutation/subscription/custom documents reject before spawn.
+No deploy/redeploy/deploymentRestart or variable/policy mutation exists. Movement
+does not read Railway session credentials or accept token variables. The child
+inherits only standard executable/OS/home paths so the CLI can use its own login;
+Supabase credentials, fixture/signing material and Movement settings are not inherited.
+Railway token environment shortcuts are rejected, not forwarded.
+
+The metadata query requests:
+- Project ID and environment/service membership IDs.
+- Environment.variables.edges.node: id, name, isSealed, serviceId, environmentId.
+- ServiceInstance ID, service/environment IDs, region, restart policy/retry budget and
+  latest deployment ID.
+
+It never queries the rendered root variables scalar or variable values. The supplied
+inspected Variable.isSealed is authoritative machine metadata. All three exact
+sensitive names must appear once, with distinct IDs, expected service/environment and
+isSealed === true. Missing/unsealed/duplicate/wrong-bound/malformed metadata aborts
+collection and never grants PASS. False seals do not invent a new failed-gate meaning.
+
+Pagination is fail-closed: the fixed query requests pageInfo for project environments,
+project services and environment variables. Each connection requires both
+hasNextPage === false and hasPreviousPage === false. Missing, malformed, non-boolean
+or incomplete pageInfo rejects before storage proof can be granted; guessed page
+sizes cannot establish completeness. A read-only introspection probe also checks
+EnvironmentVariablesConnection and PageInfo support. Project membership, instance
+identity and report region must also match.
+The actual CLI JSON envelope and capability support require validation during the
+first separately authorized live read; no successful live proof is claimed here.
+
+Required local inputs (all IDs are from the intended actual service, not guesses):
+- MOVEMENT_QUALIFICATION_RAILWAY_CLI_FILE
+- MOVEMENT_QUALIFICATION_RAILWAY_PROJECT_ID
+- MOVEMENT_QUALIFICATION_RAILWAY_ENVIRONMENT_ID
+- MOVEMENT_QUALIFICATION_RAILWAY_SERVICE_ID
+- MOVEMENT_QUALIFICATION_RAILWAY_SERVICE_INSTANCE_ID
+
+After a separately authorized fresh updated-source qualification, configure those
+inputs and the reviewed external signing-file path, then collect/import:
 
 ~~~powershell
-node scripts/assessment-worker/qualification-operator-evidence.cjs collect --ack-disposable-environment --report C:\Users\gt\movement-private\0102\original-qualification.json --verify-participant-acl --output C:\Users\gt\movement-private\0102\operator-evidence.json
+node scripts/assessment-worker/qualification-operator-evidence.cjs collect --ack-disposable-environment --report C:\Users\gt\movement-private\0102\original-qualification.json --verify-participant-acl --verify-railway-secrets --output C:\Users\gt\movement-private\0102\operator-evidence.json
 node scripts/assessment-worker/qualification-operator-evidence.cjs finalize --ack-disposable-environment --report C:\Users\gt\movement-private\0102\original-qualification.json --evidence C:\Users\gt\movement-private\0102\operator-evidence.json --output C:\Users\gt\movement-private\0102\final-qualification.json
 ~~~
 
-Both outputs require new paths. Import needs only the disposable context and
-source-pinned public identity, with no DB password or private key. It makes no DB or
-provider call. Retain the original report, signed artifact and final report together;
-the artifact supplies provenance without changing the strict remote v2 report schema.
-Runtime samples/usage remain intact, existing false gates remain false, missing
-evidence stays null, and failed runtime evidence cannot become PASS. Even with
-participantAcl=true, process/security remain unmeasured unless already failed.
-Every required gate/measurement, safe logs, compatible runtime and absence of failures
-remain mandatory for technical qualification. The report validator is unchanged.
+Collection performs live reads only when explicitly invoked later. Both outputs
+require new paths. Preserve original report, signed artifact and final report together.
 
-### Remaining Railway proof and environment constraints
+### Controlled failure and two-source restart correlation
 
-Railway documents authenticated APIs for deployment IDs/statuses/timestamps, runtime
-logs and service restart-policy configuration. These are possible future inputs,
-not a complete verified restart event sequence. Future technical restart proof must
-correlate authenticated provider stop/automatic-restart events with read-only DB lease
-expiry/reclaim/fencing/completion observations and exactly one publication. Manual
-restart/redeploy is not automatic restart proof. No such adapter is implemented.
+qualification-railway-evidence.cjs exposes library-only primitives; normal run.cjs
+has no crash switch, provider import or kill endpoint. controlledFailure requires a
+validated current remote-staging report, disposable acknowledgement/denylist,
+authenticated fresh capsule, expected synthetic job UUID, provider identity/old
+execution ID, existing typed backend and a private observer. Registration must bind
+capsule pair 3 to that exact job with zero attempts; claim must be attempt 1 for that
+job and load must match the capsule need/requester. Reuse, another job, an already
+attempted lease or missing observer rejects before termination.
 
-Railway documents sealed values as unavailable for UI/API readback, but its public
-variable API guide does not establish a per-variable sealed-state metadata field.
-Authenticated schema/capability verification remains necessary before implementing
-technical proof for MOVEMENT_QUALIFICATION_SERVICE_ROLE_KEY,
-MOVEMENT_QUALIFICATION_FIXTURE_CAPSULE and MOVEMENT_QUALIFICATION_FIXTURE_KEY.
-Neither variable existence nor absence of values proves sealed configuration.
-No token is introduced here and no provider call is made.
+The observer retains the original claim privately, within a bounded five-second
+handshake. A sanitized receipt hashes job/token/execution and binds report/source/
+migrations/project/host/provider identities. The primitive then terminates its own
+process with SIGKILL; it cannot ask Railway to restart/deploy/redeploy or alter policy.
+It records no provider operations because its code contains none. A second attempt
+rejects the one-shot fault. Implementation tests replace termination and backend
+with synthetic dependencies; no real service/process fault was performed.
 
-References: [public API authentication](https://docs.railway.com/integrations/api),
+The existing 0099 claim RPC/result and typed backend expose lease_expires_at, not an
+authoritative claim timestamp. The mutable job updated_at field is not returned by
+that RPC and is not treated as independent claim evidence. The sanitized receipt
+therefore has no claimedAt. It records leaseExpiresAt from the RPC (validated UTC
+timestamp, normalized to millisecond precision), leaseDurationMs = 60000,
+derivedLeaseStartAt = leaseExpiresAt - leaseDurationMs and
+leaseStartDerivation = "leaseExpiresAt - leaseDurationMs". The expiry is observed
+backend data; terminatedAt is the local primitive's clock observation. The lease
+start is explicitly DERIVED, never an observed DB/provider timestamp. Since the
+unchanged RPC uses LEAST(claim clock + 60 seconds, job expiry), this derived value
+is a lower boundary, not necessarily the actual claim time. Chronology checks use
+only that conservative boundary and reject inconsistent derivations or invalid
+timestamps. Future expiry is valid only within the unchanged 60-second lease;
+future derived/termination timestamps in historical correlation reject.
+
+The controlled-failure primitive is library/preparatory only. Supervisor integration
+has not been operationally qualified. Automatic restart attribution remains
+unresolved: Railway restart policy plus execution lifecycle alone are insufficient.
+No platformRestart PASS is claimed, and live qualification must remain incomplete
+on this measurement.
+
+captureJob uses actual catalog verification plus BEGIN READ ONLY job/assessment
+snapshots, private to the workstation. jobSql counts publications for the exact
+immutable canonical route/context identity. recoveryFromSnapshots requires the same
+job/fixture identity, original attempt 1/token, no preexisting publication, replacement
+attempt 2/different token after expiry, read-only old-token load returning lease_invalid
+and completed state with exactly one publication. IDs/tokens stay private; correlation
+uses hashes. No clock edits, lease shortening, trigger bypass or geometry change occurs.
+
+correlateRestart requires exact instance/service/environment/deployment/region,
+ON_FAILURE or ALWAYS and sufficient retries, then timestamp-ordered:
+same old execution RUNNING -> CRASHED/RESTARTING -> different execution RUNNING
+for the same deployment. It checks controlled self-termination between observations,
+the unchanged 60-second lease, complete run/source/migration/provider binding and the
+DB recovery projection. Unrelated executions/deployments, provider operations,
+missing recovery/fencing or multiple publications reject. It does not invent an
+execution exitCode, actor/cause field or use deployment build-stage events as runtime
+restart authority.
+
+Even successful correlation returns null/restart_origin_unattributable. An outside
+operator can still perform a provider restart between those observations, and the
+inspected schema has no field to disprove it. The user explicitly authorized retaining
+null under this strict adversarial limitation. No restart record/boolean/file can be
+imported to bypass it, and no provider PASS is claimed.
+
+Before any live crash, a separately reviewed supervisor must obtain executions through
+verified authenticated schema traversal and correlate its own private capture with the
+SQL snapshots. The supplied schema did not specify the execution query relationship;
+this implementation does not invent one. Also, all four baseline pairs are consumed.
+The primitive requires an unused first-attempt capsule pair; it cannot run afterward
+against the same pair set. Fresh dedicated fixture sequencing and the supervisor
+integration must be reviewed before enabling a live scenario. No fault CLI is exposed.
+
+References: [public API](https://docs.railway.com/integrations/api),
 [service metadata](https://docs.railway.com/integrations/api/manage-services),
 [deployment logs](https://docs.railway.com/integrations/api/api-cookbook),
-[sealed-variable behavior](https://docs.railway.com/variables), and
-[variable API](https://docs.railway.com/integrations/api/manage-variables).
-Documentation and documentary records do not certify this actual service.
+[sealed-variable behavior](https://docs.railway.com/variables).
+Variable.isSealed and execution-field facts above come from the operator-supplied
+authenticated schema inspection. No live Railway request was made during implementation.
+
+Evidence-review correction validation: focused Railway/operator suite 207/207 PASS
+(136 Railway tests and 71 operator tests). Combined 0102/0101/0099, worker-process
+and migration-integrity regression suite 357 PASS, one POSIX-only Windows skip
+(358 total). Pagination and explicit derived-time adversarial cases are included.
+Local SQL workflow PASS including the actual read-only restart snapshot query;
+original application data/catalog/ACL/RLS/history fingerprint unchanged. App, Edge
+and worker typechecks PASS. Diff/whitespace checks PASS; all 99 migrations, pinned
+identity, normal worker entry and qualifier source code unchanged.
+
+Secret-pattern scan covered 625 tracked source/test/documentation text files plus
+the two new evidence source/test files (627 distinct files total), excluding secret
+files, local caches and the preserved capsule. No embedded private PEM, Railway token
+assignment, fixture-key literal or capsule literal was found. Credential-shaped
+matches were confined to synthetic test values. Real private key, local startup-secret
+cache and capsule contents were not read or compared. All Railway child responses and termination
+operations in tests were injected/synthetic. No live Railway call, Railway fault,
+provider mutation, stage/commit/push/deploy, project create/delete or production action
+occurred. The capsule is untouched, untracked and unstaged.
 
 Do not rerun full qualification against existing disposable project
 uzkhnslyrhgucijcuoes. Its immutable synthetic pairs have already been consumed:

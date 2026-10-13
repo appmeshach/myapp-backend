@@ -1,11 +1,12 @@
 'use strict';
-// Operator workstation only. Only actual read-only catalog evidence is supported.
-// Railway documentary observations cannot grant technical measurements.
+// Operator workstation only. Catalog and authenticated sealed-variable metadata.
+// Restart origin remains unprovable with the inspected provider fields.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const boundary=require('./qualification-remote.cjs'),admin=require('./qualify-remote-schema.cjs');
 const reports=require('./qualification-report.cjs');
 const trust=require('./qualification-evidence-trust.cjs');
-const VERSION='0102-operator-evidence-v2',WINDOW_MS=3600000;
+const railway=require('./qualification-railway-evidence.cjs');
+const VERSION='0102-operator-evidence-v3',WINDOW_MS=3600000;
 const FIELDS=['platformRestart','hostSecretStorage','participantAcl'];
 const fail=()=>{throw Error('Operator evidence unavailable');};
 const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
@@ -51,24 +52,28 @@ function signingKey(env){
  }catch{fail();}
  return key;
 }
-function collect(report,env,ack,{verifyParticipantAcl=false,now=Date.now()}={}){
+/** @param {any} report @param {any} env @param {boolean} ack @param {any} [options] */
+function collect(report,env,ack,{verifyParticipantAcl=false,verifyRailwaySecrets=false,spawn,now=Date.now()}={}){
  const bound=context(report,env,ack,now),privateKey=signingKey(env);
+ const railwaySecretProof=verifyRailwaySecrets?railway.collectSealed(bound,env,ack,{...(spawn?{spawn}:{}),now}):null;
  let catalogProof=null;
  if(verifyParticipantAcl){
   const catalog=admin.psql(admin.catalogSql(),admin.postgresConfiguration(env,boundary.configuration(env,ack)));
   admin.verifyCatalog(catalog);
   catalogProof={method:'0102_read_only_catalog_v1',observedAt:new Date(now).toISOString(),catalogSha256:hash(canonical(catalog))};
  }
- const payload={version:VERSION,...bound,observedAt:new Date(now).toISOString(),evidence:{platformRestart:null,hostSecretStorage:null,participantAcl:catalogProof?true:null},catalogProof};
+ const payload={version:VERSION,...bound,observedAt:new Date(now).toISOString(),evidence:{platformRestart:null,hostSecretStorage:railwaySecretProof?true:null,participantAcl:catalogProof?true:null},catalogProof,railwaySecretProof};
  return {...payload,signature:crypto.sign(null,Buffer.from(canonical(payload)),privateKey).toString('base64url')};
 }
-function verify(artifact,bound,now=Date.now()){
- exact(artifact,['version',...Object.keys(bound),'observedAt','evidence','catalogProof','signature']);
+function verify(artifact,bound,env,ack,now=Date.now()){
+ exact(artifact,['version',...Object.keys(bound),'observedAt','evidence','catalogProof','railwaySecretProof','signature']);
  if(artifact.version!==VERSION)fail();
  for(const k of Object.keys(bound))if(artifact[k]!==bound[k])fail();
  fresh(artifact.observedAt,now);
  exact(artifact.evidence,FIELDS);
- if(artifact.evidence.platformRestart!==null||artifact.evidence.hostSecretStorage!==null)fail();
+ if(artifact.evidence.platformRestart!==null)fail();
+ if(artifact.railwaySecretProof===null){if(artifact.evidence.hostSecretStorage!==null)fail();}
+ else if(artifact.evidence.hostSecretStorage!==true||!railway.verifySealed(artifact.railwaySecretProof,bound,env,ack,now))fail();
  if(artifact.catalogProof===null){if(artifact.evidence.participantAcl!==null)fail();}
  else{
   exact(artifact.catalogProof,['method','observedAt','catalogSha256']);
@@ -83,7 +88,7 @@ function verify(artifact,bound,now=Date.now()){
 }
 function finalize(report,artifact,env,ack,now=Date.now()){
  const bound=context(report,env,ack,now),out=structuredClone(report);
- const evidence=artifact===null?Object.fromEntries(FIELDS.map(k=>[k,null])):verify(artifact,bound,now);
+ const evidence=artifact===null?Object.fromEntries(FIELDS.map(k=>[k,null])):verify(artifact,bound,env,ack,now);
  Object.assign(out.remote.measurements,evidence);
  const m=out.remote.measurements;
  out.gates.process=out.gates.process===false?false:[m.startup,m.idleSigterm,m.platformRestart].some(v=>v===false)?false:[m.startup,m.idleSigterm,m.platformRestart].every(v=>v===true)?true:null;
@@ -99,14 +104,14 @@ function main(args=process.argv.slice(2),env=process.env){
  if(!['collect','finalize'].includes(command))fail();
  for(let i=1;i<args.length;i++){
   const k=args[i];if(flags.has(k)||Object.hasOwn(values,k))fail();
-  if(['--ack-disposable-environment','--verify-participant-acl'].includes(k))flags.add(k);
+  if(['--ack-disposable-environment','--verify-participant-acl','--verify-railway-secrets'].includes(k))flags.add(k);
   else if(['--report','--evidence','--output'].includes(k)){const v=args[++i];if(!v||v.startsWith('--'))fail();values[k]=v;}
   else fail();
  }
  const ack=flags.has('--ack-disposable-environment');boundary.configuration(env,ack);
- if(!values['--report']||!values['--output']||command==='collect'&&values['--evidence']||command==='finalize'&&flags.has('--verify-participant-acl'))fail();
+ if(!values['--report']||!values['--output']||command==='collect'&&values['--evidence']||command==='finalize'&&(flags.has('--verify-participant-acl')||flags.has('--verify-railway-secrets')))fail();
  const report=readJson(values['--report']);
- const output=command==='collect'?collect(report,env,ack,{verifyParticipantAcl:flags.has('--verify-participant-acl')}):finalize(report,values['--evidence']?readJson(values['--evidence']):null,env,ack);
+ const output=command==='collect'?collect(report,env,ack,{verifyParticipantAcl:flags.has('--verify-participant-acl'),verifyRailwaySecrets:flags.has('--verify-railway-secrets')}):finalize(report,values['--evidence']?readJson(values['--evidence']):null,env,ack);
  // Exclusive creation keeps the original report and provenance immutable.
  fs.writeFileSync(path.resolve(values['--output']),JSON.stringify(output,null,2)+'\n',{flag:'wx',mode:0o600});
  process.stdout.write(command==='collect'?'Operator evidence collected. ENVIRONMENT TEARDOWN REQUIRED.\n':reports.markdown(output));

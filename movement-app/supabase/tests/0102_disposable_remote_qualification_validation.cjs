@@ -11,6 +11,11 @@ async function main(){await h.run(async c=>{
  // Clone intentionally excludes migration-history rows. Only the history input
  // is supplied here; all bodies, ACLs, signatures, triggers/RLS come from SQL.
  const catalog=JSON.parse(c.target(sql));admin.verifyCatalog(catalog);
+ const claimSource=catalog.functions.find(p=>p.name==='public.claim_shared_segment_assessment_job_for_server').body;
+ assert.match(claimSource,/lease_expires_at=LEAST\(stamp\+interval '60 seconds',expires_at\)/);
+ assert.match(claimSource,/'lease_expires_at',j\.lease_expires_at,'attempt_count',j\.attempt_count/);
+ assert.doesNotMatch(claimSource,/'claimed_at'|'claimedAt'/);
+ console.log('PASS installed claim RPC returns expiry, not authoritative claim time; unchanged deadline-capped 60-second lease');
  assert.throws(()=>admin.verifyCatalog({...catalog,versions:[]}));
  for(const tweak of [v=>{v.functions.find(p=>p.name==='public.claim_shared_segment_assessment_job_for_server').acl.push('anon=X/postgres');},v=>{v.tables[0].triggers[0].enabled='D';},v=>{v.functions[0].body+=' ';},v=>{v.tables[0].rls=false;},v=>{v.parameters='{}';}]){const v=structuredClone(catalog);tweak(v);assert.throws(()=>admin.verifyCatalog(v));}
  console.log('PASS installed relevant catalog, signatures, sources, parameter fingerprint, ACL/RLS/triggers; mismatch refusals');
@@ -35,6 +40,11 @@ async function main(){await h.run(async c=>{
   assert.equal(c.target("SELECT count(*) FROM private.shared_segment_assessment_jobs;"),'4');
   assert.equal(c.target("SELECT count(*) FROM private.shared_segment_geographic_assessments;"),'3');
   assert.equal(c.target("SELECT count(*) FROM private.shared_segment_assessment_jobs WHERE status='pending' AND last_failure='compute_terminated' AND assessment_id IS NULL;"),'1');
+  const railway=require('../../scripts/assessment-worker/qualification-railway-evidence.cjs');
+  const jobId=c.target("SELECT id FROM private.shared_segment_assessment_jobs WHERE status='completed' ORDER BY id LIMIT 1;");
+  const snapshot=JSON.parse(c.target(railway.jobSql(jobId)));
+  assert.equal(snapshot.jobId,jobId);assert.equal(snapshot.status,'completed');assert.equal(snapshot.publicationCount,1);assert(snapshot.assessmentId);
+  console.log('PASS read-only Railway correlation snapshot reads actual job/lease and exactly one canonical publication');
   for(const table of ['shared_segment_assessment_jobs','shared_segment_geographic_assessments'])assert.throws(()=>c.target(`BEGIN; DELETE FROM private.${table} WHERE id=(SELECT id FROM private.${table} LIMIT 1); ROLLBACK;`));
   console.log('PASS actual SQL worker completion/reuse, lost acknowledgement, unchanged real lease, stale fencing, killed child, four jobs/three publications, immutable guards');
  }finally{await b.close();}

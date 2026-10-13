@@ -137,3 +137,15 @@ test('isolated CLI collects actual catalog verifier then imports incomplete with
  evidence.main(['finalize','--ack-disposable-environment','--report',file,'--evidence',artifact,'--output',out],e);
  const result=JSON.parse(fs.readFileSync(out,'utf8'));assert.equal(result.classification,'QUALIFICATION_INCOMPLETE');assert.equal(result.remote.measurements.participantAcl,true);assert.equal(calls,1);
 });
+test('signed sealed-variable proof alone promotes only storage and preserves false gates',t=>{
+ const railway=require('../../scripts/assessment-worker/qualification-railway-evidence.cjs'),r=report(),e=env(),cli=path.join(temp,'railway.exe');fs.writeFileSync(cli,'synthetic non-executable fixture');
+ Object.assign(e,{MOVEMENT_QUALIFICATION_RAILWAY_CLI_FILE:cli,MOVEMENT_QUALIFICATION_RAILWAY_PROJECT_ID:'synthetic-project',MOVEMENT_QUALIFICATION_RAILWAY_ENVIRONMENT_ID:'synthetic-environment',MOVEMENT_QUALIFICATION_RAILWAY_SERVICE_ID:'synthetic-service',MOVEMENT_QUALIFICATION_RAILWAY_SERVICE_INSTANCE_ID:'synthetic-instance'});
+ const connection=nodes=>({edges:nodes.map(node=>({node})),pageInfo:{hasNextPage:false,hasPreviousPage:false}});
+ const data={project:{id:'synthetic-project',environments:connection([{id:'synthetic-environment'}]),services:connection([{id:'synthetic-service'}])},environment:{id:'synthetic-environment',variables:{...connection(railway.NAMES.map((name,i)=>({id:'synthetic-variable-'+i,name,isSealed:true,serviceId:'synthetic-service',environmentId:'synthetic-environment'}))),pageInfo:{hasNextPage:false,hasPreviousPage:false}}},serviceInstance:{id:'synthetic-instance',serviceId:'synthetic-service',environmentId:'synthetic-environment',region:r.host.region,restartPolicyType:'ON_FAILURE',restartPolicyMaxRetries:10,latestDeployment:{id:'synthetic-deployment'}}};
+ const capability={connection:{fields:[{name:'edges'},{name:'pageInfo'}]},page:{fields:[{name:'hasNextPage'},{name:'hasPreviousPage'}]}};
+ const spawn=(_file,args)=>({status:0,stderr:'',stdout:JSON.stringify({data:args[1]===railway.CAPABILITY_QUERY?capability:data})});
+ const a=evidence.collect(r,e,true,{verifyRailwaySecrets:true,spawn,now}),out=evidence.finalize(r,a,e,true,now);
+ assert.equal(out.remote.measurements.hostSecretStorage,true);assert.equal(out.remote.measurements.platformRestart,null);assert.equal(out.remote.measurements.participantAcl,null);assert.equal(out.classification,'QUALIFICATION_INCOMPLETE');
+ const changed=structuredClone(a);changed.railwaySecretProof.identities.serviceSha256='00'.repeat(32);assert.throws(()=>evidence.finalize(r,changed,e,true,now));
+ r.gates.security=false;const failed=evidence.collect(r,e,true,{verifyRailwaySecrets:true,spawn,now});assert.equal(evidence.finalize(r,failed,e,true,now).gates.security,false);
+});
