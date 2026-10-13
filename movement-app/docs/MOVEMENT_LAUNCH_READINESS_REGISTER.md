@@ -263,3 +263,17 @@ identity remain blocked. Owned child spawn/IPC and completed local sequence
 correlation do not prove provider identity, causation or automatic restart origin.
 platformRestart remains null. Global one-shot and fresh disposable qualification
 remain unresolved; no deployment or live provider action is authorized.
+
+## 0106 controlled inspection preparation
+
+[0106 read-only introspection plan](0106-railway-readonly-introspection-plan.md)
+provides fixed query documents, staged exact-name validators and a future operator
+procedure. No live inspection occurred. Structural schema discovery cannot prove
+scope, cursor/exhaustion or ordering semantics; executionSchemaReady remains false.
+The provider-owned runtime candidate set is empty. Identity, causality and restart
+origin remain unproven; platformRestart remains null and restart origin unattributable.
+Read-only live inspection requires separate explicit authorization and reviewed
+non-production tooling/capture. Fresh disposable qualification still requires
+authenticated complete execution traversal, independent runtime/process provenance,
+qualified host behavior, global one-shot authority and unused fixtures/sequencing.
+No migration, normal-worker change or live qualification is authorized by 0106.

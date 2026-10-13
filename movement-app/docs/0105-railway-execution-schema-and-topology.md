@@ -1,5 +1,10 @@
 # 0105 local execution-schema and topology foundation
 
+0106 follow-up: [read-only introspection preparation](0106-railway-readonly-introspection-plan.md)
+adds fixed local introspection documents and synthetic validators only. No live
+inspection occurred; schema readiness and runtime provenance remain blocked.
+The historical 0105 validation record below describes that earlier checkpoint.
+
 Outcome B: **insufficient schema**. No execution GraphQL query or live transport is
 implemented. This checkpoint uses existing local evidence and synthetic tests only.
 No live use or fresh disposable qualification is authorized.

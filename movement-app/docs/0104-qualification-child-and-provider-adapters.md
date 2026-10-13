@@ -1,5 +1,9 @@
 # 0104 local child and execution-reader foundations
 
+0106 follow-up: [read-only introspection preparation](0106-railway-readonly-introspection-plan.md)
+adds no execution reader integration, live transport or topology authority. The
+0104 reader and child adapter remain unchanged.
+
 0105 follow-up: [local schema discovery and topology foundation](0105-railway-execution-schema-and-topology.md)
 records Outcome B (no execution query), adapter-owned local spawn/IPC observations
 and private completed-sequence correlation. These prove no Railway runtime identity
