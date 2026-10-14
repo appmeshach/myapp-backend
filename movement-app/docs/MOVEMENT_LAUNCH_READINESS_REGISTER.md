@@ -317,3 +317,27 @@ forbidden-inventory review, operator auth setup and separate first-live authoriz
 remain gates; schema additionally requires real same-context attestation and a fresh
 manual stage permit. Fresh qualification/global authority/runtime provenance remain
 unresolved and unauthorized.
+
+## 0110 local first-live context authorization package
+
+[0110 first-live preflight](0110-railway-first-live-context-preflight.md) and its
+[safe unresolved template](0110-live-review-template.json) bind the fixed context
+operation to the original private target, explicitly reviewed forbidden inventory,
+explicit operator-reviewed current HEAD/branch, pinned source identities and
+operator host assertions. baselineParentHead records only the historical
+implementation parent 7c2346ce73d12e571b5ff8506fd8d02be48f44b7; it is not future
+HEAD authority. Real reviewedHead remains unresolved until 0110 is committed
+and the operator explicitly reviews that exact current committed state.
+A distinct final human
+authorization and private one-use ticket are designed; only isolated synthetic
+tests exercise ticket creation. Outcome remains PRELIVE_NOT_AUTHORIZED. No actual
+Railway target IDs were resolved and no first-live request is authorized.
+providerContextObserved=false, projectEnvironmentContextProven=false,
+serviceContextProven=false and executionSchemaReady=false. Identity, causality,
+restart-origin and platformRestart remain null; restart origin is unattributable.
+The next prerequisite is independently supplied/reviewed actual target IDs and
+forbidden inventory, reviewed code/host/wrapper, and separate explicit human
+authorization for one context request. Schema additionally requires real
+same-context attestation, fresh stage review/one-use permit and separate live
+permission. Fresh qualification, runtime provenance and global authority remain
+unresolved; no deployment or restart is authorized.
