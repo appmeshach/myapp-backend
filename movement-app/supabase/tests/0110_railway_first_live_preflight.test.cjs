@@ -89,7 +89,7 @@ test('immutable manifest fixes operation, endpoint, query, transport limits, sou
  assert.equal(m.redirectPolicy, 'reject'); assert.equal(m.retries, 0); assert.equal(m.timeoutMs, 10000);
  assert.equal(m.maxBodyBytes, 1048576); assert.equal(m.maxHeaderBytes, 16384); assert.equal(m.acceptedStatus, 200);
  assert.equal(m.reviewedHead, SYNTHETIC_HEAD); assert.equal(m.baselineParentHead, normal.baselineParentHead);
- assert.equal(Object.keys(m.codeIdentity.sourceHashes).length, 8);
+ assert.equal(Object.keys(m.codeIdentity.sourceHashes).length, 10);
  assert.match(m.codeIdentity.authorizationBoundarySha256, /^[a-f0-9]{64}$/);
  assert.ok(Object.isFrozen(m)); assert.ok(Object.isFrozen(m.targetReview.requiredForFirstContext));
  assert.throws(() => { m.retries = 1; }, TypeError);

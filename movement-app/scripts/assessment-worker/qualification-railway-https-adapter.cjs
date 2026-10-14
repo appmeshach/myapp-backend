@@ -19,6 +19,7 @@ const status = freeze({ adapterImplemented: true, transportContractReady: true, 
  executionSchemaReady: false, identity_proven: null, causality_proven: null, restart_origin_proven: null,
  platformRestart: null, restartAttribution: { measurement: null, limitation: 'restart_origin_unattributable' } });
 const contexts = new WeakMap(), results = new WeakMap();
+const transferBindings = new WeakMap(), contextTransfers = new WeakMap();
 const fail = () => { throw Error('Railway private HTTPS evidence unavailable'); };
 const hash = v => crypto.createHash('sha256').update(v).digest('hex');
 function requireQuietDiagnostics() {
@@ -30,6 +31,15 @@ function invalidate(record) {
  record.closed = true; record.attested = false; record.secret = null;
  for (const result of record.results) results.delete(result);
  record.results.clear();
+ for (const handle of record.transferBindings) {
+  const e = transferBindings.get(handle); transferBindings.delete(handle);
+  if (e) { try { e.owner.contextTransfer.cancelSlot(e.slot); } catch {} }
+ }
+ for (const handle of record.transfers) {
+  const e = contextTransfers.get(handle); contextTransfers.delete(handle);
+  if (e) { try { e.owner.contextTransfer.cancelSlot(e.slot); } catch {} }
+ }
+ record.transferBindings.clear(); record.transfers.clear(); record.transferBinding = null;
  if (record.cancel) { const cancel = record.cancel; record.cancel = null; cancel(); }
 }
 function openExecutionContext(...args) {
@@ -45,7 +55,8 @@ function openExecutionContext(...args) {
   if (typeof secret !== 'string' || secret.length === 0) fail();
  } catch { fail(); }
  const handle = Object.freeze({});
- contexts.set(handle, { binding, secret, closed: false, attested: false, busy: false, cancel: null, results: new Set() });
+ contexts.set(handle, { binding, secret, closed: false, attested: false, busy: false, cancel: null, results: new Set(),
+  transferBindings: new Set(), transfers: new Set(), transferBinding: null });
  return handle;
 }
 function closeExecutionContext(...args) {
@@ -119,11 +130,17 @@ async function executeHandoff(...args) {
  try {
   const invocation = reviews.takeAdapterHandoff(handoff, record.binding);
   if ((invocation.kind === 'schema' && !record.attested) || (invocation.kind === 'context' && record.attested)) fail();
+  if (record.transferBinding) {
+   const e = transferBindings.get(record.transferBinding);
+   if (!e || e.handoff !== handoff || invocation.kind !== 'context' || !fixedContextRequest(invocation.request)) fail();
+   requireOwner(e.owner).contextTransfer.assertSlot(e.slot);
+  }
   const body = await post(record, invocation.request);
   if (record.closed) fail();
   const result = Object.freeze({});
   results.set(result, { executionContext, binding: record.binding, handoff, invocation,
-   request: invocation.request, kind: invocation.kind, endpoint: contract.endpoint, authKind: contract.preferredAuthKind, body });
+   request: invocation.request, kind: invocation.kind, endpoint: contract.endpoint, authKind: contract.preferredAuthKind, body,
+   transferBinding: record.transferBinding });
   record.results.add(result); return result;
  } catch { invalidate(record); fail(); }
 }
@@ -144,6 +161,11 @@ function consumeContextResult(...args) {
  try {
   if (record.attested) fail();
   const facts = contextValidator.validateContextResponse(record.binding, result.body);
+  if (record.transferBinding) {
+   const e = transferBindings.get(record.transferBinding); transferBindings.delete(record.transferBinding);
+   record.transferBindings.delete(record.transferBinding); record.transferBinding = null;
+   if (e) e.owner.contextTransfer.cancelSlot(e.slot);
+  }
   record.attested = true; record.busy = false;
   return freeze({ providerContextObserved: true, projectEnvironmentContextProven: true,
    projectIdSha256: hash(facts.projectId), environmentIdSha256: hash(facts.environmentId),
@@ -161,5 +183,79 @@ function consumeSchemaResult(...args) {
   record.busy = false; return evidence;
  } catch { invalidate(record); fail(); }
 }
+// Literal owner path, resolved only after initialization. No issuer/callback
+// parameter. Each binding captures the owner instance and rejects replacement.
+function requireOwner(expected = null) {
+ const owner = require('./qualification-railway-target-identity.cjs');
+ if (!owner.contextTransfer || (expected && owner !== expected) ||
+  !['takePermit', 'assertSlot', 'takeSlot', 'takeAcceptance', 'cancelSlot'].every(k => typeof owner.contextTransfer[k] === 'function')) fail();
+ return owner;
+}
+function fixedContextRequest(request) {
+ return request?.operationName === 'Movement0108ProjectTokenContext' &&
+  JSON.stringify(request) === JSON.stringify(contextValidator.buildRequest());
+}
+function bindContextResultTransfer(...args) {
+ const record = contexts.get(args[0]); let slot, owner;
+ try {
+  owner = requireOwner();
+  const e = owner.contextTransfer.takePermit(args[2], args[0], args[1]); slot = e.slot;
+  if (args.length !== 3 || !record || record.closed || record.attested || record.busy || record.transferBinding || record.results.size ||
+   record.binding !== e.binding || e.executionContext !== args[0] || e.handoff !== args[1]) fail();
+  const handle = Object.freeze({});
+  transferBindings.set(handle, { ...e, owner, record }); record.transferBinding = handle; record.transferBindings.add(handle); return handle;
+ } catch {
+  if (slot) { try { owner.contextTransfer.cancelSlot(slot); } catch {} }
+  if (record) invalidate(record); fail();
+ }
+}
+function prepareContextResultTransfer(...args) {
+ // Same results table as ordinary consumption; independently burn both owned
+ // inputs before argument validation. No second independently consumable R.
+ const result = results.get(args[0]), e = transferBindings.get(args[1]);
+ if (result) { results.delete(args[0]); contexts.get(result.executionContext)?.results.delete(args[0]); }
+ if (e) { transferBindings.delete(args[1]); e.record.transferBindings.delete(args[1]); }
+ try {
+  if (args.length !== 2 || !result || !e) fail();
+  const record = contexts.get(result.executionContext);
+  if (record !== e.record || record.closed || record.attested || !record.busy || result.executionContext !== e.executionContext ||
+   result.binding !== e.binding || result.handoff !== e.handoff || result.transferBinding !== args[1] || record.transferBinding !== args[1] ||
+   result.kind !== 'context' || result.endpoint !== 'https://backboard.railway.com/graphql/v2' || result.authKind !== 'project_token' ||
+   result.invocation.kind !== 'context' || result.invocation.binding !== e.binding || !fixedContextRequest(result.request) ||
+   JSON.stringify(result.invocation.request) !== JSON.stringify(result.request)) fail();
+  requireOwner(e.owner).contextTransfer.assertSlot(e.slot);
+  const facts = contextValidator.validateContextResponse(e.binding, result.body);
+  const receipt = Object.freeze({}); record.transferBinding = null;
+  contextTransfers.set(receipt, { ...e, phase: 'receipt', facts, body: result.body, request: result.request }); record.transfers.add(receipt); return receipt;
+ } catch {
+  if (e) { try { e.owner.contextTransfer.cancelSlot(e.slot); } catch {} invalidate(e.record); }
+  const record = result && contexts.get(result.executionContext); if (record) invalidate(record); fail();
+ }
+}
+function consumeContextResultTransfer(...args) {
+ const e = contextTransfers.get(args[0]); if (!e) fail(); contextTransfers.delete(args[0]); e.record.transfers.delete(args[0]);
+ try {
+  const owner = requireOwner(e.owner);
+  // Owner consumers burn slot/acceptance before validating the expected session.
+  const bound = e.phase === 'receipt' ? owner.contextTransfer.takeSlot(e.slot, args[1]) : owner.contextTransfer.takeAcceptance(e.acceptance, args[1]);
+  const record = contexts.get(e.executionContext);
+  if (args.length !== 2 || record !== e.record || record.closed || record.attested || !record.busy || record.binding !== e.binding ||
+   bound.session !== e.session || bound.binding !== e.binding || bound.executionContext !== e.executionContext || bound.handoff !== e.handoff || !fixedContextRequest(e.request)) fail();
+  if (e.phase === 'receipt') {
+   const completion = Object.freeze({});
+   contextTransfers.set(completion, { ...e, phase: 'completion', acceptance: bound.acceptance }); record.transfers.add(completion);
+   // Only the original strict context body from R, never a reconstruction from
+   // summaries/IDs or the generic record, headers, credential or invocation.
+   return freeze({ kind: 'project_token_context', session: e.session, binding: e.binding, executionContext: e.executionContext,
+    endpoint: 'https://backboard.railway.com/graphql/v2', authKind: 'project_token', request: e.request,
+    body: e.body,
+    acceptance: bound.acceptance, completion });
+  }
+  if (bound.facts.projectId !== e.facts.projectId || bound.facts.environmentId !== e.facts.environmentId) fail();
+  record.attested = true; record.busy = false; return Object.freeze({ contextTransferComplete: true });
+ } catch {
+  try { e.owner.contextTransfer.cancelSlot(e.slot); } catch {} invalidate(e.record); fail();
+ }
+}
 module.exports = Object.freeze({ status, safety, openExecutionContext, closeExecutionContext,
- executeHandoff, consumeContextResult, consumeSchemaResult });
+ executeHandoff, consumeContextResult, consumeSchemaResult, bindContextResultTransfer, prepareContextResultTransfer, consumeContextResultTransfer });

@@ -61,11 +61,15 @@ the private session. Operator-entered IDs, matching strings, raw bodies, copied
 sessions/results, and flags such as `providerObserved:true` cannot establish
 provider evidence.
 
-Only an original private provider-result capability from the future trusted
-ingress may advance a stage. Normal ingress currently has a private WeakMap and
-no issuer, raw-body factory, callback or injection export. It therefore rejects
-every result. Synthetic tests replace that dependency only inside separate VM
-module instances; they never manufacture normal-module provider evidence.
+Only an original private provider-result capability may advance a stage. The
+0112 context-only path now lets ingress consume an adapter-owned receipt bound
+to the original session and live execution context. There is still no issuer,
+raw-body factory, callback or injection export in ingress. Raw and synthetic VM
+handles cannot enter the normal authority namespace. Local implementation is
+distinct from a reviewed live host: providerResultIngressConnected remains false,
+and no actual observation has occurred. Service/instance result integration
+remains unavailable. Existing synthetic acquisition tests use a separate VM
+dependency; the 0112 tests use a coherent isolated adapter/identity/ingress graph.
 
 ## Two phases and fixed contracts
 
@@ -140,14 +144,16 @@ one-use ownership and fixed-origin transport; caller claims are insufficient.
 before exact request and shape validation. Closed-lifetime results must be burned
 and rejected by the trusted ingress; synthetic tests cover that contract.
 
-**Transport integration remains unimplemented.** The protected 0109 adapter currently
-recognizes context/schema handoffs, not these identity handoffs, and its public
-context consumer returns hashed scope facts rather than a transferable private
-identity result. The closed 0111 ingress intentionally cannot bridge that gap.
-A future separately authorized integration must review the required private
-context/result integration and additional request kinds before modifying protected
-code. 0111 supplies contracts only: no second HTTPS client, headers, token handling,
-environment reads, actual executor or live ticket.
+**Service/instance transport integration remains unimplemented.** The adapter
+recognizes context/schema execution handoffs, not these identity request handoffs.
+Its public ordinary context consumer still returns only hashed scope facts.
+[0112 context transfer](0112-railway-context-result-transfer.md) adds a separate
+private one-use path from an original genuine context result to this session.
+It retains the original validated body and finalizes attestation only after this
+owner accepts it. No request occurred and no actual Railway identity was observed.
+New service/instance execution kinds still require separate protected review and
+live permission. No second HTTPS client, generic GraphQL, environment reader,
+schema behavior change or live ticket is introduced.
 
 ## Forbidden inventory and final human review
 
@@ -235,6 +241,8 @@ platformRestart remain null. Restart origin remains unattributable.
 - No mutation, deployment, redeployment, restart or production access.
 - No staging, commit or push.
 
-All 99 migrations, existing 0106-0110 boundaries, worker run, execution reader,
-child adapter and supervisor remain unchanged. The capsule remains unread and
-untouched.
+At the original 0111 milestone the existing 0106-0110 boundaries were unchanged.
+0112 later adds the reviewed context-only transfer to 0109/0111 and updates the
+0110 source pins; service/instance transport remains unsupported. All 99 migrations
+and the other protected worker foundations remain unchanged. The capsule remains
+unread and untouched.

@@ -33,7 +33,9 @@ function exact(v, keys) {
  dataKeys(v); // Reject hidden/symbol fields and getters without reading them.
 }
 const SOURCE_HASHES = freeze({
- 'qualification-railway-https-adapter.cjs': 'a7b95e582df45a30b126ef63c313a9ad90ef78373d2688d40aab2d3fa9e2bf29',
+ 'qualification-railway-https-adapter.cjs': '6f6ffc8e7fdff418797c62ae8d650536c9d720f7275416913532e5f73eadadd8',
+ 'qualification-railway-target-identity.cjs': '6ee5d4029a614cf1d414ead1e275f7a1a9d9078a4b58bf5ed14ea82f0ea3c3d0',
+ 'qualification-railway-target-identity-provider-boundary.cjs': 'f67d1f624707a325b9421d483eced3eed037cbb783fc5cfb0b4a13c309bbfb76',
  'qualification-railway-context-review.cjs': '23fb65eef738136b68b3d8ce19a69e51482f9bc075c6a26940e2300108c6dd0f',
  'qualification-railway-introspection-preflight.cjs': '88fe296bd5bfaa639844436c031dbdc674f29c25fbab3530081317143b3c9d74',
  'qualification-railway-project-token-context.cjs': 'cd862abc5b85b8663fbc1075263c0b5d3c6d05793a31e875db67457f4adb3085',
@@ -144,7 +146,8 @@ function reviewPackage(...args) {
  const host = hostChecklist(ack.hostChecklist);
  if (canonical(verifyCodeIdentity(record.reviewedCode)) !== canonical(record.codeIdentity)) fail();
  // The package owns this ORIGINAL fixed context review/handoff; callers cannot
- // substitute a schema handoff. No change to any 0109 module is required.
+ // substitute a schema handoff. This 0110 handoff step requires no additional
+ // 0109 change; the later 0112 context-result transfer is separately source-pinned.
  const permit = reviews.approveProjectTokenContextReview(record.contextReview, ack.contextReview);
  record.handoff = reviews.consumeProjectTokenContextPermitForAdapter(permit, binding);
  record.reviewAck = freeze({ reviewed: true, manifestSha256: ack.manifestSha256, targetReview: record.targetReview,

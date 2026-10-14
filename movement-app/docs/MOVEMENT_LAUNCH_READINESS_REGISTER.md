@@ -326,8 +326,9 @@ operation to the original private target, explicitly reviewed forbidden inventor
 explicit operator-reviewed current HEAD/branch, pinned source identities and
 operator host assertions. baselineParentHead records only the historical
 implementation parent 7c2346ce73d12e571b5ff8506fd8d02be48f44b7; it is not future
-HEAD authority. Real reviewedHead remains unresolved until 0110 is committed
-and the operator explicitly reviews that exact current committed state.
+HEAD authority. 0110 has since been committed; the safe template keeps reviewedHead
+and reviewedBranch null until a future operator explicitly reviews and supplies
+the exact current committed HEAD/branch. A commit alone does not establish authority.
 A distinct final human
 authorization and private one-use ticket are designed; only isolated synthetic
 tests exercise ticket creation. Outcome remains PRELIVE_NOT_AUTHORIZED. No actual
@@ -364,4 +365,24 @@ inventory, reviewed future integration with the existing 0109 private execution
 context/results, separate first-context live permission, then scoped discovery
 permissions, exact observations and final human target review. Transport/result
 integration remains unimplemented; no schema, qualification, deployment or restart
-is authorized. Existing 0106-0110 boundaries and all migrations remain unchanged.
+is authorized. At the original 0111 milestone, existing 0106-0110 boundaries and
+all migrations were unchanged. 0112 later adds the reviewed context-only transfer
+to 0109/0111 and updates the 0110 source pins; service/instance transport remains
+unsupported and all migrations remain unchanged.
+
+## 0112 local context-only trusted result transfer
+
+[0112 context-result transfer](0112-railway-context-result-transfer.md) implements
+original session/target/context/handoff permits, adapter-owned bindings and
+one-use receipts from the same genuine result pool as ordinary consumption.
+Final attestation waits for exact 0111 acceptance and its private completion
+acknowledgement. targetIdentityResultBridgeReady=true locally;
+providerResultIngressConnected=false. Outcome remains TARGET_IDENTITY_UNRESOLVED;
+0110 remains PRELIVE_NOT_AUTHORIZED. All provider/project-env/service/schema/target
+observation flags remain false and identity/causality/restart/platformRestart null.
+No live request, actual identity observation or real credential read occurred.
+The reviewed adapter/identity/ingress are now included in ten 0110 source pins.
+Actual expected IDs, complete forbidden inventory, reviewed current code/host/
+wrapper and separate first-context live permission remain prerequisites.
+Service/instance transport integration remains unsupported and needs separate
+review. No schema behavior, migration, worker or qualification authority changed.

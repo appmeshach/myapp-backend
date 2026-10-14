@@ -242,3 +242,17 @@ the requested branch; index empty. Five tracked task files are modified and five
 task files are new/untracked. The capsule remains untouched, unread and untracked.
 No live provider/Supabase/Railway/CLI call, credential/cache inspection, stage,
 commit, push, deploy, restart/redeploy or production access occurred.
+
+## 0112 additive context-result transfer
+
+[0112 context transfer](0112-railway-context-result-transfer.md) adds only
+bindContextResultTransfer, prepareContextResultTransfer and
+consumeContextResultTransfer. Existing exports, ordinary context summaries,
+transport and schema behavior remain. The new path consumes the same original
+result pool, retains the actual validated response body in an adapter-owned
+receipt, and keeps the context busy/unattested until the exact original 0111
+session accepts it. A private completion acknowledgement then commits attestation.
+Close invalidates bindings, receipts, completion handles and session slots.
+No actual request/token read occurred; service/instance transport remains
+unsupported. This section supersedes the context-transfer gap while retaining
+the historical 0109 validation record above.

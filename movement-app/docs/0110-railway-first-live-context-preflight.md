@@ -34,12 +34,13 @@ belongs in this artifact.
 
 `baselineParentHead` is `7c2346ce73d12e571b5ff8506fd8d02be48f44b7`, the
 historical implementation parent commit only. It is never a requirement for
-future current HEAD and never substitutes for a reviewed HEAD. The real future
-`reviewedHead` remains unresolved because 0110 has not yet been committed.
-No future commit SHA is guessed or hardcoded.
+future current HEAD and never substitutes for a reviewed HEAD. 0110 has since
+been committed, but no current or future HEAD is automatically trusted because
+it is committed. The safe template intentionally keeps `reviewedHead` and
+`reviewedBranch` null. No future commit SHA is guessed or hardcoded.
 
-After 0110 is committed, the operator must explicitly review the exact current
-committed repository state and supply this safe metadata to
+For any future live review, the operator must explicitly review the exact current
+committed repository state and HEAD/branch at that time, and supply this safe metadata to
 `createDraft(originalTarget, reviewedInventory, reviewedCode)`:
 
 ```json
@@ -78,7 +79,9 @@ one LF; it differs from the validator module's source hash.
 
 | Security-critical source | Pinned SHA-256 |
 |---|---|
-| 0109 HTTPS adapter | `a7b95e582df45a30b126ef63c313a9ad90ef78373d2688d40aab2d3fa9e2bf29` |
+| 0109 HTTPS adapter, including 0112 context transfer | `6f6ffc8e7fdff418797c62ae8d650536c9d720f7275416913532e5f73eadadd8` |
+| 0111 identity owner, including context transfer slots | `6ee5d4029a614cf1d414ead1e275f7a1a9d9078a4b58bf5ed14ea82f0ea3c3d0` |
+| 0111 adapter-owned receipt ingress | `f67d1f624707a325b9421d483eced3eed037cbb783fc5cfb0b4a13c309bbfb76` |
 | 0109 context review | `23fb65eef738136b68b3d8ce19a69e51482f9bc075c6a26940e2300108c6dd0f` |
 | 0107 private schema preflight/handoff | `88fe296bd5bfaa639844436c031dbdc674f29c25fbab3530081317143b3c9d74` |
 | 0108 projectToken document/validator | `cd862abc5b85b8663fbc1075263c0b5d3c6d05793a31e875db67457f4adb3085` |
@@ -90,7 +93,9 @@ one LF; it differs from the validator module's source hash.
 The new 0110 boundary's own canonical source hash is captured at module load,
 included as `authorizationBoundarySha256` in the review artifact, and rechecked
 before each authority transition. The human must review this new boundary and
-that exact hash as well as the eight baseline pins. A changed boundary loaded
+that exact hash as well as all ten critical-source pins. The 0112 patch updates
+the adapter pin and adds the two now-trusted identity/ingress sources. The other
+seven pins are unchanged. A changed boundary loaded
 in a new process needs a new human review; load-time self-hashing alone cannot
 prove that the operator reviewed the code. The immutable review and final
 acknowledgement bind the complete code identity. Manifest and review digests
@@ -187,8 +192,11 @@ its private context result, with cleanup on success or failure. No token read
 or adapter execution happens inside 0110. There is no public handoff override,
 boolean authorization bypass, schema-ticket factory, or executor here.
 
-This is a trusted operator wrapper design; the existing 0109 API is unchanged.
-0110 cannot prevent unrelated code from directly calling that API. A future
+This remains a trusted operator-wrapper design. 0112 later adds the narrowly
+source-pinned context-result transfer APIs to 0109; it does not change the 0110
+live-ticket or execution-authority semantics described here. 0110 itself still
+performs no adapter execution. Unrelated direct calls to 0109 remain outside
+0110's authority control. A future
 live host must execute only the separately reviewed wrapper. It must not
 serialize authorities or insert an unreviewed callback, async gap, or mutable
 code change between authorization extraction and adapter invocation.
@@ -234,6 +242,7 @@ are locally true; manualLiveAuthorizationRequired remains true.
 - No real credential environment value read.
 - No staging, commit, or push.
 
-All 99 migrations, normal worker, existing execution reader/child
-adapter/supervisor, 0106 plan/validator, and existing 0107-0109 boundaries remain
-unchanged. `0102-remote-fixtures.capsule` remains unread and untouched.
+Relative to the original 0110 milestone, 0112 later modifies only the reviewed
+0109 context-result path and the 0110 source-pin set as documented above.
+All 99 migrations and the other protected worker/execution foundations remain
+unchanged by this cleanup. `0102-remote-fixtures.capsule` remains unread and untouched.

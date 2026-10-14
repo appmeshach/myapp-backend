@@ -67,6 +67,7 @@ const documents = freeze({
 });
 const sessions = new WeakMap(), reviews = new WeakMap(), permits = new WeakMap(), handoffs = new WeakMap(), invocations = new WeakMap();
 const inventories = new WeakMap(), candidateReviews = new WeakMap(), targetHandoffs = new WeakMap();
+const contextPermits = new WeakMap(), contextSlots = new WeakMap(), slotRecords = new WeakMap(), contextAcceptances = new WeakMap();
 const CATEGORIES = ['projectIds', 'environmentIds', 'serviceIds', 'serviceInstanceIds'];
 function record(session) { const r = sessions.get(session); if (!r) fail(); return r; }
 function startTargetIdentitySession(...args) {
@@ -74,7 +75,7 @@ function startTargetIdentitySession(...args) {
  try { target = targets.describeTarget(args[0]); } catch { fail(); }
  const session = Object.freeze({});
  sessions.set(session, { binding: args[0], target, stage: 'context_expected', revision: 0, executionContext: null,
-  contextFacts: null, serviceFacts: null, instanceFacts: null, activeHandoff: null, activeInvocation: null, candidate: null });
+  contextFacts: null, serviceFacts: null, instanceFacts: null, activeHandoff: null, activeInvocation: null, candidate: null, contextTransferLock: null });
  return session;
 }
 function inspectSession(...args) {
@@ -114,19 +115,79 @@ function validateServiceInstance(...args) {
  return freeze({ serviceInstanceId, serviceName: value.serviceName, rootDirectory: value.rootDirectory, region: value.region,
   validationOnly: true, serviceContextProven: false });
 }
+function prepareContextTransferPermit(...args) {
+ if (args.length !== 4) fail(); const [session, binding, executionContext, handoff] = args, r = record(session);
+ if (r.binding !== binding || r.stage !== 'context_expected' || r.contextTransferLock ||
+  !executionContext || typeof executionContext !== 'object' || !handoff || typeof handoff !== 'object') fail();
+ const permit = Object.freeze({});
+ contextPermits.set(permit, { session, binding, executionContext, handoff, revision: r.revision }); r.contextTransferLock = permit; return permit;
+}
+function takeContextTransferPermit(...args) {
+ const e = contextPermits.get(args[0]); if (!e) fail(); contextPermits.delete(args[0]); const r = record(e.session);
+ try {
+  if (args.length !== 3 || args[1] !== e.executionContext || args[2] !== e.handoff || r.binding !== e.binding ||
+   r.stage !== 'context_expected' || r.revision !== e.revision || r.contextTransferLock !== args[0]) fail();
+  const slot = Object.freeze({}); const entry = { ...e, slot, phase: 'bound', acceptance: null };
+  contextSlots.set(slot, entry); slotRecords.set(slot, entry); r.contextTransferLock = slot;
+  return freeze({ ...e, slot });
+ } catch { r.stage = 'failed'; r.contextTransferLock = null; fail(); }
+}
+function assertContextTransferSlot(...args) {
+ if (args.length !== 1) fail(); const e = contextSlots.get(args[0]); if (!e) fail(); const r = record(e.session);
+ if (e.phase !== 'bound' || r.contextTransferLock !== e.slot || r.binding !== e.binding || r.stage !== 'context_expected' || r.revision !== e.revision) fail();
+}
+function cancelContextTransferSlot(...args) {
+ if (args.length !== 1) fail(); const e = slotRecords.get(args[0]); if (!e) return;
+ slotRecords.delete(e.slot); contextSlots.delete(e.slot); if (e.acceptance) contextAcceptances.delete(e.acceptance);
+ e.phase = 'cancelled'; const r = record(e.session); r.stage = 'failed'; r.contextFacts = null; r.executionContext = null; r.contextTransferLock = null;
+}
+function takeContextTransferSlot(...args) {
+ const e = contextSlots.get(args[0]); if (!e) fail(); contextSlots.delete(args[0]); const r = record(e.session);
+ try {
+  if (args.length !== 2 || args[1] !== e.session || e.phase !== 'bound' || r.contextTransferLock !== e.slot ||
+   r.binding !== e.binding || r.stage !== 'context_expected' || r.revision !== e.revision) fail();
+  const acceptance = Object.freeze({}); e.acceptance = acceptance; e.phase = 'taken'; contextAcceptances.set(acceptance, e);
+  return freeze({ session: e.session, binding: e.binding, executionContext: e.executionContext, handoff: e.handoff, slot: e.slot, acceptance });
+ } catch { cancelContextTransferSlot(e.slot); fail(); }
+}
+function takeContextTransferAcceptance(...args) {
+ const e = contextAcceptances.get(args[0]); if (!e) fail(); contextAcceptances.delete(args[0]); const r = record(e.session);
+ try {
+  if (args.length !== 2 || args[1] !== e.session || e.phase !== 'accepted' || r.contextTransferLock !== e.slot ||
+   r.binding !== e.binding || r.stage !== 'project_services' || r.revision !== e.revision + 1 || r.executionContext !== e.executionContext || !r.contextFacts) fail();
+  e.phase = 'done'; slotRecords.delete(e.slot); r.contextTransferLock = null;
+  return freeze({ session: e.session, binding: e.binding, executionContext: e.executionContext, handoff: e.handoff, facts: r.contextFacts });
+ } catch { cancelContextTransferSlot(e.slot); fail(); }
+}
+const contextTransfer = Object.freeze({ preparePermit: prepareContextTransferPermit, takePermit: takeContextTransferPermit,
+ assertSlot: assertContextTransferSlot, takeSlot: takeContextTransferSlot, takeAcceptance: takeContextTransferAcceptance, cancelSlot: cancelContextTransferSlot,
+ status: freeze({ targetIdentityResultBridgeReady: true, providerResultIngressConnected: false }) });
 function acceptContextObservation(...args) {
  if (args.length !== 2) fail(); const [session, result] = args, r = record(session);
  if (r.stage !== 'context_expected') fail();
+ let observed;
  try {
-  const observed = provider.takeObservation(result);
+  observed = provider.takeObservation(result, session);
   if (observed.kind !== 'project_token_context' || observed.session !== session || observed.binding !== r.binding ||
    !observed.executionContext || typeof observed.executionContext !== 'object' ||
    observed.endpoint !== 'https://backboard.railway.com/graphql/v2' || observed.authKind !== 'project_token' ||
    canonical(observed.request) !== canonical(context.buildRequest())) fail();
-  r.contextFacts = context.validateContextResponse(r.binding, observed.body);
+  const facts = context.validateContextResponse(r.binding, observed.body);
+  let transfer;
+  if (r.contextTransferLock) {
+   transfer = contextAcceptances.get(observed.acceptance);
+   if (!transfer || transfer.phase !== 'taken' || transfer.slot !== r.contextTransferLock || transfer.session !== session ||
+    transfer.binding !== r.binding || transfer.executionContext !== observed.executionContext || transfer.revision !== r.revision || !observed.completion) fail();
+  }
+  r.contextFacts = facts;
   r.executionContext = observed.executionContext; r.stage = 'project_services'; r.revision++;
+  if (transfer) { transfer.phase = 'accepted'; adapter.consumeContextResultTransfer(observed.completion, session); }
   return inspectSession(session);
- } catch { r.stage = 'failed'; fail(); }
+ } catch {
+  if (r.contextTransferLock) cancelContextTransferSlot(r.contextTransferLock);
+  if (observed?.completion) { try { adapter.closeExecutionContext(observed.executionContext); } catch {} }
+  r.stage = 'failed'; r.contextFacts = null; r.executionContext = null; fail();
+ }
 }
 function requestFor(r) {
  const key = r.stage === 'project_services' ? 'projectServices' : r.stage === 'service_instance' ? 'serviceInstance' : null;
@@ -250,7 +311,7 @@ function reviewTemplate(...args) {
    ...Object.fromEntries(CATEGORIES.map(k => [k, { reviewed: false, completenessAcknowledged: false, completenessIsOperatorAssertion: true, ids: null, labels: [] }])) },
   crossSystemForbidden, documents });
 }
-module.exports = Object.freeze({ state, documents, startTargetIdentitySession, inspectSession,
+module.exports = Object.freeze({ state, documents, contextTransfer, startTargetIdentitySession, inspectSession,
  validateProjectServices, validateServiceInstance, acceptContextObservation, reviewNextIdentityRequest,
  approveIdentityReview, consumeIdentityPermitForFutureAdapter, takeIdentityHandoffForFutureAdapter, acceptIdentityObservation, reviewForbiddenInventory,
  reviewTargetCandidate, approveTargetCandidate, takeReviewedTargetFor0110, reviewTemplate });

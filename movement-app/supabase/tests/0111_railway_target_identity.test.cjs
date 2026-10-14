@@ -71,6 +71,16 @@ test('normal closed ingress accepts no caller-built, serialized, validator or sy
  const target = binding(), session = normal.startTargetIdentitySession(target);
  reject(() => normal.acceptContextObservation(session, contextBody())); assert.equal(normal.inspectSession(session).stage, 'failed');
 });
+test('context transfer namespace remains consumer-gated and local readiness grants no observation', () => {
+ assert.deepEqual(Object.keys(normal.contextTransfer), ['preparePermit', 'takePermit', 'assertSlot', 'takeSlot', 'takeAcceptance', 'cancelSlot', 'status']);
+ assert.equal(normal.contextTransfer.status.targetIdentityResultBridgeReady, true);
+ assert.equal(normal.contextTransfer.status.providerResultIngressConnected, false);
+ const target = binding(), session = normal.startTargetIdentitySession(target);
+ reject(() => normal.contextTransfer.preparePermit(clone(session), target, {}, {}));
+ reject(() => normal.contextTransfer.takePermit({}, {}, {})); reject(() => normal.contextTransfer.takeSlot({}, session));
+ reject(() => normal.contextTransfer.takeAcceptance({}, session)); reject(() => ingress.takeObservation(contextBody(), session));
+ assert.equal(normal.inspectSession(session).ids.projectId.providerObservedValue, null);
+});
 test('service discovery and candidate impossible before context; instance impossible before services', () => {
  const f = fixture(); reject(() => f.api.reviewNextIdentityRequest(f.session)); reject(() => f.api.reviewTargetCandidate(f.session));
  attest(f); const r = f.api.reviewNextIdentityRequest(f.session);

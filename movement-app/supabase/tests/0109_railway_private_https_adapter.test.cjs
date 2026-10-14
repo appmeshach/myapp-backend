@@ -22,7 +22,7 @@ test.beforeEach(t => {
  t.after(() => assert.equal(network, 0, 'No normal-module network attempt'));
 });
 test('exact production exports have no token/env/transport injection surface', () => {
- assert.deepEqual(Object.keys(adapter), ['status', 'safety', 'openExecutionContext', 'closeExecutionContext', 'executeHandoff', 'consumeContextResult', 'consumeSchemaResult']);
+ assert.deepEqual(Object.keys(adapter), ['status', 'safety', 'openExecutionContext', 'closeExecutionContext', 'executeHandoff', 'consumeContextResult', 'consumeSchemaResult', 'bindContextResultTransfer', 'prepareContextResultTransfer', 'consumeContextResultTransfer']);
  const h = loadAdapter(), b = binding();
  for (const extra of ['synthetic-token', { envReader: () => 'synthetic' }, { httpsModule: {} }, { endpoint: 'Other' }]) assert.throws(() => h.api.openExecutionContext(b, extra));
  assert.equal(h.reads.length, 0);
