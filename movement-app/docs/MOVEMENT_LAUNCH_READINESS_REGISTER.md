@@ -341,3 +341,27 @@ authorization for one context request. Schema additionally requires real
 same-context attestation, fresh stage review/one-use permit and separate live
 permission. Fresh qualification, runtime provenance and global authority remain
 unresolved; no deployment or restart is authorized.
+
+## 0111 local target identity acquisition foundation
+
+[0111 target identity acquisition](0111-railway-target-identity-acquisition.md)
+and the [unresolved review template](0111-target-identity-review-template.json)
+provide fixed scoped service/instance queries, strict validators, private staged
+review/permit/result contracts and an explicit inventory-completeness wrapper
+for unchanged 0110. Service discovery requires exact pageInfo.hasNextPage=false;
+truncated observations fail the session without traversal or another request.
+targetIdentityAcquisitionReady=true locally; outcome is
+TARGET_IDENTITY_UNRESOLVED. Normal provider-result ingress is disconnected and
+has no issuer. Only separate synthetic VM tests advance observed stages.
+Actual Railway IDs remain unresolved; no provider request or live ticket exists.
+providerContextObserved=false, projectEnvironmentContextProven=false,
+serviceContextProven=false and executionSchemaReady=false. Identity, causality,
+restart-origin and platformRestart remain null; restart origin unattributable.
+0110 is now committed and still PRELIVE_NOT_AUTHORIZED; a future explicitly
+reviewed current HEAD/branch is required, with no permanent future HEAD pin.
+Next prerequisites are independently reviewed expected IDs and complete safety
+inventory, reviewed future integration with the existing 0109 private execution
+context/results, separate first-context live permission, then scoped discovery
+permissions, exact observations and final human target review. Transport/result
+integration remains unimplemented; no schema, qualification, deployment or restart
+is authorized. Existing 0106-0110 boundaries and all migrations remain unchanged.

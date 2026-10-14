@@ -1,0 +1,99 @@
+{
+  "notice": "TARGET IDENTITY NOT OBSERVED",
+  "outcome": "TARGET_IDENTITY_UNRESOLVED",
+  "ids": {
+    "projectId": null,
+    "environmentId": null,
+    "serviceId": null,
+    "serviceInstanceId": null
+  },
+  "expectations": {
+    "projectName": "thorough-blessing",
+    "environmentName": null,
+    "serviceName": "myapp-backend",
+    "branch": "feature/0092-shared-segment-suitability",
+    "rootDirectory": "/movement-app",
+    "historicalRegion": "europe-west4-drams3a",
+    "labelsAuthoritative": false
+  },
+  "observed": null,
+  "providerObserved": false,
+  "humanReviewed": false,
+  "manualLiveAuthorization": false,
+  "globalAuthority": {
+    "adapterImplemented": true,
+    "transportContractReady": true,
+    "providerContextAttestationReady": true,
+    "providerContextObserved": false,
+    "projectEnvironmentContextProven": false,
+    "serviceContextProven": false,
+    "executionSchemaReady": false,
+    "identity_proven": null,
+    "causality_proven": null,
+    "restart_origin_proven": null,
+    "platformRestart": null,
+    "restartAttribution": {
+      "measurement": null,
+      "limitation": "restart_origin_unattributable"
+    },
+    "outcome": "TARGET_IDENTITY_UNRESOLVED",
+    "targetIdentityAcquisitionReady": true,
+    "targetIdentityObserved": false,
+    "providerResultIngressConnected": false,
+    "manualLiveAuthorizationRequired": true
+  },
+  "forbiddenRailwayInventory": {
+    "inventoryReviewed": false,
+    "basis": null,
+    "provenance": null,
+    "projectIds": {
+      "reviewed": false,
+      "completenessAcknowledged": false,
+      "completenessIsOperatorAssertion": true,
+      "ids": null,
+      "labels": []
+    },
+    "environmentIds": {
+      "reviewed": false,
+      "completenessAcknowledged": false,
+      "completenessIsOperatorAssertion": true,
+      "ids": null,
+      "labels": []
+    },
+    "serviceIds": {
+      "reviewed": false,
+      "completenessAcknowledged": false,
+      "completenessIsOperatorAssertion": true,
+      "ids": null,
+      "labels": []
+    },
+    "serviceInstanceIds": {
+      "reviewed": false,
+      "completenessAcknowledged": false,
+      "completenessIsOperatorAssertion": true,
+      "ids": null,
+      "labels": []
+    }
+  },
+  "crossSystemForbidden": {
+    "provider": "Supabase",
+    "identifierKind": "project_ref",
+    "production": "xdfmoggrsucisfybqctb",
+    "inactive": "udlsysezmzutydnifhsq",
+    "consumedHistoricalDisposable": "uzkhnslyrhgucijcuoes",
+    "railwayNamespace": false,
+    "newQualificationAuthorized": false
+  },
+  "documents": {
+    "projectServices": {
+      "operationName": "Movement0111ProjectServices",
+      "source": "query Movement0111ProjectServices($id: String!) {\n  project(id: $id) {\n    id\n    services {\n      edges {\n        node {\n          id\n          name\n        }\n      }\n      pageInfo {\n        hasNextPage\n      }\n    }\n  }\n}",
+      "canonicalSha256": "fa6231580d6acec3510c26f4be5972605a3648c4c47f7da73eaa24021b137833"
+    },
+    "serviceInstance": {
+      "operationName": "Movement0111ServiceInstance",
+      "source": "query Movement0111ServiceInstance(\n  $serviceId: String!,\n  $environmentId: String!\n) {\n  serviceInstance(\n    serviceId: $serviceId,\n    environmentId: $environmentId\n  ) {\n    id\n    serviceName\n    rootDirectory\n    region\n  }\n}",
+      "canonicalSha256": "e247e7ec5e98cc71bc399304c37846ede31d7009096da4449f9bc8e88f267493"
+    }
+  }
+}
