@@ -490,3 +490,15 @@ The new acquisition wrapper is pin 12. All eleven previous source pins are uncha
 the authorization self hash and both safe templates regenerate. Identity/review,
 0112, 0114B/C transport and disposable 0113 semantics remain unchanged. No real
 provider/network request or credential/provider-environment read occurred.
+
+## 0114E offline acquisition input review
+
+[0114E input review](0114e-railway-acquisition-input-review.md) adds an offline
+worksheet and independent operator review procedure, exercised by synthetic tests
+using existing APIs. Actual Railway IDs remain null; historical labels are not IDs.
+Forbidden inventory requires explicit provenance and completeness acknowledgements.
+Host/checklist presence grants no execution authority. No sealed executable package,
+ticket, identity session, execution context, credential read or provider request is
+created by this workflow. All 12 pins and runtime modules remain unchanged.
+0114D acquisition still requires a later separately reviewed and manually authorized
+execution; the safe outcome remains PRELIVE_NOT_AUTHORIZED.
