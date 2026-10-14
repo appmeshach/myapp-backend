@@ -260,3 +260,20 @@ request or real token/provider-environment read occurred.
 Remaining work is 0114C service-instance transport, then 0114D acquisition lifetime
 ownership/wrapper and bounded human waits with separately reviewed authorization.
 No schema, qualification, retry, unexpected-service policy or 0113 change is added.
+
+## 0114C instance transport; original service gate unchanged
+
+[0114C](0114c-railway-service-instance-transport.md) implements only fixed instance
+transport after the exact original 0114A human service approval. Identity owner
+bytes, review/acknowledgement/ownership/revision semantics and final target gate
+are unchanged. The original S/C and consumed services history are retained.
+Successful instance acceptance stops at candidate and leaves C open.
+The historical 0114A source/validation record above remains milestone evidence.
+Current eleven pins refresh only adapter/provider-boundary and authorization self
+hash; both safe templates regenerate exactly with null IDs/HEAD/branch and false
+authorization. The acquisition namespace remains planning-only and
+PRELIVE_NOT_AUTHORIZED, transportSupported=false, liveAuthorized=false,
+manualLiveAuthorization=false. No wrapper, bounded human wait or executable
+acquisition authority exists. No live provider request or real credential/provider
+environment read occurred. Remaining work is 0114D acquisition lifetime ownership,
+separately reviewed authorization, bounded human reviews and final disposal.

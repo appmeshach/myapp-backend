@@ -447,3 +447,20 @@ bounded human waits (0114D) remain absent. The identity owner, 0112 P/B/R/T beha
 only adapter/provider-boundary pins and the authorization self hash are refreshed.
 No live provider request, real token/provider-environment read, CLI/API action,
 deployment, restart, staging, commit or push occurred.
+
+## 0114C fixed service-instance transport and provenance
+
+[0114C](0114c-railway-service-instance-transport.md) implements only the fixed
+Movement0111ServiceInstance query after context/services evidence and exact human
+service approval in the same original S/C. Instance pools are separate from context
+and services. Genuine result/receipt ownership binds original invocation/request/
+session/context/target; copied, stale, replayed and wrong-namespace inputs fail.
+Success stops at candidate, leaves C open and requires existing final human target
+review. No automatic target review or new global authority is introduced.
+0114B services functions, identity owner, 0112 behavior, 0113 wrapper and all
+99 migrations are unchanged. Eleven pins remain; only adapter/provider-boundary
+pins and authorization self hash change. Both safe templates remain unresolved
+and unauthorized. No live provider request, real credential/provider-environment
+read, Railway CLI, Supabase/GitHub API, deploy, restart, stage, commit or push occurred.
+0114D wrapper/lifetime ownership, bounded human waits, separately reviewed live
+authorization and final disposal remain unimplemented.

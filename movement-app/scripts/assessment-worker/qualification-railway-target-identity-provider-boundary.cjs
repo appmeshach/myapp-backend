@@ -1,5 +1,5 @@
 'use strict';
-// Consumer only: genuine adapter-owned context/services receipts.
+// Consumer only: genuine adapter-owned context/services/instance receipts.
 const status = Object.freeze({ providerResultIngressConnected: false, manualLiveAuthorizationRequired: true });
 let consume = null;
 function takeObservation(...args) {

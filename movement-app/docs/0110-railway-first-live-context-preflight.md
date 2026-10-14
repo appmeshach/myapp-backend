@@ -80,9 +80,9 @@ one LF; it differs from the validator module's source hash.
 | Security-critical source | Pinned SHA-256 |
 |---|---|
 | 0113 one-shot first-context wrapper | `7c3a376d1f7a1b733f3be90a3b7d43fb4aa2fd5256c5638a13e6301a3d78cf94` |
-| 0109 HTTPS adapter, including 0112 context transfer | `d6a85fe9f2c3eb8f985646018e8570f95c218878123c332a03c2f3e2526ba2f7` |
+| 0109 HTTPS adapter, including 0112 context transfer | `6c25068a45e7ffe98f9db8bd1efe20e0bebad5140f740ea20725785af6361d6b` |
 | 0111 identity owner, including context transfer slots | `1dce76ecf7657f40d6ad98a7347eecff868772c5812eeadf025165c80ebfcb47` |
-| 0111 adapter-owned receipt ingress | `8e24f4e4ae8f0f732606e0caf7a204d31ddd5807195d1ef50595feabd2e584de` |
+| 0111 adapter-owned receipt ingress | `cf22b4ce9d68b36fa6c325f289661528fcfb6ec8e75d6acad9af5429be53e1df` |
 | 0109 context review | `23fb65eef738136b68b3d8ce19a69e51482f9bc075c6a26940e2300108c6dd0f` |
 | 0107 private schema preflight/handoff | `88fe296bd5bfaa639844436c031dbdc674f29c25fbab3530081317143b3c9d74` |
 | 0108 projectToken document/validator | `cd862abc5b85b8663fbc1075263c0b5d3c6d05793a31e875db67457f4adb3085` |
@@ -300,3 +300,17 @@ Exactly eleven pins remain; only adapter and provider-boundary pins change from
 self hash and both safe templates regenerated. Actual target IDs and reviewed
 HEAD/branch remain null in the safe templates. No live provider request or real
 token/provider-environment read occurred.
+
+## 0114C fixed instance transport; authorization unchanged
+
+[0114C](0114c-railway-service-instance-transport.md) adds only fixed
+Movement0111ServiceInstance transport after genuine context/services evidence and
+exact existing human service approval in the same original S/C. Acceptance stops
+at candidate; final human target review remains required. Success leaves C open.
+No acquisition wrapper, bounded human wait or executable live acquisition
+authorization exists. The acquisition planning namespace stays PRELIVE_NOT_AUTHORIZED,
+transportSupported=false, liveAuthorized=false and manualLiveAuthorization=false.
+Exactly eleven pins remain: only adapter/provider-boundary pins change from 0114B.
+The authorization module changes only those pin values, and both safe templates
+and self hash are regenerated. Actual IDs and reviewed HEAD/branch remain null.
+No real Railway/provider request or real credential/provider-environment read occurred.

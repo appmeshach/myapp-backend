@@ -238,3 +238,18 @@ already untracked. No temporary verification file remains in the repository;
 test scripts/logs are in OS temp. No live network/provider request, Railway CLI,
 Supabase/GitHub API, real credential/provider-environment read, stage, commit,
 push, deploy or restart occurred. Local Git and test/typecheck commands only.
+
+## 0114C independent instance namespace; 0114B behavior frozen
+
+[0114C](0114c-railway-service-instance-transport.md) adds fixed instance transport
+in separate instanceBindings/instanceTransfers/instanceResults/instanceReceipts
+pools after exact original human service approval. Original completed context
+and consumed services history must belong to the same S/C. The four services
+transport functions and their validation/one-use behavior remain unchanged;
+services cannot dispatch again. Consumer-only initialization is unchanged.
+Instance success stops at candidate and leaves C open for final human review.
+The historical 0114B hashes and validation record above remain milestone evidence;
+the current adapter/boundary pins and authorization self hash are regenerated
+within eleven pins. Safe templates remain unresolved/unauthorized. Acquisition
+wrapper, bounded human wait and executable acquisition authority remain absent.
+No live Railway/provider request or real credential/provider-environment read occurred.

@@ -21,6 +21,7 @@ const status = freeze({ adapterImplemented: true, transportContractReady: true, 
 const contexts = new WeakMap(), results = new WeakMap();
 const transferBindings = new WeakMap(), contextTransfers = new WeakMap();
 const servicesBindings = new WeakMap(), servicesTransfers = new WeakMap(), servicesResults = new WeakMap(), servicesReceipts = new WeakMap();
+const instanceBindings = new WeakMap(), instanceTransfers = new WeakMap(), instanceResults = new WeakMap(), instanceReceipts = new WeakMap();
 const fail = () => { throw Error('Railway private HTTPS evidence unavailable'); };
 const hash = v => crypto.createHash('sha256').update(v).digest('hex');
 function requireQuietDiagnostics() {
@@ -31,10 +32,13 @@ function requireQuietDiagnostics() {
 function invalidate(record) {
  record.closed = true; record.attested = false; record.secret = null; record.identityAttestation = null;
  for (const [pool, handles] of [[servicesBindings, record.servicesBindings], [servicesTransfers, record.servicesTransfers],
-  [servicesResults, record.servicesResults], [servicesReceipts, record.servicesReceipts]]) {
+  [servicesResults, record.servicesResults], [servicesReceipts, record.servicesReceipts],
+  [instanceBindings, record.instanceBindings], [instanceTransfers, record.instanceTransfers],
+  [instanceResults, record.instanceResults], [instanceReceipts, record.instanceReceipts]]) {
   for (const handle of handles) pool.delete(handle); handles.clear();
  }
  if (record.servicesAttempt) record.servicesAttempt.phase = 'cancelled';
+ if (record.instanceAttempt) record.instanceAttempt.phase = 'cancelled';
  for (const result of record.results) results.delete(result);
  record.results.clear();
  for (const handle of record.transferBindings) {
@@ -63,7 +67,8 @@ function openExecutionContext(...args) {
  const handle = Object.freeze({});
  contexts.set(handle, { binding, secret, closed: false, attested: false, busy: false, cancel: null, results: new Set(),
   transferBindings: new Set(), transfers: new Set(), transferBinding: null, identityAttestation: null, servicesAttempt: null,
-  servicesBindings: new Set(), servicesTransfers: new Set(), servicesResults: new Set(), servicesReceipts: new Set() });
+  servicesBindings: new Set(), servicesTransfers: new Set(), servicesResults: new Set(), servicesReceipts: new Set(),
+  instanceAttempt: null, instanceBindings: new Set(), instanceTransfers: new Set(), instanceResults: new Set(), instanceReceipts: new Set() });
  return handle;
 }
 function closeExecutionContext(...args) {
@@ -366,15 +371,117 @@ function consumeProjectServicesReceipt(...args) {
    invocation: result.invocation, request: result.request, endpoint: result.endpoint, authKind: result.authKind, body: result.body });
  } catch { invalidate(e.record); fail(); }
 }
+// Independent fixed instance namespace. The genuine identity handoff remains
+// the sole proof of human service approval; no adapter approval flag is added.
+function requireInstanceOwner(expected = null) {
+ const owner = requireOwner(expected);
+ if (!['takeIdentityHandoffForFutureAdapter', 'validateServiceInstance'].every(k => typeof owner[k] === 'function')) fail();
+ return owner;
+}
+function fixedServiceInstanceRequest(request, attestation, binding, owner) {
+ plainKeys(request, ['query', 'operationName', 'variables']); plainKeys(request.variables, ['serviceId', 'environmentId']);
+ const doc = owner.documents?.serviceInstance;
+ if (!doc || request.operationName !== 'Movement0111ServiceInstance' || request.query !== doc.source ||
+  hash(request.query + '\n') !== 'e247e7ec5e98cc71bc399304c37846ede31d7009096da4449f9bc8e88f267493' ||
+  doc.canonicalSha256 !== 'e247e7ec5e98cc71bc399304c37846ede31d7009096da4449f9bc8e88f267493' ||
+  request.variables.environmentId !== attestation.facts.environmentId ||
+  request.variables.serviceId !== targets.describeTarget(binding).serviceId) fail();
+ // Service equality is a consistency check: services early/final acceptance
+ // already required that constraint. Execution bytes/approved observed IDs come
+ // only from the original owner handoff, never from this comparison.
+}
+function assertInstanceAttempt(e) {
+ const record = contexts.get(e.executionContext), owner = requireInstanceOwner(e.owner), attestation = record?.identityAttestation;
+ const history = record?.servicesAttempt;
+ if (record !== e.record || record.closed || !record.attested || !record.busy || record.instanceAttempt !== e ||
+  record.binding !== e.binding || attestation !== e.attestation || attestation.session !== e.session ||
+  attestation.executionContext !== e.executionContext || attestation.binding !== e.binding || attestation.owner !== owner ||
+  history !== e.servicesHistory || history.phase !== 'consumed' || history.kind !== 'project_services' ||
+  history.session !== e.session || history.executionContext !== e.executionContext || history.binding !== e.binding ||
+  history.owner !== owner || history.attestation !== attestation) fail();
+ fixedServiceInstanceRequest(e.request, attestation, e.binding, owner); return record;
+}
+function bindServiceInstanceTransfer(...args) {
+ const record = contexts.get(args[0]);
+ try {
+  const owner = requireInstanceOwner();
+  // Original H burns inside the unchanged owner, which checks S/C/stage/revision.
+  const original = owner.takeIdentityHandoffForFutureAdapter(args[2], args[1], args[0]);
+  const attestation = record?.identityAttestation, history = record?.servicesAttempt;
+  if (args.length !== 3 || !record || record.closed || !record.attested || record.busy || record.instanceAttempt ||
+   record.results.size || record.transferBinding || record.transfers.size || !attestation || !history ||
+   original.kind !== 'service_instance' || original.session !== args[1] || original.executionContext !== args[0] ||
+   original.binding !== record.binding || attestation.session !== original.session || attestation.binding !== original.binding ||
+   attestation.executionContext !== original.executionContext || attestation.owner !== owner ||
+   history.phase !== 'consumed' || history.kind !== 'project_services' || history.session !== original.session ||
+   history.executionContext !== original.executionContext || history.binding !== original.binding ||
+   history.owner !== owner || history.attestation !== attestation) fail();
+  fixedServiceInstanceRequest(original.request, attestation, original.binding, owner);
+  const transfer = Object.freeze({}), e = { ...original, owner, record, attestation, servicesHistory: history, phase: 'bound' };
+  record.instanceAttempt = e; record.busy = true; instanceBindings.set(transfer, e); record.instanceBindings.add(transfer);
+  return transfer;
+ } catch { if (record) invalidate(record); fail(); }
+}
+async function executeServiceInstance(...args) {
+ const e = instanceBindings.get(args[0]); if (!e) fail();
+ instanceBindings.delete(args[0]); e.record.instanceBindings.delete(args[0]);
+ try {
+  if (args.length !== 1 || e.phase !== 'bound') fail(); assertInstanceAttempt(e);
+  e.phase = 'dispatching'; instanceTransfers.set(args[0], e); e.record.instanceTransfers.add(args[0]);
+  const body = await post(e.record, e.request); assertInstanceAttempt(e);
+  e.phase = 'responded'; const result = Object.freeze({});
+  instanceResults.set(result, { entry: e, kind: 'service_instance', session: e.session, binding: e.binding,
+   executionContext: e.executionContext, invocation: e.invocation, request: e.request,
+   endpoint: contract.endpoint, authKind: contract.preferredAuthKind, body: freeze(body) });
+  e.record.instanceResults.add(result); return result;
+ } catch { invalidate(e.record); fail(); }
+}
+function prepareServiceInstanceResult(...args) {
+ const result = instanceResults.get(args[0]), e = instanceTransfers.get(args[1]);
+ if (result) { instanceResults.delete(args[0]); result.entry.record.instanceResults.delete(args[0]); }
+ if (e) { instanceTransfers.delete(args[1]); e.record.instanceTransfers.delete(args[1]); }
+ try {
+  if (args.length !== 2 || !result || !e || e.phase !== 'responded' || result.entry !== e ||
+   result.kind !== 'service_instance' || result.session !== e.session || result.binding !== e.binding ||
+   result.executionContext !== e.executionContext || result.invocation !== e.invocation || result.request !== e.request ||
+   result.endpoint !== 'https://backboard.railway.com/graphql/v2' || result.authKind !== 'project_token') fail();
+  assertInstanceAttempt(e);
+  const facts = e.owner.validateServiceInstance(result.body), expected = targets.describeTarget(e.binding).serviceInstanceId;
+  if (expected !== null && facts.serviceInstanceId !== expected) fail();
+  e.phase = 'receipt'; const receipt = Object.freeze({});
+  instanceReceipts.set(receipt, result); e.record.instanceReceipts.add(receipt);
+  return freeze({ invocation: e.invocation, result: receipt });
+ } catch {
+  if (e) invalidate(e.record); if (result && result.entry !== e) invalidate(result.entry.record); fail();
+ }
+}
+function cancelServiceInstanceTransfer(...args) {
+ const e = instanceBindings.get(args[0]) || instanceTransfers.get(args[0]); if (!e) fail();
+ instanceBindings.delete(args[0]); instanceTransfers.delete(args[0]);
+ e.record.instanceBindings.delete(args[0]); e.record.instanceTransfers.delete(args[0]);
+ invalidate(e.record); if (args.length !== 1) fail();
+}
+function consumeServiceInstanceReceipt(...args) {
+ const result = instanceReceipts.get(args[0]); if (!result) fail();
+ instanceReceipts.delete(args[0]); const e = result.entry; e.record.instanceReceipts.delete(args[0]);
+ try {
+  if (args.length !== 1 || e.phase !== 'receipt') fail(); assertInstanceAttempt(e);
+  e.phase = 'consumed'; e.record.busy = false;
+  return freeze({ kind: result.kind, session: result.session, binding: result.binding, executionContext: result.executionContext,
+   invocation: result.invocation, request: result.request, endpoint: result.endpoint, authKind: result.authKind, body: result.body });
+ } catch { invalidate(e.record); fail(); }
+}
 // Private consumer wiring is synchronous at module initialization. The boundary
 // deletes/freezes its temporary linker before either normal import returns.
 // No consumer, raw-body factory, issuer or callback registration survives import.
 function consumeIdentityProviderObservation(...args) {
+ if (instanceReceipts.has(args[0])) return consumeServiceInstanceReceipt(...args);
  if (servicesReceipts.has(args[0])) return consumeProjectServicesReceipt(...args);
  return consumeContextResultTransfer(...args); // Preserve context arity/burn semantics.
 }
 module.exports = Object.freeze(Object.assign(Object.create(null), { status, safety, openExecutionContext, closeExecutionContext,
  bindProjectServicesTransfer, executeProjectServices, prepareProjectServicesResult, cancelProjectServicesTransfer,
+ bindServiceInstanceTransfer, executeServiceInstance, prepareServiceInstanceResult, cancelServiceInstanceTransfer,
  executeHandoff, consumeContextResult, consumeSchemaResult, bindContextResultTransfer, prepareContextResultTransfer, consumeContextResultTransfer }));
 const linkConsumer = Reflect.get(require('./qualification-railway-target-identity-provider-boundary.cjs'), '_connectProjectServicesConsumer');
 if (typeof linkConsumer !== 'function') fail(); linkConsumer(consumeIdentityProviderObservation);

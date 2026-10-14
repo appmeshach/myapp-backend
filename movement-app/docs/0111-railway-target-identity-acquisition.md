@@ -289,3 +289,21 @@ the final acquisition wrapper and human-wait mechanism remain absent. Actual
 Railway IDs remain unresolved, global authority stays false/null, and no live
 provider request or real token/provider-environment read occurred. 0112 context
 transfer behavior and the one-shot/disposable 0113 wrapper remain unchanged.
+
+## 0114C service-instance transport
+
+[0114C](0114c-railway-service-instance-transport.md) consumes the original fixed
+instance handoff through the unchanged identity owner, which remains the sole
+authority for prior human service approval and current revision. Exact original
+S/C and the consumed original services attempt are required; no matching JSON,
+copied review, boolean flag or caller request can substitute.
+bindServiceInstanceTransfer, executeServiceInstance, prepareServiceInstanceResult
+and cancelServiceInstanceTransfer use separate private instance namespaces.
+The fixed query uses only the original handoff's approved observed serviceId and
+accepted environmentId. acceptIdentityObservation advances only to candidate;
+final target review remains manual/existing. Success leaves C open for 0114D.
+Context and services behavior, inventory policy and all global authority are unchanged.
+Service-instance transport is implemented locally, but acquisition wrapper,
+bounded human wait and executable live acquisition authorization remain absent.
+Actual IDs remain unresolved and live acquisition unauthorized. No real
+Railway/provider request or credential/provider-environment read occurred.

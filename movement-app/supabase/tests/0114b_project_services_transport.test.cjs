@@ -34,12 +34,13 @@ test('fresh same S/C fixed services request accepts genuine provenance only into
  const r = f.identity.reviewObservedServiceCandidate(f.session);
  f.identity.approveObservedServiceCandidate(r, f.session, { ...clone(r), reviewed: true });
  assert.equal(f.identity.reviewNextIdentityRequest(f.session).meta.operationName, 'Movement0111ServiceInstance');
- assert.equal(f.adapter.executeServiceInstance, undefined);
+ assert.equal(typeof f.adapter.executeServiceInstance, 'function');
+ await rejects(f.adapter.executeServiceInstance(f.transfer));
 });
 test('normal exports expose no consumer, provider issuer, request/body injection or surviving initializer', () => {
  assert.deepEqual(Object.keys(ingress), ['status', 'takeObservation']); assert.ok(Object.isFrozen(ingress)); assert.ok(Object.isFrozen(adapter));
  assert.equal(Reflect.get(ingress, '_connectProjectServicesConsumer'), undefined);
- for (const key of ['consumeProjectServicesReceipt','consumeIdentityProviderObservation','consumeProjectServicesResult','issueObservation','executeIdentityRequest','executeServiceInstance']) {
+ for (const key of ['consumeProjectServicesReceipt','consumeIdentityProviderObservation','consumeProjectServicesResult','issueObservation','executeIdentityRequest']) {
   assert.equal(adapter[key], undefined); assert.equal(ingress[key], undefined);
  }
  const f = loadServices(); assert.deepEqual(f.reads, []); assert.equal(f.calls.length, 0);
