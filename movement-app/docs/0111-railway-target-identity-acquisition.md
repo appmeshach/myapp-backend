@@ -61,7 +61,8 @@ the private session. Operator-entered IDs, matching strings, raw bodies, copied
 sessions/results, and flags such as `providerObserved:true` cannot establish
 provider evidence.
 
-Only an original private provider-result capability may advance a stage. The
+Only an original private provider-result capability may advance observation stages;
+0114A adds a separate original human service-review gate between them. The
 0112 context-only path now lets ingress consume an adapter-owned receipt bound
 to the original session and live execution context. There is still no issuer,
 raw-body factory, callback or injection export in ingress. Raw and synthetic VM
@@ -112,7 +113,8 @@ issue a second request, retry or fall back. No first/after/cursor or paging call
 is accepted. Resolving truncation requires a different separately reviewed
 milestone; single-connection completeness is not account-wide inventory proof.
 
-Instance lookup uses only the previously observed service and attested
+Instance lookup requires the 0114A exact human service approval, then uses only
+the previously observed service and attested
 environment. Its exact response contains id, serviceName, rootDirectory and
 region. Null serviceInstance, missing/malformed ID or wrong service name fails.
 Instance ID comes only from response.id. A non-null root must match `/movement-app`;
@@ -246,3 +248,20 @@ At the original 0111 milestone the existing 0106-0110 boundaries were unchanged.
 0110 source pins; service/instance transport remains unsupported. All 99 migrations
 and the other protected worker foundations remain unchanged. The capsule remains
 unread and untouched.
+
+## 0114A mandatory human service review
+
+[0114A foundation](0114a-railway-service-review-authorization-foundation.md) now
+makes accepted service observation stop at service_review. Only
+reviewObservedServiceCandidate(session) followed by
+approveObservedServiceCandidate(originalReview, originalSession, exactAcknowledgement)
+can advance the same session to service_instance. The original private review
+binds accepted observation/facts, context, ownership and exact revision; it burns
+once before approval validation and cannot be duplicated. Descriptive IDs/names,
+copied JSON, hashes and humanReviewed flags grant no authority. Instance review is
+impossible before approval. Final target review still requires instance evidence
+and the existing reviewed forbidden inventory. Existing selection/pagination
+validation is preserved; no new unexpected-service inventory policy was invented.
+No live request or real credential read occurred. Actual IDs remain unresolved;
+service/instance transport and the future acquisition wrapper remain unsupported.
+0112 context-transfer semantics and the disposable 0113 wrapper remain unchanged.

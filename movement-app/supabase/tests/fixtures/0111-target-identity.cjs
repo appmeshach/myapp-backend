@@ -3,7 +3,7 @@
 // of the normal module. No environment or transport access.
 const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
 const file = path.resolve(__dirname, '../../../scripts/assessment-worker/qualification-railway-target-identity.cjs');
-function loadIdentity() {
+function loadIdentity(capture = false) {
  const results = new WeakMap(), closed = new WeakSet(), issued = [], consumed = [];
  const bridge = { takeObservation(handle) {
   const record = results.get(handle); if (!record) throw Error('Synthetic observation unavailable');
@@ -15,7 +15,7 @@ function loadIdentity() {
   if (name.startsWith('./')) return require(path.resolve(path.dirname(file), name));
   return require(name);
  } };
- vm.runInNewContext(fs.readFileSync(file, 'utf8'), sandbox, { filename: file });
+ vm.runInNewContext(fs.readFileSync(file, 'utf8') + (capture ? '\nmodule.exports = { ...module.exports, testRecord: session => sessions.get(session) };' : ''), sandbox, { filename: file });
  return { api: sandbox.module.exports, issued, consumed, closeExecution(context) { closed.add(context); }, issue(record) {
   const result = Object.freeze({}); results.set(result, record); issued.push(result); return result;
  } };

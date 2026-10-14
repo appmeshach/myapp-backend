@@ -406,3 +406,24 @@ and separate explicit first-live permission remain prerequisites. Service/instan
 transport remains unsupported; a later authorized flow needs a fresh context and
 session, repeated context attestation, then same-context acquisition. No migration,
 deployment, restart or qualification authority changed.
+
+## 0114A service review and acquisition authorization foundation
+
+[0114A foundation](0114a-railway-service-review-authorization-foundation.md) requires
+service_review between accepted objective service evidence and service_instance.
+Exact original one-use human service approval is required in the same session;
+copied reviews/facts/JSON, matching labels/IDs and boolean flags cannot enable
+instance review. Final target review still requires instance evidence and reviewed
+forbidden inventory. No new unexpected-service inventory policy was introduced.
+
+movement_railway_identity_acquisition_auth_v1 separately represents context,
+services, HUMAN_SERVICE_REVIEW, instance and HUMAN_TARGET_REVIEW in that order,
+with three fixed provider requests maximum, one each. It has no executable
+acquisition authority or transport consumer and remains PRELIVE_NOT_AUTHORIZED.
+Context-only 0110 authorization and the one-shot disposable 0113 wrapper retain
+their existing semantics. Pin count stays eleven; only identity owner's pin and
+authorization self hash change, and both safe templates are regenerated.
+Actual IDs and reviewed code identity remain unresolved in safe templates; all
+live authorization remains false. No live provider request or real credential read
+occurred. Service/instance transport and the eventual acquisition wrapper remain
+the 0114B gap. All 99 migrations and frozen transport sources remain unchanged.

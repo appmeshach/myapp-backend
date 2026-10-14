@@ -5,6 +5,7 @@ const fs = require('node:fs'), path = require('node:path'), crypto = require('no
 const targets = require('./qualification-railway-introspection-target.cjs');
 const context = require('./qualification-railway-project-token-context.cjs');
 const reviews = require('./qualification-railway-context-review.cjs');
+const identity = require('./qualification-railway-target-identity.cjs');
 const adapter = require('./qualification-railway-https-adapter.cjs');
 // Historical implementation parent only; never current/reviewed HEAD authority.
 const BASELINE_PARENT_HEAD = '7c2346ce73d12e571b5ff8506fd8d02be48f44b7';
@@ -35,7 +36,7 @@ function exact(v, keys) {
 const SOURCE_HASHES = freeze({
  'qualification-railway-first-context-wrapper.cjs': '7c3a376d1f7a1b733f3be90a3b7d43fb4aa2fd5256c5638a13e6301a3d78cf94',
  'qualification-railway-https-adapter.cjs': '6f6ffc8e7fdff418797c62ae8d650536c9d720f7275416913532e5f73eadadd8',
- 'qualification-railway-target-identity.cjs': '6ee5d4029a614cf1d414ead1e275f7a1a9d9078a4b58bf5ed14ea82f0ea3c3d0',
+ 'qualification-railway-target-identity.cjs': '1dce76ecf7657f40d6ad98a7347eecff868772c5812eeadf025165c80ebfcb47',
  'qualification-railway-target-identity-provider-boundary.cjs': 'f67d1f624707a325b9421d483eced3eed037cbb783fc5cfb0b4a13c309bbfb76',
  'qualification-railway-context-review.cjs': '23fb65eef738136b68b3d8ce19a69e51482f9bc075c6a26940e2300108c6dd0f',
  'qualification-railway-introspection-preflight.cjs': '88fe296bd5bfaa639844436c031dbdc674f29c25fbab3530081317143b3c9d74',
@@ -213,6 +214,65 @@ function reviewTemplate(...args) {
   crossSystemForbidden, hostChecklist: { nodeMajor: null, ...Object.fromEntries(HOST_KEYS.map(k => [k, false])) },
   reviewed: false, manualLiveAuthorization: false });
 }
+// Separate planning namespace only: deliberately no ticket/authority or adapter consumer.
+const acquisitionDrafts = new WeakMap(), acquisitionReviews = new WeakMap();
+function acquisitionFacts(codeIdentity, expectedTarget, forbiddenRailwayInventory) {
+ const operations = [
+  { kind: 'provider', operationName: 'Movement0108ProjectTokenContext', querySha256: context.canonicalSha256, maxRequests: 1 },
+  { kind: 'provider', operationName: identity.documents.projectServices.operationName, querySha256: identity.documents.projectServices.canonicalSha256, maxRequests: 1 },
+  { kind: 'human_review', operationName: 'HUMAN_SERVICE_REVIEW', required: true },
+  { kind: 'provider', operationName: identity.documents.serviceInstance.operationName, querySha256: identity.documents.serviceInstance.canonicalSha256, maxRequests: 1 },
+  { kind: 'human_review', operationName: 'HUMAN_TARGET_REVIEW', required: true }
+ ];
+ return freeze({ version: 'movement_railway_identity_acquisition_auth_v1', operationKind: 'target_identity_acquisition',
+  reviewedHead: codeIdentity.reviewedHead, reviewedBranch: codeIdentity.reviewedBranch, codeIdentity,
+  expectedTarget, forbiddenRailwayInventory, crossSystemForbidden, orderedOperations: operations,
+  exactRequestOrderRequired: true, maxProviderRequests: 3, retries: 0, fallbackAllowed: false, redirectPolicy: 'reject',
+  humanServiceReviewRequired: true, finalHumanTargetReviewRequired: true, schemaAuthorized: false,
+  liveAuthorized: false, manualLiveAuthorization: false, transportSupported: false, authority: state });
+}
+function createAcquisitionDraft(...args) {
+ if (args.length !== 3) fail(); const [binding, forbidden, reviewedCode] = args;
+ let target; try { target = targets.describeTarget(binding); } catch { fail(); }
+ const reviewedInventory = inventory(forbidden, target), codeIdentity = verifyCodeIdentity(reviewedCode);
+ const expectedTarget = freeze({ projectId: target.projectId, environmentId: target.environmentId,
+  serviceId: target.serviceId, serviceInstanceId: target.serviceInstanceId,
+  serviceName: identity.reviewTemplate().expectations.serviceName, environmentKind: target.environmentKind, lifecycle: target.lifecycle,
+  independentlyAuthoritative: false });
+ const manifest = acquisitionFacts(codeIdentity, expectedTarget, reviewedInventory), draft = Object.freeze({});
+ acquisitionDrafts.set(draft, { binding, manifest, codeIdentity,
+  reviewedCode: freeze({ reviewedHead: codeIdentity.reviewedHead, reviewedBranch: codeIdentity.reviewedBranch }),
+  reviewIssued: false, reviewComplete: false });
+ return draft;
+}
+function reviewAcquisitionPackage(...args) {
+ if (args.length !== 1) fail(); const draft = args[0], e = acquisitionDrafts.get(draft);
+ if (!e || e.reviewIssued || canonical(verifyCodeIdentity(e.reviewedCode)) !== canonical(e.codeIdentity)) fail();
+ const review = freeze({ notice: 'LIVE ACQUISITION NOT AUTHORIZED', outcome: 'PRELIVE_NOT_AUTHORIZED',
+  manifest: e.manifest, manifestSha256: hash(canonical(e.manifest)), localReviewComplete: false, liveAuthorized: false });
+ acquisitionReviews.set(review, { entry: e }); e.reviewIssued = true; return review;
+}
+function approveAcquisitionPackageReview(...args) {
+ const owned = acquisitionReviews.get(args[0]); if (!owned) fail(); acquisitionReviews.delete(args[0]);
+ if (args.length !== 3 || args[1] !== owned.entry.binding) fail(); const e = owned.entry, ack = args[2];
+ exact(ack, ['reviewed', 'manifest', 'manifestSha256', 'liveAuthorized']);
+ if (ack.reviewed !== true || ack.liveAuthorized !== false || ack.manifestSha256 !== hash(canonical(e.manifest)) ||
+  canonical(ack.manifest) !== canonical(e.manifest) || e.reviewComplete ||
+  canonical(verifyCodeIdentity(e.reviewedCode)) !== canonical(e.codeIdentity)) fail();
+ e.reviewComplete = true;
+ return freeze({ notice: 'LIVE ACQUISITION NOT AUTHORIZED', outcome: 'PRELIVE_NOT_AUTHORIZED',
+  manifest: e.manifest, manifestSha256: hash(canonical(e.manifest)), localReviewComplete: true, liveAuthorized: false });
+}
+function acquisitionReviewTemplate(...args) {
+ if (args.length) fail(); const codeIdentity = freeze({ ...verifySources(), reviewedHead: null, reviewedBranch: null });
+ const expectedTarget = { projectId: null, environmentId: null, serviceId: null, serviceInstanceId: null,
+  serviceName: identity.reviewTemplate().expectations.serviceName, environmentKind: null, lifecycle: null, independentlyAuthoritative: false };
+ const forbidden = { inventoryReviewed: false, ...Object.fromEntries(CATEGORIES.map(k => [k, { reviewed: false, ids: null }])) };
+ return freeze({ notice: 'LIVE ACQUISITION NOT AUTHORIZED', outcome: 'PRELIVE_NOT_AUTHORIZED',
+  manifest: acquisitionFacts(codeIdentity, expectedTarget, forbidden), actualRailwayIdsUnresolved: true,
+  reviewed: false, localReviewComplete: false, manualLiveAuthorization: false, liveAuthorized: false });
+}
 module.exports = Object.freeze({ state, baselineParentHead: BASELINE_PARENT_HEAD, sourceHashes: SOURCE_HASHES, verifyCodeIdentity,
+ createAcquisitionDraft, reviewAcquisitionPackage, approveAcquisitionPackageReview, acquisitionReviewTemplate,
  createDraft, reviewArtifact, reviewPackage, authorizeFirstLiveContext, consumeLiveTicketForContext,
  takeContextExecutionAuthority, takeFirstContextExecutionAuthority, reviewTemplate });

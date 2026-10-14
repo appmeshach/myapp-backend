@@ -81,7 +81,7 @@ one LF; it differs from the validator module's source hash.
 |---|---|
 | 0113 one-shot first-context wrapper | `7c3a376d1f7a1b733f3be90a3b7d43fb4aa2fd5256c5638a13e6301a3d78cf94` |
 | 0109 HTTPS adapter, including 0112 context transfer | `6f6ffc8e7fdff418797c62ae8d650536c9d720f7275416913532e5f73eadadd8` |
-| 0111 identity owner, including context transfer slots | `6ee5d4029a614cf1d414ead1e275f7a1a9d9078a4b58bf5ed14ea82f0ea3c3d0` |
+| 0111 identity owner, including context transfer slots | `1dce76ecf7657f40d6ad98a7347eecff868772c5812eeadf025165c80ebfcb47` |
 | 0111 adapter-owned receipt ingress | `f67d1f624707a325b9421d483eced3eed037cbb783fc5cfb0b4a13c309bbfb76` |
 | 0109 context review | `23fb65eef738136b68b3d8ce19a69e51482f9bc075c6a26940e2300108c6dd0f` |
 | 0107 private schema preflight/handoff | `88fe296bd5bfaa639844436c031dbdc674f29c25fbab3530081317143b3c9d74` |
@@ -258,3 +258,26 @@ Relative to the original 0110 milestone, 0112 later modifies only the reviewed
 0113 then adds the one-shot wrapper consumer/export and eleventh source pin.
 All 99 migrations and the other protected worker/execution foundations remain
 unchanged by 0113. `0102-remote-fixtures.capsule` remains unread and untouched.
+
+## 0114A separate acquisition authorization foundation
+
+The existing movement_railway_live_auth_v1 package and all context-only consumers
+retain their 0113 semantics. Context permission grants no service/instance permission.
+[0114A](0114a-railway-service-review-authorization-foundation.md) adds only the
+distinct movement_railway_identity_acquisition_auth_v1 planning namespace, binding
+reviewed code/HEAD/branch, target constraints, forbidden inventory and exact order:
+Movement0108ProjectTokenContext, Movement0111ProjectServices, HUMAN_SERVICE_REVIEW,
+Movement0111ServiceInstance, HUMAN_TARGET_REVIEW. It represents three provider
+requests maximum, one per fixed hashed query, no retry/fallback/redirect and both
+required human reviews. Schema/qualification/generic GraphQL are absent.
+
+createAcquisitionDraft, reviewAcquisitionPackage, approveAcquisitionPackageReview
+and acquisitionReviewTemplate stop at descriptive PRELIVE_NOT_AUTHORIZED artifacts.
+No acquisition execution ticket/authority/consumer is added. Both templates keep
+actual IDs and reviewed HEAD/branch unresolved and live authorization false.
+The [separate acquisition template](0114a-acquisition-review-template.json) does
+not replace the [first-context template](0110-live-review-template.json).
+Pin count remains eleven; only identity owner's pin changes, all other ten remain
+unchanged. The boundary self hash and both safe templates were regenerated.
+No live provider request or real credential read occurred; service/instance
+transport and the eventual acquisition wrapper remain unimplemented.

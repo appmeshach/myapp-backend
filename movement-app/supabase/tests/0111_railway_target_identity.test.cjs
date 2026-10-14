@@ -25,7 +25,9 @@ function invocation(f) {
  return { review, permit, handoff, receipt: f.api.takeIdentityHandoffForFutureAdapter(handoff, f.session, f.execution) };
 }
 function resultRecord(f, receipt, body) { return { ...receipt, endpoint: 'https://backboard.railway.com/graphql/v2', authKind: 'project_token', body }; }
-function discover(f = attest()) { const { receipt } = invocation(f); f.api.acceptIdentityObservation(f.session, receipt.invocation, f.issue(resultRecord(f, receipt, serviceBody()))); return f; }
+function discover(f = attest()) { const { receipt } = invocation(f); f.api.acceptIdentityObservation(f.session, receipt.invocation, f.issue(resultRecord(f, receipt, serviceBody())));
+ const review = f.api.reviewObservedServiceCandidate(f.session);
+ f.api.approveObservedServiceCandidate(review, f.session, { ...clone(review), reviewed: true }); return f; }
 function candidate(f = discover()) { const { receipt } = invocation(f); f.api.acceptIdentityObservation(f.session, receipt.invocation, f.issue(resultRecord(f, receipt, instanceBody()))); return f; }
 function approveCandidate(f = candidate(), value = inventory()) {
  const review = f.api.reviewTargetCandidate(f.session), inv = f.api.reviewForbiddenInventory(f.target, value);
@@ -114,6 +116,8 @@ test('variables come only from private observed chain, with no source/operation/
  assert.deepEqual(clone(first.receipt.request.variables), { id: scope.projectId });
  for (const extra of ['query Other { me { id } }', { operationName: 'Other' }, { variables: { id: 'arbitrary' } }]) reject(() => f.api.reviewNextIdentityRequest(f.session, extra));
  f.api.acceptIdentityObservation(f.session, first.receipt.invocation, f.issue(resultRecord(f, first.receipt, serviceBody())));
+ const serviceReview = f.api.reviewObservedServiceCandidate(f.session);
+ f.api.approveObservedServiceCandidate(serviceReview, f.session, { ...clone(serviceReview), reviewed: true });
  const second = invocation(f); assert.deepEqual(clone(second.receipt.request.variables), { serviceId: scope.serviceId, environmentId: scope.environmentId });
  assert.equal(second.receipt.request.operationName, 'Movement0111ServiceInstance');
 });

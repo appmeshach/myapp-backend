@@ -66,6 +66,7 @@ const documents = freeze({
 }`, canonicalSha256: 'e247e7ec5e98cc71bc399304c37846ede31d7009096da4449f9bc8e88f267493' },
 });
 const sessions = new WeakMap(), reviews = new WeakMap(), permits = new WeakMap(), handoffs = new WeakMap(), invocations = new WeakMap();
+const serviceReviews = new WeakMap();
 const inventories = new WeakMap(), candidateReviews = new WeakMap(), targetHandoffs = new WeakMap();
 const contextPermits = new WeakMap(), contextSlots = new WeakMap(), slotRecords = new WeakMap(), contextAcceptances = new WeakMap();
 const CATEGORIES = ['projectIds', 'environmentIds', 'serviceIds', 'serviceInstanceIds'];
@@ -75,7 +76,7 @@ function startTargetIdentitySession(...args) {
  try { target = targets.describeTarget(args[0]); } catch { fail(); }
  const session = Object.freeze({});
  sessions.set(session, { binding: args[0], target, stage: 'context_expected', revision: 0, executionContext: null,
-  contextFacts: null, serviceFacts: null, instanceFacts: null, activeHandoff: null, activeInvocation: null, candidate: null, contextTransferLock: null });
+  contextFacts: null, serviceFacts: null, serviceObservation: null, serviceReviewIssued: false, serviceApproval: null, instanceFacts: null, activeHandoff: null, activeInvocation: null, candidate: null, contextTransferLock: null });
  return session;
 }
 function inspectSession(...args) {
@@ -191,7 +192,13 @@ function acceptContextObservation(...args) {
 }
 function requestFor(r) {
  const key = r.stage === 'project_services' ? 'projectServices' : r.stage === 'service_instance' ? 'serviceInstance' : null;
- if (!key || !r.contextFacts || !r.executionContext) fail(); const doc = documents[key];
+ if (!key || !r.contextFacts || !r.executionContext) fail();
+ if (key === 'serviceInstance') {
+  const a = r.serviceApproval;
+  if (!a || a.facts !== r.serviceFacts || a.observation !== r.serviceObservation || a.binding !== r.binding ||
+   a.executionContext !== r.executionContext || a.revision !== r.revision) fail();
+ }
+ const doc = documents[key];
  if (hash(doc.source + '\n') !== doc.canonicalSha256) fail();
  const variables = key === 'projectServices' ? { id: r.contextFacts.projectId } : { serviceId: r.serviceFacts.serviceId, environmentId: r.contextFacts.environmentId };
  return freeze({ query: doc.source, operationName: doc.operationName, variables });
@@ -242,7 +249,7 @@ function acceptIdentityObservation(...args) {
    canonical(observed.request) !== canonical(entry.request)) fail();
   if (entry.stage === 'project_services') {
    const facts = validateProjectServices(r.contextFacts.projectId, observed.body);
-   if (facts.serviceId !== r.target.serviceId) fail(); r.serviceFacts = facts; r.stage = 'service_instance';
+   if (facts.serviceId !== r.target.serviceId) fail(); r.serviceFacts = facts; r.serviceObservation = observed; r.stage = 'service_review';
   } else {
    const facts = validateServiceInstance(observed.body);
    if (r.target.serviceInstanceId !== null && facts.serviceInstanceId !== r.target.serviceInstanceId) fail();
@@ -256,6 +263,34 @@ function acceptIdentityObservation(...args) {
   }
   r.activeInvocation = null; r.revision++; return inspectSession(entry.session);
  } catch { r.stage = 'failed'; r.activeInvocation = null; fail(); }
+}
+// Descriptive review bytes never serve as authority. Only the original review
+// in this module's private pool can advance its original observation/session.
+function reviewObservedServiceCandidate(...args) {
+ if (args.length !== 1) fail(); const session = args[0], r = record(session);
+ if (r.stage !== 'service_review' || !r.serviceFacts || !r.serviceObservation || r.serviceReviewIssued || r.serviceApproval) fail();
+ const candidate = freeze({ observedServiceId: r.serviceFacts.serviceId, observedServiceName: r.serviceFacts.serviceName,
+  expectedServiceId: r.target.serviceId, expectedServiceName: expectations.serviceName, providerObserved: true,
+  evidenceSource: 'provider_project_services', projectId: r.contextFacts.projectId, environmentId: r.contextFacts.environmentId,
+  projectNameExpected: expectations.projectName, environmentNameExpected: expectations.environmentName,
+  projectNameObserved: null, environmentNameObserved: null, parentContextEvidenceSource: 'provider_project_token_context' });
+ const review = freeze({ candidate, revision: r.revision, liveAuthorized: false });
+ serviceReviews.set(review, { session, binding: r.binding, executionContext: r.executionContext, contextFacts: r.contextFacts,
+  facts: r.serviceFacts, observation: r.serviceObservation, revision: r.revision, candidate });
+ r.serviceReviewIssued = true; return review;
+}
+function approveObservedServiceCandidate(...args) {
+ const e = serviceReviews.get(args[0]); if (!e) fail(); serviceReviews.delete(args[0]); // Burn before arity, ownership or acknowledgement.
+ if (args.length !== 3 || args[1] !== e.session) fail(); const r = record(e.session);
+ if (r.stage !== 'service_review' || r.revision !== e.revision || r.binding !== e.binding ||
+  r.executionContext !== e.executionContext || r.contextFacts !== e.contextFacts || r.serviceFacts !== e.facts ||
+  r.serviceObservation !== e.observation || r.serviceApproval) fail();
+ const ack = args[2]; exact(ack, ['reviewed', 'candidate', 'revision', 'liveAuthorized']);
+ if (ack.reviewed !== true || ack.revision !== e.revision || ack.liveAuthorized !== false ||
+  canonical(ack.candidate) !== canonical(e.candidate)) fail();
+ r.revision++; r.serviceApproval = { facts: e.facts, observation: e.observation, binding: e.binding,
+  executionContext: e.executionContext, revision: r.revision };
+ r.stage = 'service_instance'; return inspectSession(e.session);
 }
 function reviewForbiddenInventory(...args) {
  if (args.length !== 2) fail(); const [binding, value] = args; let target;
@@ -314,4 +349,4 @@ function reviewTemplate(...args) {
 module.exports = Object.freeze({ state, documents, contextTransfer, startTargetIdentitySession, inspectSession,
  validateProjectServices, validateServiceInstance, acceptContextObservation, reviewNextIdentityRequest,
  approveIdentityReview, consumeIdentityPermitForFutureAdapter, takeIdentityHandoffForFutureAdapter, acceptIdentityObservation, reviewForbiddenInventory,
- reviewTargetCandidate, approveTargetCandidate, takeReviewedTargetFor0110, reviewTemplate });
+ reviewObservedServiceCandidate, approveObservedServiceCandidate, reviewTargetCandidate, approveTargetCandidate, takeReviewedTargetFor0110, reviewTemplate });
