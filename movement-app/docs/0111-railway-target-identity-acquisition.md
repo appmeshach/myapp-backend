@@ -345,3 +345,14 @@ ticket, identity session, execution context, credential read or provider request
 created by this workflow. All 12 pins and runtime modules remain unchanged.
 0114D acquisition still requires a later separately reviewed and manually authorized
 execution; the safe outcome remains PRELIVE_NOT_AUTHORIZED.
+
+## 0114F human target metadata evidence intake
+
+[0114F metadata intake](0114f-railway-target-metadata-resolution.md) records the
+tracked-source search: no independently authoritative actual Railway target IDs
+were found. All actual IDs remain null; synthetic fixtures and historical labels
+cannot populate live inputs. A human must acquire minimal non-secret typed provider
+metadata and a different person must independently compare its value and context.
+The safe evidence template grants no execution authority. The 0114E safe template,
+all runtime modules and 12 pins remain unchanged. Actual acquisition remains a
+separately reviewed 0114D package and final manual authorization step.

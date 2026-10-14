@@ -222,3 +222,14 @@ feature/0092-shared-segment-suitability. Index is empty. The protected untracked
 capsule was not read or touched. No stage, commit, push, deployment, restart,
 live provider/Railway request, Railway CLI, Supabase/GitHub API, real credential
 or environment-secret read occurred. No STOP condition was encountered.
+
+## 0114F human target metadata evidence intake
+
+[0114F metadata intake](0114f-railway-target-metadata-resolution.md) records the
+tracked-source search: no independently authoritative actual Railway target IDs
+were found. All actual IDs remain null; synthetic fixtures and historical labels
+cannot populate live inputs. A human must acquire minimal non-secret typed provider
+metadata and a different person must independently compare its value and context.
+The safe evidence template grants no execution authority. The 0114E safe template,
+all runtime modules and 12 pins remain unchanged. Actual acquisition remains a
+separately reviewed 0114D package and final manual authorization step.

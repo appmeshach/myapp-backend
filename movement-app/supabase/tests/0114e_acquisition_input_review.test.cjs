@@ -180,9 +180,12 @@ test('pins, canonical byte rule, self hash and forbidden namespace are exact',()
  assert.equal(crypto.createHash('sha256').update(self).digest('hex'),template.codeIdentity.authorizationBoundarySha256);
  assert.deepEqual(template.crossSystemForbidden,normal.reviewTemplate().crossSystemForbidden);
 });
-test('normal local Git identity matches milestone; safe template never manufactures a review',()=>{
- const c=normal.verifyCodeIdentity({reviewedHead:head,reviewedBranch:branch});
- assert.equal(c.reviewedHead,head);assert.equal(c.reviewedBranch,branch);
+test('normal local Git identity is current; historical milestone metadata becomes stale',()=>{
+ const cp=require('node:child_process');
+ const current=cp.execFileSync('git',['-c','safe.directory='+path.resolve(__dirname,'../../..'),'rev-parse','HEAD'],{encoding:'utf8',env:{},windowsHide:true}).trim();
+ const c=normal.verifyCodeIdentity({reviewedHead:current,reviewedBranch:branch});
+ assert.equal(c.reviewedHead,current);assert.equal(c.reviewedBranch,branch);
+ if(current!==head)reject(()=>normal.verifyCodeIdentity({reviewedHead:head,reviewedBranch:branch}));
  assert.equal(template.reviewedHead,null);assert.equal(template.reviewedBranch,null);
 });
 test('templates contain only safe data and no credential patterns',()=>{
