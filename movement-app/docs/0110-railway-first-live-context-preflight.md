@@ -79,6 +79,7 @@ one LF; it differs from the validator module's source hash.
 
 | Security-critical source | Pinned SHA-256 |
 |---|---|
+| 0113 one-shot first-context wrapper | `7c3a376d1f7a1b733f3be90a3b7d43fb4aa2fd5256c5638a13e6301a3d78cf94` |
 | 0109 HTTPS adapter, including 0112 context transfer | `6f6ffc8e7fdff418797c62ae8d650536c9d720f7275416913532e5f73eadadd8` |
 | 0111 identity owner, including context transfer slots | `6ee5d4029a614cf1d414ead1e275f7a1a9d9078a4b58bf5ed14ea82f0ea3c3d0` |
 | 0111 adapter-owned receipt ingress | `f67d1f624707a325b9421d483eced3eed037cbb783fc5cfb0b4a13c309bbfb76` |
@@ -93,9 +94,11 @@ one LF; it differs from the validator module's source hash.
 The new 0110 boundary's own canonical source hash is captured at module load,
 included as `authorizationBoundarySha256` in the review artifact, and rechecked
 before each authority transition. The human must review this new boundary and
-that exact hash as well as all ten critical-source pins. The 0112 patch updates
+that exact hash as well as all eleven critical-source pins. The 0112 patch updates
 the adapter pin and adds the two now-trusted identity/ingress sources. The other
-seven pins are unchanged. A changed boundary loaded
+seven pins are unchanged. 0113 adds the wrapper as the eleventh pin; the ten
+0112 pins remain unchanged. Its additive authority consumer/export also changes
+the authorization-boundary self-hash and safe template. A changed boundary loaded
 in a new process needs a new human review; load-time self-hashing alone cannot
 prove that the operator reviewed the code. The immutable review and final
 acknowledgement bind the complete code identity. Manifest and review digests
@@ -179,20 +182,28 @@ was given or actual-target ticket minted in 0110.
 
 ## Future trusted handoff and STOP conditions
 
-A future separately authorized wrapper owns the one-use live ticket. It calls
+A separately authorized reviewed operator flow owns the one-use live ticket. It calls
 `consumeLiveTicketForContext(ticket, originalTarget, originalManifest,
 'project_token_context')` before reading any credential or opening HTTPS.
 The ticket is deleted before argument/target/operation/version validation;
 failures burn it. Success returns another opaque private one-use authority.
 `takeContextExecutionAuthority(authority, originalTarget)` burns that authority,
 rechecks code/HEAD and returns only the original private target and the
-package-owned original 0109 context handoff. The trusted wrapper must then
-immediately invoke the unchanged 0109 adapter open/execute path and consume
-its private context result, with cleanup on success or failure. No token read
+package-owned original 0109 context handoff. 0113 adds
+`takeFirstContextExecutionAuthority(authority)`, which obtains the stored binding
+internally and delegates to that same extractor. Wrong arity burns a genuine
+authority; there is no target getter or second authority store. The locally
+implemented `runFirstContext(authority)` accepts only that authority, creates
+its own context/session, binds P/B before dispatch, transfers R/T into the exact
+session, independently verifies project_services and no service/candidate, then
+closes on success or failure. It returns only a frozen descriptive record.
+No continuation capability escapes. No live request or real token read occurred.
+No token read
 or adapter execution happens inside 0110. There is no public handoff override,
 boolean authorization bypass, schema-ticket factory, or executor here.
 
-This remains a trusted operator-wrapper design. 0112 later adds the narrowly
+The [0113 one-shot wrapper](0113-railway-first-context-wrapper.md) now has local
+implementation support. 0112 adds the narrowly
 source-pinned context-result transfer APIs to 0109; it does not change the 0110
 live-ticket or execution-authority semantics described here. 0110 itself still
 performs no adapter execution. Unrelated direct calls to 0109 remain outside
@@ -244,5 +255,6 @@ are locally true; manualLiveAuthorizationRequired remains true.
 
 Relative to the original 0110 milestone, 0112 later modifies only the reviewed
 0109 context-result path and the 0110 source-pin set as documented above.
+0113 then adds the one-shot wrapper consumer/export and eleventh source pin.
 All 99 migrations and the other protected worker/execution foundations remain
-unchanged by this cleanup. `0102-remote-fixtures.capsule` remains unread and untouched.
+unchanged by 0113. `0102-remote-fixtures.capsule` remains unread and untouched.

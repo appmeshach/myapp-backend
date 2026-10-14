@@ -33,6 +33,7 @@ function exact(v, keys) {
  dataKeys(v); // Reject hidden/symbol fields and getters without reading them.
 }
 const SOURCE_HASHES = freeze({
+ 'qualification-railway-first-context-wrapper.cjs': '7c3a376d1f7a1b733f3be90a3b7d43fb4aa2fd5256c5638a13e6301a3d78cf94',
  'qualification-railway-https-adapter.cjs': '6f6ffc8e7fdff418797c62ae8d650536c9d720f7275416913532e5f73eadadd8',
  'qualification-railway-target-identity.cjs': '6ee5d4029a614cf1d414ead1e275f7a1a9d9078a4b58bf5ed14ea82f0ea3c3d0',
  'qualification-railway-target-identity-provider-boundary.cjs': 'f67d1f624707a325b9421d483eced3eed037cbb783fc5cfb0b4a13c309bbfb76',
@@ -196,6 +197,12 @@ function takeContextExecutionAuthority(...args) {
  // No credential read, adapter.open/execute or network call occurs here.
  return freeze({ privateTarget: binding, contextHandoff: record.handoff, operationKind: 'project_token_context' });
 }
+function takeFirstContextExecutionAuthority(...args) {
+ const entry = authorities.get(args[0]); if (!entry) fail();
+ // Wrong public arity still delegates to the same burn-before-validation pool.
+ if (args.length !== 1) return takeContextExecutionAuthority(args[0]);
+ return takeContextExecutionAuthority(args[0], entry.record.binding);
+}
 function reviewTemplate(...args) {
  if (args.length) fail();
  const codeIdentity = freeze({ ...verifySources(), reviewedHead: null, reviewedBranch: null });
@@ -208,4 +215,4 @@ function reviewTemplate(...args) {
 }
 module.exports = Object.freeze({ state, baselineParentHead: BASELINE_PARENT_HEAD, sourceHashes: SOURCE_HASHES, verifyCodeIdentity,
  createDraft, reviewArtifact, reviewPackage, authorizeFirstLiveContext, consumeLiveTicketForContext,
- takeContextExecutionAuthority, reviewTemplate });
+ takeContextExecutionAuthority, takeFirstContextExecutionAuthority, reviewTemplate });

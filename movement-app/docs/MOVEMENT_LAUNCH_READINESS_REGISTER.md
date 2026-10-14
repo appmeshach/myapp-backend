@@ -386,3 +386,23 @@ Actual expected IDs, complete forbidden inventory, reviewed current code/host/
 wrapper and separate first-context live permission remain prerequisites.
 Service/instance transport integration remains unsupported and needs separate
 review. No schema behavior, migration, worker or qualification authority changed.
+
+## 0113 one-shot first-context wrapper foundation
+
+[0113 wrapper](0113-railway-first-context-wrapper.md) is implemented locally and
+accepts only a genuine one-use 0110 execution authority. The additive 0110 consumer
+uses its internally retained target and existing extractor; no target getter or
+second authority store exists. The wrapper owns C/session/P/B/R/T, independently
+verifies project_services with no service/instance/candidate, and closes on every
+exit, including success. It returns only descriptive completion and no continuation
+capability. It is the eleventh 0110 source pin; the original ten remain unchanged.
+No live Railway request, actual identity observation or real credential read occurred.
+0110 remains PRELIVE_NOT_AUTHORIZED; the safe template retains null IDs/HEAD/branch
+and manualLiveAuthorization=false. providerResultIngressConnected=false; all global
+provider/project-env/service/schema/target observations remain false and all
+identity/causality/restart/platformRestart authority null. Actual expected IDs,
+complete inventory, exact reviewed committed code/host/credential handling/wrapper
+and separate explicit first-live permission remain prerequisites. Service/instance
+transport remains unsupported; a later authorized flow needs a fresh context and
+session, repeated context attestation, then same-context acquisition. No migration,
+deployment, restart or qualification authority changed.

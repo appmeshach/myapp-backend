@@ -110,7 +110,7 @@ VM-only dependency and cannot create normal observations.
 
 ## Pins and current readiness
 
-0110 now verifies ten critical sources. The adapter pin is updated and the
+At the 0112 milestone, 0110 verifies ten critical sources. The adapter pin is updated and the
 identity owner/ingress pins added after final source bytes are known. UTF-8 and
 CRLF-to-LF-only canonicalization, preserved BOM/EOF, explicit future reviewed
 HEAD/branch, historical baselineParentHead and transition rechecks remain intact.
@@ -130,6 +130,15 @@ Service-list and service-instance transport remain unsupported. Their fixed
 unchanged. Context acceptance only makes local service review eligible; it does
 not observe a service, create a candidate, send that request or authorize it.
 No schema behavior or schema-live permission changes.
+
+The later [0113 wrapper](0113-railway-first-context-wrapper.md) is now locally
+implemented and becomes the eleventh source pin; the original ten are unchanged.
+It is a disposable first-context probe that closes after exact acceptance and
+independent session verification, including on success, and returns no continuation
+capability. No live request, real token read or actual identity observation occurred.
+Future service/instance acquisition requires its own separately reviewed and
+live-authorized fresh execution context/session, repeated project-token attestation
+in that lifetime, and only then same-context service/instance execution.
 
 Before first live use, independently obtain/review actual expected Railway IDs,
 complete category-specific forbidden inventory, current committed code/HEAD,
