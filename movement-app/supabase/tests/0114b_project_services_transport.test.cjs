@@ -255,14 +255,15 @@ test('global authority and acquisition permission stay frozen after synthetic su
  assert.equal(m.transportSupported, false); assert.equal(m.liveAuthorized, false); assert.equal(m.manualLiveAuthorization, false);
  reject(() => auth.takeFirstContextExecutionAuthority(f.bundle.result));
 });
-test('eleven pins bind only adapter/boundary changes and regenerated safe templates, identity/wrapper stay unchanged', () => {
+test('twelve pins bind only adapter/boundary changes and regenerated safe templates, identity/wrapper stay unchanged', () => {
  const old = JSON.parse(cp.execFileSync('git', ['-c','safe.directory=' + path.resolve(__dirname, '../../..'),'show',
   'bdc3f942b1fa819118abf188e5b2658cf3dd4510:movement-app/docs/0110-live-review-template.json'], { encoding:'utf8',env:{},windowsHide:true }));
- const oldPins = old.manifest.codeIdentity.sourceHashes; assert.equal(Object.keys(auth.sourceHashes).length, 11);
+ const oldPins = old.manifest.codeIdentity.sourceHashes; assert.equal(Object.keys(auth.sourceHashes).length, 12);
  for (const [file, sha] of Object.entries(auth.sourceHashes)) {
   const actual = crypto.createHash('sha256').update(fs.readFileSync(path.join(base,file),'utf8').replace(/\r\n/g,'\n')).digest('hex');
   assert.equal(actual, sha);
   if (['qualification-railway-https-adapter.cjs','qualification-railway-target-identity-provider-boundary.cjs'].includes(file)) assert.notEqual(sha, oldPins[file]);
+  else if(file === 'qualification-railway-acquisition-wrapper.cjs') assert.equal(oldPins[file],undefined);
   else assert.equal(sha, oldPins[file]);
  }
  for (const [file, expected] of [['0110-live-review-template.json',auth.reviewTemplate()],['0114a-acquisition-review-template.json',auth.acquisitionReviewTemplate()]]) {

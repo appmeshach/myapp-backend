@@ -277,3 +277,29 @@ manualLiveAuthorization=false. No wrapper, bounded human wait or executable
 acquisition authority exists. No live provider request or real credential/provider
 environment read occurred. Remaining work is 0114D acquisition lifetime ownership,
 separately reviewed authorization, bounded human reviews and final disposal.
+
+## 0114D controlled acquisition lifetime and manual authorization
+
+[0114D acquisition wrapper](0114d-railway-acquisition-wrapper.md) now owns one fresh
+original S/C and exactly context, services and instance provider requests, with
+separate five-minute human service and final target waits. It requires exact
+original review submissions, performs no automatic human decision and closes C
+on every terminal path before returning descriptive reviewed target facts.
+No crash resume, provider retry/fallback/pagination, schema, qualification or
+deployment/restart execution is added.
+
+The original v1 acquisition namespace remains planning-only, transportSupported=false
+and unauthorized. Separate movement_railway_identity_acquisition_auth_v2 provides
+an executable path only after exact reviewed package/host/inventory/code and final
+manualLiveAuthorization=true acknowledgement, followed by original one-use ticket
+redemption exclusively by the pinned wrapper. V2 transportSupported=true describes
+implementation
+availability only. Safe templates retain PRELIVE_NOT_AUTHORIZED, false live/manual
+authorization, null actual IDs/HEAD/branch and unreviewed inventory.
+The acquisition safe template includes a separate executableAuthorization v2 view;
+it does not promote the v1 planning manifest or old context-only authority.
+
+The new acquisition wrapper is pin 12. All eleven previous source pins are unchanged;
+the authorization self hash and both safe templates regenerate. Identity/review,
+0112, 0114B/C transport and disposable 0113 semantics remain unchanged. No real
+provider/network request or credential/provider-environment read occurred.

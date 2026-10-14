@@ -287,13 +287,14 @@ test('global authority and acquisition planning stay false/null after candidate'
  const template=auth.acquisitionReviewTemplate();assert.equal(template.outcome,'PRELIVE_NOT_AUTHORIZED');
  for(const key of ['transportSupported','liveAuthorized','manualLiveAuthorization'])assert.equal(template.manifest[key],false);
 });
-test('exactly eleven pins change adapter/boundary only; identity/wrapper and frozen services functions unchanged',()=>{
+test('exactly twelve pins change adapter/boundary only; identity/wrapper and frozen services functions unchanged',()=>{
  const git=args=>cp.execFileSync('git',['-c','safe.directory='+path.resolve(__dirname,'../../..'),...args],{encoding:'utf8',env:{},windowsHide:true});
  const baseline='3d978c44e09750ea8f21d2b47fe220ff717d5714',old=JSON.parse(git(['show',baseline+':movement-app/docs/0110-live-review-template.json']));
- assert.equal(Object.keys(auth.sourceHashes).length,11);
+ assert.equal(Object.keys(auth.sourceHashes).length,12);
  for(const [file,sha] of Object.entries(auth.sourceHashes)){
   assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(base,file),'utf8').replace(/\r\n/g,'\n')).digest('hex'),sha);
   if(['qualification-railway-https-adapter.cjs','qualification-railway-target-identity-provider-boundary.cjs'].includes(file))assert.notEqual(sha,old.manifest.codeIdentity.sourceHashes[file]);
+  else if(file==='qualification-railway-acquisition-wrapper.cjs')assert.equal(old.manifest.codeIdentity.sourceHashes[file],undefined);
   else assert.equal(sha,old.manifest.codeIdentity.sourceHashes[file]);
  }
  const before=git(['show',baseline+':movement-app/scripts/assessment-worker/qualification-railway-https-adapter.cjs']).replace(/\r\n/g,'\n');

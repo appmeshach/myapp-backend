@@ -77,7 +77,7 @@ function loadWrapper(options = {}) {
     if (name === 'node:https') return https;
     if (name === 'node:util') return { TextDecoder: require('node:util').TextDecoder, debuglog: () => ({ enabled: false }) };
     if (name.startsWith('./')) return key === names.wrapper ? facade(name.slice(2)) : load(name.slice(2));
-    if (!['node:path', 'node:crypto'].includes(name)) throw Error('Unexpected builtin: ' + name);
+    if (!['node:path', 'node:crypto', 'node:perf_hooks'].includes(name)) throw Error('Unexpected builtin: ' + name);
     return require(name);
    } };
   vm.runInNewContext(fs.readFileSync(path.join(base, key), 'utf8'), sandbox, { filename: path.join(base, key) }); return module.exports;

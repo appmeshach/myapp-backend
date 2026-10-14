@@ -43,7 +43,7 @@ function acquisitionFixture() {
   if (name.startsWith('./')) return require(path.resolve(path.dirname(file), name));
   assert.ok(['node:path', 'node:crypto'].includes(name)); return require(name);
  } };
- vm.runInNewContext(source, sandbox, { filename: file });
+ require('./0114d-authorization-loader.cjs').loadAuthorizationSandbox(source, sandbox, file);
  const api = sandbox.module.exports, target = binding(), draft = api.createAcquisitionDraft(target, empty(), code);
  return { api, target, draft, drift, file };
 }

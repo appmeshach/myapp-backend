@@ -79,6 +79,7 @@ one LF; it differs from the validator module's source hash.
 
 | Security-critical source | Pinned SHA-256 |
 |---|---|
+| 0114D acquisition lifetime owner | `ecadb5c4f9cf6419edddd13ec4139c22e767fe7d3d4e870791e23ce811c4e47a` |
 | 0113 one-shot first-context wrapper | `7c3a376d1f7a1b733f3be90a3b7d43fb4aa2fd5256c5638a13e6301a3d78cf94` |
 | 0109 HTTPS adapter, including 0112 context transfer | `6c25068a45e7ffe98f9db8bd1efe20e0bebad5140f740ea20725785af6361d6b` |
 | 0111 identity owner, including context transfer slots | `1dce76ecf7657f40d6ad98a7347eecff868772c5812eeadf025165c80ebfcb47` |
@@ -314,3 +315,29 @@ Exactly eleven pins remain: only adapter/provider-boundary pins change from 0114
 The authorization module changes only those pin values, and both safe templates
 and self hash are regenerated. Actual IDs and reviewed HEAD/branch remain null.
 No real Railway/provider request or real credential/provider-environment read occurred.
+
+## 0114D controlled acquisition lifetime and manual authorization
+
+[0114D acquisition wrapper](0114d-railway-acquisition-wrapper.md) now owns one fresh
+original S/C and exactly context, services and instance provider requests, with
+separate five-minute human service and final target waits. It requires exact
+original review submissions, performs no automatic human decision and closes C
+on every terminal path before returning descriptive reviewed target facts.
+No crash resume, provider retry/fallback/pagination, schema, qualification or
+deployment/restart execution is added.
+
+The original v1 acquisition namespace remains planning-only, transportSupported=false
+and unauthorized. Separate movement_railway_identity_acquisition_auth_v2 provides
+an executable path only after exact reviewed package/host/inventory/code and final
+manualLiveAuthorization=true acknowledgement, followed by original one-use ticket
+redemption exclusively by the pinned wrapper. V2 transportSupported=true describes
+implementation
+availability only. Safe templates retain PRELIVE_NOT_AUTHORIZED, false live/manual
+authorization, null actual IDs/HEAD/branch and unreviewed inventory.
+The acquisition safe template includes a separate executableAuthorization v2 view;
+it does not promote the v1 planning manifest or old context-only authority.
+
+The new acquisition wrapper is pin 12. All eleven previous source pins are unchanged;
+the authorization self hash and both safe templates regenerate. Identity/review,
+0112, 0114B/C transport and disposable 0113 semantics remain unchanged. No real
+provider/network request or credential/provider-environment read occurred.

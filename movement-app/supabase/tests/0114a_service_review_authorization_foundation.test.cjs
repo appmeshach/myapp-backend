@@ -146,7 +146,7 @@ test('synthetic acquisition review/approval is original, one-use and never execu
   reject(() => f.api.takeFirstContextExecutionAuthority(artifact));
   reject(() => f.api.authorizeFirstLiveContext(artifact, f.target, { manualLiveAuthorization: true }));
  }
- assert.equal(f.api.takeAcquisitionExecutionAuthority, undefined); assert.equal(f.api.authorizeLiveAcquisition, undefined);
+ assert.equal(f.api.takeAcquisitionExecutionAuthority, undefined); assert.equal(f.api.consumeAcquisitionTicket, undefined); assert.equal(f.api.authorizeLiveAcquisition, undefined);
 });
 for (const mode of ['wrongBinding', 'extraArgs', 'changedOrder', 'liveTrue']) {
  test('acquisition approval burns on invalid input: ' + mode, () => {
@@ -171,11 +171,11 @@ for (const mode of ['head', 'branch', ...Object.keys(normal.sourceHashes), 'self
   reject(() => f.api.approveAcquisitionPackageReview(r, f.target, acquisitionAck(r)));
  });
 }
-test('pin count stays eleven, historical 0114A identity pin and later transport pins are distinct, templates share regenerated self hash', () => {
+test('pin count stays twelve, historical 0114A identity pin and later transport pins are distinct, templates share regenerated self hash', () => {
  const cp = require('node:child_process'), base = '99e3c23c1a2222c32ed9894b560c6df91ed5cb11';
  const original = cp.execFileSync('git', ['-c', 'safe.directory=' + path.resolve(__dirname, '../../..'), 'show', base + ':movement-app/docs/0110-live-review-template.json'], { encoding: 'utf8', env: {}, windowsHide: true });
  const pins = JSON.parse(original).manifest.codeIdentity.sourceHashes;
- assert.equal(Object.keys(normal.sourceHashes).length, 11); assert.deepEqual(Object.keys(normal.sourceHashes).sort(), Object.keys(pins).sort());
+ assert.equal(Object.keys(normal.sourceHashes).length, 12); assert.deepEqual(Object.keys(normal.sourceHashes).sort(), [...Object.keys(pins), 'qualification-railway-acquisition-wrapper.cjs'].sort());
  for (const key of Object.keys(pins)) {
   if (['qualification-railway-target-identity.cjs', 'qualification-railway-https-adapter.cjs', 'qualification-railway-target-identity-provider-boundary.cjs'].includes(key)) assert.notEqual(normal.sourceHashes[key], pins[key]);
   else assert.equal(normal.sourceHashes[key], pins[key]);

@@ -34,6 +34,7 @@ function exact(v, keys) {
  dataKeys(v); // Reject hidden/symbol fields and getters without reading them.
 }
 const SOURCE_HASHES = freeze({
+ 'qualification-railway-acquisition-wrapper.cjs': '0dc8a07daace32d4984f3edf73301e4143cd2cb2de6232d5880bec33485b103e',
  'qualification-railway-first-context-wrapper.cjs': '7c3a376d1f7a1b733f3be90a3b7d43fb4aa2fd5256c5638a13e6301a3d78cf94',
  'qualification-railway-https-adapter.cjs': '6c25068a45e7ffe98f9db8bd1efe20e0bebad5140f740ea20725785af6361d6b',
  'qualification-railway-target-identity.cjs': '1dce76ecf7657f40d6ad98a7347eecff868772c5812eeadf025165c80ebfcb47',
@@ -270,9 +271,85 @@ function acquisitionReviewTemplate(...args) {
  const forbidden = { inventoryReviewed: false, ...Object.fromEntries(CATEGORIES.map(k => [k, { reviewed: false, ids: null }])) };
  return freeze({ notice: 'LIVE ACQUISITION NOT AUTHORIZED', outcome: 'PRELIVE_NOT_AUTHORIZED',
   manifest: acquisitionFacts(codeIdentity, expectedTarget, forbidden), actualRailwayIdsUnresolved: true,
-  reviewed: false, localReviewComplete: false, manualLiveAuthorization: false, liveAuthorized: false });
+  reviewed: false, localReviewComplete: false, manualLiveAuthorization: false, liveAuthorized: false,
+  executableAuthorization: executableAcquisitionReviewTemplate() });
 }
-module.exports = Object.freeze({ state, baselineParentHead: BASELINE_PARENT_HEAD, sourceHashes: SOURCE_HASHES, verifyCodeIdentity,
+// Executable v2 is separate from the unchanged v1 planning-only pool.
+const executableDrafts = new WeakMap(), executableReviews = new WeakMap(), acquisitionTickets = new WeakMap();
+const executionPolicy = freeze({ humanWaitMs: 300000, maxProviderRequests: 3, sameSessionContextLifetime: true,
+ closeOnEveryTerminalExit: true, crashResumeSupported: false, retries: 0, fallbackAllowed: false, redirectPolicy: 'reject' });
+function executableManifest(codeIdentity, expectedTarget, forbidden) {
+ return freeze({ ...acquisitionFacts(codeIdentity,expectedTarget,forbidden), version: 'movement_railway_identity_acquisition_auth_v2',
+  transportSupported: true, executionPolicy, manualLiveAuthorizationRequired: true });
+}
+function createExecutableAcquisitionDraft(...args) {
+ if (args.length !== 3) fail(); const [binding, forbidden, code] = args, target = targets.describeTarget(binding);
+ const inventoryReview = identity.reviewForbiddenInventory(binding,forbidden), codeIdentity = verifyCodeIdentity(code);
+ const manifest = executableManifest(codeIdentity,{ ...target, expectations: identity.reviewTemplate().expectations },inventoryReview.inventory);
+ const draft = Object.freeze({});
+ executableDrafts.set(draft,{ binding,inventoryReview,codeIdentity,manifest,contextReview: reviews.reviewProjectTokenContext(binding),
+  reviewedCode: freeze({ reviewedHead: codeIdentity.reviewedHead, reviewedBranch: codeIdentity.reviewedBranch }),
+  reviewIssued: false, reviewComplete: false, ticketIssued: false, contextHandoff: null, host: null });
+ return draft;
+}
+function reviewExecutableAcquisitionPackage(...args) {
+ if (args.length !== 1) fail(); const e = executableDrafts.get(args[0]);
+ if (!e || e.reviewIssued || canonical(verifyCodeIdentity(e.reviewedCode)) !== canonical(e.codeIdentity)) fail();
+ const review = freeze({ outcome: 'PRELIVE_NOT_AUTHORIZED', manifest: e.manifest, manifestSha256: hash(canonical(e.manifest)),
+  contextReviewMetadata: e.contextReview.meta, hostAttestationKeys: ['nodeMajor',...HOST_KEYS], liveAuthorized: false });
+ executableReviews.set(review,e); e.reviewIssued = true; return review;
+}
+function acquisitionFinalAcknowledgement(e) {
+ if (!e.reviewComplete) fail();
+ return freeze({ manualLiveAuthorization: false, version: e.manifest.version, operationKind: 'target_identity_acquisition',
+  manifestSha256: hash(canonical(e.manifest)), reviewedHead: e.codeIdentity.reviewedHead, reviewedBranch: e.codeIdentity.reviewedBranch,
+  codeIdentitySha256: hash(canonical(e.codeIdentity)), hostReviewSha256: hash(canonical(e.host)) });
+}
+function approveExecutableAcquisitionPackageReview(...args) {
+ const e = executableReviews.get(args[0]); if (!e) fail(); executableReviews.delete(args[0]);
+ if (args.length !== 3 || args[1] !== e.binding || e.reviewComplete) fail();
+ const ack = args[2]; exact(ack,['reviewed','manifest','manifestSha256','contextReview','hostChecklist']);
+ if (ack.reviewed !== true || canonical(ack.manifest) !== canonical(e.manifest) ||
+  ack.manifestSha256 !== hash(canonical(e.manifest)) || canonical(ack.contextReview) !== canonical({ reviewed: true,...e.contextReview.meta }) ||
+  canonical(verifyCodeIdentity(e.reviewedCode)) !== canonical(e.codeIdentity)) fail();
+ e.host = hostChecklist(ack.hostChecklist);
+ const p = reviews.approveProjectTokenContextReview(e.contextReview,ack.contextReview);
+ e.contextHandoff = reviews.consumeProjectTokenContextPermitForAdapter(p,e.binding); e.reviewComplete = true;
+ return freeze({ outcome: 'PRELIVE_NOT_AUTHORIZED', localReviewComplete: true, manifest: e.manifest, liveAuthorized: false,
+  finalAcknowledgementTemplate: acquisitionFinalAcknowledgement(e) });
+}
+function authorizeAcquisition(...args) {
+ if (args.length !== 3) fail(); const e = executableDrafts.get(args[0]);
+ if (!e || args[1] !== e.binding || !e.reviewComplete || e.ticketIssued) fail();
+ const expected = acquisitionFinalAcknowledgement(e), ack = args[2]; exact(ack,Object.keys(expected));
+ for (const k of Object.keys(expected)) if (ack[k] !== (k === 'manualLiveAuthorization' ? true : expected[k])) fail();
+ if (canonical(verifyCodeIdentity(e.reviewedCode)) !== canonical(e.codeIdentity)) fail();
+ e.ticketIssued = true; const ticket = Object.freeze({}); acquisitionTickets.set(ticket,e); return ticket;
+}
+// Private redemption, installed only into the pinned literal acquisition owner.
+function redeemAcquisitionTicketForWrapper(...args) {
+ const e = acquisitionTickets.get(args[0]); if (!e) fail(); acquisitionTickets.delete(args[0]);
+ if (args.length !== 1 || canonical(verifyCodeIdentity(e.reviewedCode)) !== canonical(e.codeIdentity) ||
+  require('./qualification-railway-acquisition-wrapper.cjs') !== acquisitionOwner) fail();
+ return freeze({ privateTarget: e.binding, contextHandoff: e.contextHandoff, inventoryReview: e.inventoryReview,
+  operationKind: 'target_identity_acquisition', executionPolicy });
+}
+function executableAcquisitionReviewTemplate(...args) {
+ if (args.length) fail(); const codeIdentity = freeze({ ...verifySources(), reviewedHead: null, reviewedBranch: null });
+ const safe = identity.reviewTemplate();
+ return freeze({ outcome: 'PRELIVE_NOT_AUTHORIZED', reviewed: false, liveAuthorized: false, manualLiveAuthorization: false,
+  manifest: executableManifest(codeIdentity,{ ...safe.ids, expectations: safe.expectations, environmentKind: null, lifecycle: null },
+   safe.forbiddenRailwayInventory) });
+}
+module.exports = Object.freeze(Object.assign(Object.create(null), { state, baselineParentHead: BASELINE_PARENT_HEAD, sourceHashes: SOURCE_HASHES, verifyCodeIdentity,
+ createExecutableAcquisitionDraft, reviewExecutableAcquisitionPackage, approveExecutableAcquisitionPackageReview, authorizeAcquisition,
+ executableAcquisitionReviewTemplate,
  createAcquisitionDraft, reviewAcquisitionPackage, approveAcquisitionPackageReview, acquisitionReviewTemplate,
  createDraft, reviewArtifact, reviewPackage, authorizeFirstLiveContext, consumeLiveTicketForContext,
- takeContextExecutionAuthority, takeFirstContextExecutionAuthority, reviewTemplate });
+ takeContextExecutionAuthority, takeFirstContextExecutionAuthority, reviewTemplate }));
+// No public redemption getter/installer. Complete the literal wrapper's private
+// connection before either outer import returns; null prototypes support cycles.
+const acquisitionOwner = require('./qualification-railway-acquisition-wrapper.cjs');
+const connectAcquisitionOwner = Reflect.get(acquisitionOwner, '_connectAcquisitionRedemption');
+if (typeof connectAcquisitionOwner !== 'function') fail();
+connectAcquisitionOwner(redeemAcquisitionTicketForWrapper);
