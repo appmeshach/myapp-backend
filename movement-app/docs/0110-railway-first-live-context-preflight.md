@@ -80,9 +80,9 @@ one LF; it differs from the validator module's source hash.
 | Security-critical source | Pinned SHA-256 |
 |---|---|
 | 0113 one-shot first-context wrapper | `7c3a376d1f7a1b733f3be90a3b7d43fb4aa2fd5256c5638a13e6301a3d78cf94` |
-| 0109 HTTPS adapter, including 0112 context transfer | `6f6ffc8e7fdff418797c62ae8d650536c9d720f7275416913532e5f73eadadd8` |
+| 0109 HTTPS adapter, including 0112 context transfer | `d6a85fe9f2c3eb8f985646018e8570f95c218878123c332a03c2f3e2526ba2f7` |
 | 0111 identity owner, including context transfer slots | `1dce76ecf7657f40d6ad98a7347eecff868772c5812eeadf025165c80ebfcb47` |
-| 0111 adapter-owned receipt ingress | `f67d1f624707a325b9421d483eced3eed037cbb783fc5cfb0b4a13c309bbfb76` |
+| 0111 adapter-owned receipt ingress | `8e24f4e4ae8f0f732606e0caf7a204d31ddd5807195d1ef50595feabd2e584de` |
 | 0109 context review | `23fb65eef738136b68b3d8ce19a69e51482f9bc075c6a26940e2300108c6dd0f` |
 | 0107 private schema preflight/handoff | `88fe296bd5bfaa639844436c031dbdc674f29c25fbab3530081317143b3c9d74` |
 | 0108 projectToken document/validator | `cd862abc5b85b8663fbc1075263c0b5d3c6d05793a31e875db67457f4adb3085` |
@@ -281,3 +281,22 @@ Pin count remains eleven; only identity owner's pin changes, all other ten remai
 unchanged. The boundary self hash and both safe templates were regenerated.
 No live provider request or real credential read occurred; service/instance
 transport and the eventual acquisition wrapper remain unimplemented.
+
+## 0114B local project-services transport
+
+[0114B](0114b-railway-project-services-transport.md) adds only fixed
+Movement0111ProjectServices transport/provenance plumbing after accepted context
+in the exact same fresh 0111 session and 0109 execution context. Successful
+acceptance stops at service_review and requires the unchanged 0114A human gate.
+The identity owner and disposable 0113 wrapper are unchanged.
+
+Transport implementation exists, but no authorized acquisition owner/authority
+exists. Context-only tickets still cannot authorize services. The acquisition
+planning namespace stays transportSupported=false, liveAuthorized=false and
+manualLiveAuthorization=false. Service-instance transport, the acquisition
+wrapper and bounded human waiting remain absent.
+Exactly eleven pins remain; only adapter and provider-boundary pins change from
+0114A. The authorization boundary changes only those two pin values, with its
+self hash and both safe templates regenerated. Actual target IDs and reviewed
+HEAD/branch remain null in the safe templates. No live provider request or real
+token/provider-environment read occurred.

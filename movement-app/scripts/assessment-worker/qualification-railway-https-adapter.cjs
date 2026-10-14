@@ -20,6 +20,7 @@ const status = freeze({ adapterImplemented: true, transportContractReady: true, 
  platformRestart: null, restartAttribution: { measurement: null, limitation: 'restart_origin_unattributable' } });
 const contexts = new WeakMap(), results = new WeakMap();
 const transferBindings = new WeakMap(), contextTransfers = new WeakMap();
+const servicesBindings = new WeakMap(), servicesTransfers = new WeakMap(), servicesResults = new WeakMap(), servicesReceipts = new WeakMap();
 const fail = () => { throw Error('Railway private HTTPS evidence unavailable'); };
 const hash = v => crypto.createHash('sha256').update(v).digest('hex');
 function requireQuietDiagnostics() {
@@ -28,7 +29,12 @@ function requireQuietDiagnostics() {
  if (Object.hasOwn(process.env, 'NODE_DEBUG') || debuglog('http').enabled || debuglog('https').enabled) fail();
 }
 function invalidate(record) {
- record.closed = true; record.attested = false; record.secret = null;
+ record.closed = true; record.attested = false; record.secret = null; record.identityAttestation = null;
+ for (const [pool, handles] of [[servicesBindings, record.servicesBindings], [servicesTransfers, record.servicesTransfers],
+  [servicesResults, record.servicesResults], [servicesReceipts, record.servicesReceipts]]) {
+  for (const handle of handles) pool.delete(handle); handles.clear();
+ }
+ if (record.servicesAttempt) record.servicesAttempt.phase = 'cancelled';
  for (const result of record.results) results.delete(result);
  record.results.clear();
  for (const handle of record.transferBindings) {
@@ -56,7 +62,8 @@ function openExecutionContext(...args) {
  } catch { fail(); }
  const handle = Object.freeze({});
  contexts.set(handle, { binding, secret, closed: false, attested: false, busy: false, cancel: null, results: new Set(),
-  transferBindings: new Set(), transfers: new Set(), transferBinding: null });
+  transferBindings: new Set(), transfers: new Set(), transferBinding: null, identityAttestation: null, servicesAttempt: null,
+  servicesBindings: new Set(), servicesTransfers: new Set(), servicesResults: new Set(), servicesReceipts: new Set() });
  return handle;
 }
 function closeExecutionContext(...args) {
@@ -252,10 +259,122 @@ function consumeContextResultTransfer(...args) {
     acceptance: bound.acceptance, completion });
   }
   if (bound.facts.projectId !== e.facts.projectId || bound.facts.environmentId !== e.facts.environmentId) fail();
+  // Retain completed original S/C attestation for the separate services path.
+  // Ordinary context summaries still grant no identity-session provenance.
+  record.identityAttestation = freeze({ session: e.session, binding: e.binding, executionContext: e.executionContext, owner, facts: bound.facts });
   record.attested = true; record.busy = false; return Object.freeze({ contextTransferComplete: true });
  } catch {
   try { e.owner.contextTransfer.cancelSlot(e.slot); } catch {} invalidate(e.record); fail();
  }
 }
-module.exports = Object.freeze({ status, safety, openExecutionContext, closeExecutionContext,
- executeHandoff, consumeContextResult, consumeSchemaResult, bindContextResultTransfer, prepareContextResultTransfer, consumeContextResultTransfer });
+// Only this fixed operation is added. Requests come from the original identity
+// owner; no request/body/credential/transport argument is accepted.
+function requireServicesOwner(expected = null) {
+ const owner = requireOwner(expected);
+ if (!['takeIdentityHandoffForFutureAdapter', 'validateProjectServices'].every(k => typeof owner[k] === 'function')) fail();
+ return owner;
+}
+function plainKeys(value, keys) {
+ if (!value || typeof value !== 'object' || Array.isArray(value) ||
+  Reflect.ownKeys(value).length !== keys.length || Object.keys(value).sort().join('|') !== keys.slice().sort().join('|')) fail();
+ for (const key of keys) {
+  const d = Object.getOwnPropertyDescriptor(value, key);
+  if (!d || !d.enumerable || !Object.hasOwn(d, 'value')) fail();
+ }
+}
+function fixedProjectServicesRequest(request, attestation, owner) {
+ plainKeys(request, ['query', 'operationName', 'variables']); plainKeys(request.variables, ['id']);
+ const doc = owner.documents?.projectServices;
+ if (!doc || request.operationName !== 'Movement0111ProjectServices' || request.query !== doc.source ||
+  hash(request.query + '\n') !== 'fa6231580d6acec3510c26f4be5972605a3648c4c47f7da73eaa24021b137833' ||
+  doc.canonicalSha256 !== 'fa6231580d6acec3510c26f4be5972605a3648c4c47f7da73eaa24021b137833' ||
+  request.variables.id !== attestation.facts.projectId) fail();
+}
+function assertServicesAttempt(e) {
+ const record = contexts.get(e.executionContext), owner = requireServicesOwner(e.owner), attestation = record?.identityAttestation;
+ if (record !== e.record || record.closed || !record.attested || !record.busy || record.servicesAttempt !== e ||
+  record.binding !== e.binding || attestation !== e.attestation || attestation.session !== e.session ||
+  attestation.executionContext !== e.executionContext || attestation.binding !== e.binding || attestation.owner !== owner) fail();
+ fixedProjectServicesRequest(e.request, attestation, owner); return record;
+}
+function bindProjectServicesTransfer(...args) {
+ const record = contexts.get(args[0]);
+ try {
+  const owner = requireServicesOwner();
+  // The original H burns inside the owner before its session/context validation.
+  const original = owner.takeIdentityHandoffForFutureAdapter(args[2], args[1], args[0]);
+  const attestation = record?.identityAttestation;
+  if (args.length !== 3 || !record || record.closed || !record.attested || record.busy || record.servicesAttempt ||
+   record.results.size || record.transferBinding || record.transfers.size || !attestation ||
+   original.kind !== 'project_services' || original.session !== args[1] || original.executionContext !== args[0] ||
+   original.binding !== record.binding || attestation.session !== original.session || attestation.binding !== original.binding ||
+   attestation.executionContext !== original.executionContext || attestation.owner !== owner) fail();
+  fixedProjectServicesRequest(original.request, attestation, owner);
+  const transfer = Object.freeze({}), e = { ...original, owner, record, attestation, phase: 'bound' };
+  record.servicesAttempt = e; record.busy = true; servicesBindings.set(transfer, e); record.servicesBindings.add(transfer);
+  return transfer;
+ } catch { if (record) invalidate(record); fail(); }
+}
+async function executeProjectServices(...args) {
+ const e = servicesBindings.get(args[0]); if (!e) fail();
+ servicesBindings.delete(args[0]); e.record.servicesBindings.delete(args[0]);
+ try {
+  if (args.length !== 1 || e.phase !== 'bound') fail(); assertServicesAttempt(e);
+  e.phase = 'dispatching'; servicesTransfers.set(args[0], e); e.record.servicesTransfers.add(args[0]);
+  const body = await post(e.record, e.request); assertServicesAttempt(e);
+  e.phase = 'responded'; const result = Object.freeze({});
+  servicesResults.set(result, { entry: e, kind: 'project_services', session: e.session, binding: e.binding,
+   executionContext: e.executionContext, invocation: e.invocation, request: e.request,
+   endpoint: contract.endpoint, authKind: contract.preferredAuthKind, body: freeze(body) });
+  e.record.servicesResults.add(result); return result;
+ } catch { invalidate(e.record); fail(); }
+}
+function prepareProjectServicesResult(...args) {
+ const result = servicesResults.get(args[0]), e = servicesTransfers.get(args[1]);
+ if (result) { servicesResults.delete(args[0]); result.entry.record.servicesResults.delete(args[0]); }
+ if (e) { servicesTransfers.delete(args[1]); e.record.servicesTransfers.delete(args[1]); }
+ try {
+  if (args.length !== 2 || !result || !e || e.phase !== 'responded' || result.entry !== e ||
+   result.kind !== 'project_services' || result.session !== e.session || result.binding !== e.binding ||
+   result.executionContext !== e.executionContext || result.invocation !== e.invocation || result.request !== e.request ||
+   result.endpoint !== 'https://backboard.railway.com/graphql/v2' || result.authKind !== 'project_token') fail();
+  assertServicesAttempt(e);
+  // Early objective validation protects the transport attempt. The unchanged
+  // identity owner independently repeats the final semantic/expected-ID checks.
+  const facts = e.owner.validateProjectServices(e.attestation.facts.projectId, result.body);
+  if (facts.serviceId !== targets.describeTarget(e.binding).serviceId) fail();
+  e.phase = 'receipt'; const receipt = Object.freeze({});
+  servicesReceipts.set(receipt, result); e.record.servicesReceipts.add(receipt);
+  return freeze({ invocation: e.invocation, result: receipt });
+ } catch {
+  if (e) invalidate(e.record); if (result && result.entry !== e) invalidate(result.entry.record); fail();
+ }
+}
+function cancelProjectServicesTransfer(...args) {
+ const e = servicesBindings.get(args[0]) || servicesTransfers.get(args[0]); if (!e) fail();
+ servicesBindings.delete(args[0]); servicesTransfers.delete(args[0]);
+ e.record.servicesBindings.delete(args[0]); e.record.servicesTransfers.delete(args[0]);
+ invalidate(e.record); if (args.length !== 1) fail();
+}
+function consumeProjectServicesReceipt(...args) {
+ const result = servicesReceipts.get(args[0]); if (!result) fail();
+ servicesReceipts.delete(args[0]); const e = result.entry; e.record.servicesReceipts.delete(args[0]);
+ try {
+  if (args.length !== 1 || e.phase !== 'receipt') fail(); assertServicesAttempt(e);
+  e.phase = 'consumed'; e.record.busy = false;
+  return freeze({ kind: result.kind, session: result.session, binding: result.binding, executionContext: result.executionContext,
+   invocation: result.invocation, request: result.request, endpoint: result.endpoint, authKind: result.authKind, body: result.body });
+ } catch { invalidate(e.record); fail(); }
+}
+// Private consumer wiring is synchronous at module initialization. The boundary
+// deletes/freezes its temporary linker before either normal import returns.
+// No consumer, raw-body factory, issuer or callback registration survives import.
+function consumeIdentityProviderObservation(...args) {
+ if (servicesReceipts.has(args[0])) return consumeProjectServicesReceipt(...args);
+ return consumeContextResultTransfer(...args); // Preserve context arity/burn semantics.
+}
+module.exports = Object.freeze(Object.assign(Object.create(null), { status, safety, openExecutionContext, closeExecutionContext,
+ bindProjectServicesTransfer, executeProjectServices, prepareProjectServicesResult, cancelProjectServicesTransfer,
+ executeHandoff, consumeContextResult, consumeSchemaResult, bindContextResultTransfer, prepareContextResultTransfer, consumeContextResultTransfer }));
+const linkConsumer = Reflect.get(require('./qualification-railway-target-identity-provider-boundary.cjs'), '_connectProjectServicesConsumer');
+if (typeof linkConsumer !== 'function') fail(); linkConsumer(consumeIdentityProviderObservation);

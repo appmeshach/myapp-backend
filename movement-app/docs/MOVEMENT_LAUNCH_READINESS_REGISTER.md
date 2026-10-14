@@ -427,3 +427,23 @@ Actual IDs and reviewed code identity remain unresolved in safe templates; all
 live authorization remains false. No live provider request or real credential read
 occurred. Service/instance transport and the eventual acquisition wrapper remain
 the 0114B gap. All 99 migrations and frozen transport sources remain unchanged.
+
+## 0114B fixed project-services transport and provider provenance
+
+[0114B](0114b-railway-project-services-transport.md) implements only the fixed
+Movement0111ProjectServices request after context acceptance in the same original
+fresh S/C. Original handoff, target, fixed request and invocation ownership are
+retained. Separate one-use adapter result/receipt pools prevent forged JSON,
+namespace confusion, replay and second/concurrent dispatch. Close/cancellation
+invalidates services state; successful acceptance keeps C open and stops at
+service_review. Exact original human service approval remains mandatory.
+
+Transport implementation exists, but no authorized acquisition owner/authority
+exists. 0110 remains context-only; the acquisition namespace remains planning-only,
+transportSupported=false and live authorization false. Actual IDs remain unresolved.
+Service-instance transport (0114C), acquisition wrapper/lifetime ownership and
+bounded human waits (0114D) remain absent. The identity owner, 0112 P/B/R/T behavior,
+0113 disposable wrapper and all 99 migrations are unchanged. Eleven pins remain;
+only adapter/provider-boundary pins and the authorization self hash are refreshed.
+No live provider request, real token/provider-environment read, CLI/API action,
+deployment, restart, staging, commit or push occurred.

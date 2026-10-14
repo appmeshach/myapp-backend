@@ -3,8 +3,9 @@
 Local foundation only. TARGET_IDENTITY_UNRESOLVED. PRELIVE_NOT_AUTHORIZED.
 Actual projectId, environmentId, serviceId and serviceInstanceId remain null in
 both safe authorization templates. No live provider request or real credential /
-provider environment read occurred. Service/instance transport and the eventual
-0114 acquisition wrapper remain unimplemented. 0113 remains one-shot/disposable;
+provider environment read occurred. At 0114A, service/instance transport and the
+eventual acquisition wrapper were unimplemented; 0114B now implements services
+transport only. Service-instance transport and the acquisition wrapper remain absent. 0113 remains one-shot/disposable;
 its source, behavior and context-only authority consumers are unchanged.
 
 ## Required service decision
@@ -203,7 +204,7 @@ The required Expo v57 documentation was read before code changes; that documenta
 fetch was the sole intentional external documentation action in this task.
 No temporary file remains in the repository; verification scripts/logs live in OS temp.
 
-Remaining 0114B gap: separately review/authorize the acquisition transport and
+Historical remaining gap at the 0114A milestone: separately review/authorize the acquisition transport and
 wrapper that owns a fresh C/S, repeats context attestation, acquires services,
 pauses for exact human service review, acquires instance evidence and requires
 final target review. This foundation makes none of those live requests executable.
@@ -237,3 +238,25 @@ Documentation/templates changed: the four tracked docs/templates listed above.
 Added: this milestone document and the separate acquisition safe template.
 The existing 0111 target-identity template remains valid and unchanged because
 its unresolved facts and fixed GraphQL documents did not change.
+
+## 0114B transport update; 0114A gate and authorization unchanged
+
+The historical source hashes and validation record above describe committed
+0114A. [0114B](0114b-railway-project-services-transport.md) now supplies only the
+fixed project-services transport/provenance bridge. Successful genuine acceptance
+still ends at service_review. The original service review gate, exact
+acknowledgement, ownership and burn semantics are unchanged; identity owner bytes
+and its source pin are unchanged. Instance review remains impossible before exact
+human approval.
+
+Transport implementation exists, but no authorized acquisition owner/authority
+exists. movement_railway_identity_acquisition_auth_v1 remains planning-only with
+transportSupported=false, liveAuthorized=false and manualLiveAuthorization=false.
+Safe template target IDs and reviewed HEAD/branch remain null. The adapter and
+provider-boundary pins change within the existing eleven; the other nine remain
+unchanged. Only those pin values change in 0110 production code, and both safe
+templates and authorization-boundary self hash are regenerated. No live provider
+request or real token/provider-environment read occurred.
+Remaining work is 0114C service-instance transport, then 0114D acquisition lifetime
+ownership/wrapper and bounded human waits with separately reviewed authorization.
+No schema, qualification, retry, unexpected-service policy or 0113 change is added.

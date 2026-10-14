@@ -68,8 +68,8 @@ to the original session and live execution context. There is still no issuer,
 raw-body factory, callback or injection export in ingress. Raw and synthetic VM
 handles cannot enter the normal authority namespace. Local implementation is
 distinct from a reviewed live host: providerResultIngressConnected remains false,
-and no actual observation has occurred. Service/instance result integration
-remains unavailable. Existing synthetic acquisition tests use a separate VM
+and no actual observation has occurred. 0114B implements local project-services
+transport/result integration; service-instance integration remains unavailable. Existing synthetic acquisition tests use a separate VM
 dependency; the 0112 tests use a coherent isolated adapter/identity/ingress graph.
 
 ## Two phases and fixed contracts
@@ -134,20 +134,22 @@ Reviews/permits/handoffs/invocations are one-use and burn before validation.
 Stale/copy/wrong-stage handles fail; invalid accepted observations fail the session
 with no retry. A different private target with identical IDs cannot substitute.
 
-The future adapter bridge takes the original handoff once through
+The 0114B adapter bridge takes the original handoff once through
 `takeIdentityHandoffForFutureAdapter(handoff, originalSession, originalExecutionContext)`.
 It receives the fixed request and an opaque invocation capability. Its private
 result must bind that invocation, session, original target, live execution context,
 operation kind, endpoint `https://backboard.railway.com/graphql/v2`, project-token
-auth kind and exact request. The issuer must itself enforce 0109 ownership,
-context-first success, credential-lifetime liveness, separate human live permission,
-one-use ownership and fixed-origin transport; caller claims are insufficient.
+auth kind and exact request. The bridge enforces 0109 ownership, context-first success, credential-lifetime
+liveness, one-use ownership and fixed-origin transport; caller claims are
+insufficient. The future acquisition owner must separately enforce human live
+permission; this plumbing adds no executable acquisition authorization.
 `acceptIdentityObservation` burns the invocation and consumes that private result
 before exact request and shape validation. Closed-lifetime results must be burned
 and rejected by the trusted ingress; synthetic tests cover that contract.
 
-**Service/instance transport integration remains unimplemented.** The adapter
-recognizes context/schema execution handoffs, not these identity request handoffs.
+**0114B implements project-services transport locally; service-instance transport
+remains unimplemented.** The adapter now has a separate fixed project-services path; its existing
+context/schema executor is not a generic identity-handoff executor.
 Its public ordinary context consumer still returns only hashed scope facts.
 [0112 context transfer](0112-railway-context-result-transfer.md) adds a separate
 private one-use path from an original genuine context result to this session.
@@ -265,3 +267,25 @@ validation is preserved; no new unexpected-service inventory policy was invented
 No live request or real credential read occurred. Actual IDs remain unresolved;
 service/instance transport and the future acquisition wrapper remain unsupported.
 0112 context-transfer semantics and the disposable 0113 wrapper remain unchanged.
+
+## 0114B trusted fixed project-services bridge
+
+[0114B transport](0114b-railway-project-services-transport.md) consumes the existing
+original handoff through takeIdentityHandoffForFutureAdapter, without changing
+this identity owner. bindProjectServicesTransfer(C, S, H) requires completed
+accepted context in that same original S/C; executeProjectServices(transfer)
+sends only the retained fixed request; prepareProjectServicesResult(R, transfer)
+returns original invocation and a one-use opaque ingress receipt.
+acceptIdentityObservation(S, invocation, receipt) performs the existing final
+checks and advances only to service_review. No automatic human approval occurs.
+The exact original service review/approval remains mandatory before instance review.
+
+Provider ingress remains consumer-only, with no surviving issuer, raw-body
+factory or callback registration. Closing C invalidates outstanding services
+state; success leaves C open. No second dispatch, concurrency, retry, redirect,
+fallback, page traversal, context migration or new inventory policy is added.
+This plumbing has no live acquisition owner/authority. Service-instance transport,
+the final acquisition wrapper and human-wait mechanism remain absent. Actual
+Railway IDs remain unresolved, global authority stays false/null, and no live
+provider request or real token/provider-environment read occurred. 0112 context
+transfer behavior and the one-shot/disposable 0113 wrapper remain unchanged.

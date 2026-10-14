@@ -47,11 +47,21 @@ function loadAdapter({ env = { RAILWAY_TOKEN: 'synthetic-private-credential' }, 
   };
   return req;
  } };
- const module = { exports: {} };
+ const module = { exports: {} }, graph = new Map([['qualification-railway-https-adapter.cjs', module]]);
+ function dependency(name) {
+  if (name === './qualification-railway-https-adapter.cjs') return module.exports;
+  if (name === './qualification-railway-target-identity-provider-boundary.cjs') {
+   const key = name.slice(2); if (graph.has(key)) return graph.get(key).exports;
+   const boundary = { exports: {} }; graph.set(key, boundary);
+   vm.runInNewContext(fs.readFileSync(path.join(path.dirname(file), key), 'utf8'), { module: boundary, require: dependency }, { filename: key });
+   return boundary.exports;
+  }
+  return localRequire(name);
+ }
  vm.runInNewContext(fs.readFileSync(file, 'utf8'), {
   module, require: name => name === 'node:https' ? fakeHttps : name === 'node:util'
    ? { TextDecoder: localRequire('node:util').TextDecoder, debuglog: () => ({ enabled: driver.debugEnabled ?? false }) }
-   : localRequire(name),
+   : dependency(name),
   Buffer, process: { env: guardedEnv },
   setTimeout: (callback, delay) => { const id = ++timerId; timers.set(id, { callback, delay }); return id; },
   clearTimeout: id => timers.delete(id),
