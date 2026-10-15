@@ -676,3 +676,57 @@ failures, three existing OS-specific skips. The initial partial run had an uncha
 0099 child-timeout assertion failure; that test passed on the complete rerun without
 runtime/test changes. Local validation is complete; independent implementation review
 and the unresolved acquisition-input/eligibility/host/inventory gates remain.
+
+## Current 0114E package preparation at c1fee2b
+
+Prepared [the current v2 input package](0114e-current-acquisition-input-review.json)
+offline against required implementation HEAD c1fee2b08051df328f4653404acedf6a55cd40ed
+and branch feature/0092-shared-segment-suitability. Status: INCOMPLETE,
+PRELIVE_NOT_AUTHORIZED. Required code review is a target, not a claim that this
+exact package was independently reviewed: reviewedHead/reviewedBranch remain null
+both at the top level and in codeIdentity. All twelve pins and the authorization
+self hash were recomputed from current source under UTF-8/CRLF-to-LF canonicalization.
+
+Known expected values are projectId 0fa3268a-396f-4042-a4c0-a92c23fdf486,
+environmentId 9410a813-0429-4bc7-bfbb-d54b85e17c8a, serviceId
+ef516a68-9bb7-429e-a395-48ef2676593a, serviceName movement-qualification,
+environmentKind disposable, intended branch feature/0092-shared-segment-suitability
+and root /movement-app. Branch/root are reviewed implementation constraints and
+pending intended settings, not verified applied provider configuration.
+
+Environment/service ID provenance and service-name context reference AT's scoped
+qualification review. Project identity has a different provenance: its per-ID record
+is the unchanged historical AT review in production context, and
+projectEvidenceReference explicitly limits that reuse to unchanged project identity.
+qualificationReview includes the project ID in its context, but does not replace the
+historical per-ID acquisition/review record or independently review the qualification
+operatorSource. Conservatively, current targetInputSources.projectId remains
+independentlyReviewed=false with source/reviewer null pending explicit current
+qualification project-source review. This does not erase the historical review.
+
+Remaining gaps are current project-source provenance, lifecycle, complete reviewed
+forbidden Railway inventory, execution-host attestation and independent review of
+this exact current package including its required code target. Inventory stays
+unreviewed with null basis/provenance/category lists; host checklist and package
+review remain false/null. AT's implementation review is not reused as package
+review. serviceInstanceId remains null with unreviewed/null source and reviewer;
+the existing contract permits this unresolved expectation until a separately
+authorized controlled observation, so it is not fabricated as a preparation input.
+
+Source configuration remains pending/unapplied; branch/root application and active
+configuration are not proven. Deployment is unauthorized. reviewed,
+inputReviewComplete and every live/manual/executable/provider/identity authority
+flag remain false; 0114D preparation is not ready. Missing readiness/completion
+fields are not added to the exact v2 package schema to simulate authority.
+Historical assessment, historical 0114F evidence, qualification evidence and reviewed
+0114H design are unchanged. No runtime, template, fixture or migration changes,
+capsule/credential access, provider access or network activity occurred.
+
+Preparation validation: 0114E 492/492 (33 new current-package checks), 0114F
+240/240 and 0114H 65/65 passed: 797 total, zero failures/skips. The real incomplete
+package bytes were rejected through the isolated v3 reviewedInput path without
+creating an executable draft, ticket, session, context or request. Exact protected
+artifact bytes, all 99 migrations, twelve canonical source pins and authorization
+self hash remain unchanged. git diff --check passed. No full regression or typecheck
+rerun was required: only package data, this register and the existing 0114E test
+file changed; runtime, fixtures, templates and app/Edge/worker typing are unaffected.

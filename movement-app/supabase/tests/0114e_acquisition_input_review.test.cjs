@@ -620,3 +620,83 @@ test('historical project and operator source are untouched by new qualification 
  assert.equal(c.eligibility.lifecycle,null);assert.equal(c.eligibility.eligibilityComplete,false);
  assert.equal(c.reviewed,false);assert.equal(c.evidenceReviewComplete,false);assert.equal(c.inputReviewComplete,false);
 });
+
+// Actual current preparation: inert data, not an independently completed package.
+const currentPreparationPath='docs/0114e-current-acquisition-input-review.json';
+const currentPreparation=actualJSON(currentPreparationPath);
+const currentPreparationHead='c1fee2b08051df328f4653404acedf6a55cd40ed';
+test('current preparation exists with exact v2 package schema and no executable duplicate name',()=>{
+ exactKeys(currentPreparation,Object.keys(template));
+ exactKeys(currentPreparation.expectedTarget,Object.keys(template.expectedTarget));
+ exactKeys(currentPreparation.targetInputSources,Object.keys(template.targetInputSources));
+ assert.equal(currentPreparation.version,'movement_railway_acquisition_input_review_v2');
+ assert.equal(currentPreparation.outcome,'PRELIVE_NOT_AUTHORIZED');
+ assert.equal(currentPreparation.expectedTarget.serviceName,actualJSON(qualificationPath).qualificationReview.reviewedContext.serviceName);
+ assert.equal(Object.hasOwn(currentPreparation.expectedTarget,'expectations'),false);
+ assert.equal(currentPreparation.historicalLabels.category,'historical_operator_labels_only');
+ assert.notEqual(currentPreparation.expectedTarget.serviceName,currentPreparation.historicalLabels.serviceName);
+});
+for(const key of ['reviewed','inputReviewComplete','liveAuthorized','manualLiveAuthorization','executableAcquisitionPrepared',
+ 'providerObservationOccurred','targetIdentityProven','serviceIdentityProven','serviceInstanceIdentityProven'])
+ test('current preparation cannot claim completion or authority: '+key,()=>assert.equal(currentPreparation[key],false));
+test('current target values preserve their distinct qualification provenance',()=>{
+ const q=actualJSON(qualificationPath),c=currentPreparation;
+ for(const k of ['projectId','environmentId','serviceId'])assert.equal(c.expectedTarget[k],q.identifiers[k].value);
+ assert.equal(q.projectEvidenceReference.scope,'prior_review_of_unchanged_project_identity_only');
+ assert.equal(q.projectEvidenceReference.qualificationContextCompared,false);
+ assert.equal(q.projectEvidenceReference.operatorSource.independentlyReviewed,false);
+ assert.deepEqual(c.targetInputSources.projectId,{independentlyReviewed:false,source:null,reviewer:null});
+ for(const k of ['environmentId','serviceId']){
+  assert.equal(q.identifiers[k].independentlyReviewed,true);
+  assert.deepEqual(c.targetInputSources[k],{independentlyReviewed:true,source:qualificationPath+'#identifiers.'+k,reviewer:q.identifiers[k].reviewerReference});
+ }
+ assert.equal(q.qualificationReview.reviewerIndependentlyInspectedProvider,true);assert.equal(q.qualificationReview.result,'NO_MISMATCH');
+ assert.deepEqual(c.targetInputSources.serviceName,{independentlyReviewed:true,source:qualificationPath+'#qualificationReview.reviewedContext.serviceName',reviewer:q.qualificationReview.reviewerReference});
+});
+test('current preparation preserves unresolved eligibility and intended-only source constraints',()=>{
+ const q=actualJSON(qualificationPath),c=currentPreparation;
+ assert.equal(c.expectedTarget.environmentKind,'disposable');assert.equal(q.eligibility.independentlyReviewed,true);
+ assert.equal(c.expectedTarget.lifecycle,null);assert.equal(c.expectedTarget.serviceInstanceId,null);
+ assert.deepEqual(c.targetInputSources.serviceInstanceId,{independentlyReviewed:false,source:null,reviewer:null});
+ assert.equal(c.expectedTarget.branch,branch);assert.equal(c.expectedTarget.rootDirectory,'/movement-app');
+ assert.equal(q.sourceConfiguration.sourceConfigurationApplied,false);assert.equal(q.sourceConfiguration.activeConfigurationVerified,false);
+ assert.equal(q.sourceConfiguration.appliedConfiguration.branch,null);assert.equal(q.sourceConfiguration.appliedConfiguration.rootDirectory,null);
+});
+test('current required code target does not claim independent package code review',()=>{
+ const c=currentPreparation;
+ assert.deepEqual(c.requiredCodeReview,{reviewedHead:currentPreparationHead,reviewedBranch:branch});
+ for(const key of ['reviewedHead','reviewedBranch']){assert.equal(c[key],null);assert.equal(c.codeIdentity[key],null);}
+ assert.deepEqual(c.codeIdentity,normal.acquisitionReviewTemplate().manifest.codeIdentity);
+ assert.equal(Object.keys(c.codeIdentity.sourceHashes).length,12);
+ assert.equal(c.codeIdentity.authorizationBoundarySha256,canonicalHash(fs.readFileSync(path.join(base,'qualification-railway-live-authorization.cjs'),'utf8')));
+});
+for(const [file,sha]of Object.entries(currentPreparation.codeIdentity.sourceHashes))
+ test('current preparation pin matches actual canonical bytes: '+file,()=>assert.equal(canonicalHash(fs.readFileSync(path.join(base,file),'utf8')),sha));
+test('current preparation binds the exact scoped evidence with canonical text hash',()=>{
+ assert.deepEqual(currentPreparation.evidenceBinding,{path:qualificationPath,record:'qualificationReview.reviewedContext',sha256:canonicalHash(actualRead(qualificationPath))});
+ assert.equal(canonicalHash(actualRead(qualificationPath).replace(/\r?\n/g,'\r\n')),currentPreparation.evidenceBinding.sha256);
+});
+test('current preparation cannot invent inventory, host or independent whole-package review',()=>{
+ assert.deepEqual(currentPreparation.forbiddenRailwayInventory,template.forbiddenRailwayInventory);
+ assert.deepEqual(currentPreparation.hostReview,template.hostReview);
+ assert.deepEqual(currentPreparation.independentReview,{reviewed:false,reviewer:null,evidenceReference:null});
+ for(const k of cats){const e=currentPreparation.forbiddenRailwayInventory[k];assert.equal(e.ids,null);assert.equal(e.reviewed,false);assert.equal(e.completenessAcknowledged,false);}
+});
+for(const file of [qualificationPath,actualPath,evidencePath,'docs/0114h-railway-service-name-compatibility-design.md'])
+ test('current preparation preserves protected evidence/design bytes: '+file,()=>{
+  const old=require('node:child_process').execFileSync('git',['-c','safe.directory='+path.resolve(root,'..'),'show',currentPreparationHead+':movement-app/'+file],{env:{},windowsHide:true});
+  assert.deepEqual(fs.readFileSync(path.join(root,file)),old);
+ });
+test('actual incomplete preparation is rejected by isolated v3 reviewedInput before executable draft creation',t=>{
+ const f=offline(t),target=f.binding(),inputs=f.input(target),text=actualRead(currentPreparationPath);
+ f.drift.files.set(inputs.packagePath,text);
+ reject(()=>f.auth.createExecutableAcquisitionDraft(target,inventory(),{reviewedHead:f.drift.head,reviewedBranch:branch},
+  {path:currentPreparationPath,sha256:canonicalHash(text)}));
+ assert.equal(f.opens.length,0);assert.equal(f.calls.length,0);assert.equal(f.reads.length,0);
+ assert.equal(f.records.some(r=>Object.hasOwn(r.value,'ticketIssued')),false);
+});
+test('current preparation carries only non-secret review data and capsule remains untracked',()=>{
+ assert.doesNotMatch(actualRead(currentPreparationPath),/sb_secret_|-----BEGIN|Bearer\s+|https?:\/\/|eyJ[A-Za-z0-9_-]{16,}/);
+ const tracked=require('node:child_process').execFileSync('git',['-c','safe.directory='+path.resolve(root,'..'),'ls-files','--','0102-remote-fixtures.capsule'],{encoding:'utf8',env:{},windowsHide:true});
+ assert.equal(tracked,'');
+});

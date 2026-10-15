@@ -1,0 +1,162 @@
+{
+  "version": "movement_railway_acquisition_input_review_v2",
+  "outcome": "PRELIVE_NOT_AUTHORIZED",
+  "reviewed": false,
+  "inputReviewComplete": false,
+  "liveAuthorized": false,
+  "manualLiveAuthorization": false,
+  "reviewedHead": null,
+  "reviewedBranch": null,
+  "requiredCodeReview": {
+    "reviewedHead": "c1fee2b08051df328f4653404acedf6a55cd40ed",
+    "reviewedBranch": "feature/0092-shared-segment-suitability"
+  },
+  "expectedTarget": {
+    "projectId": "0fa3268a-396f-4042-a4c0-a92c23fdf486",
+    "environmentId": "9410a813-0429-4bc7-bfbb-d54b85e17c8a",
+    "serviceId": "ef516a68-9bb7-429e-a395-48ef2676593a",
+    "serviceInstanceId": null,
+    "serviceName": "movement-qualification",
+    "branch": "feature/0092-shared-segment-suitability",
+    "rootDirectory": "/movement-app",
+    "environmentKind": "disposable",
+    "lifecycle": null
+  },
+  "historicalLabels": {
+    "category": "historical_operator_labels_only",
+    "projectName": "thorough-blessing",
+    "serviceName": "myapp-backend",
+    "branch": "feature/0092-shared-segment-suitability",
+    "rootDirectory": "/movement-app",
+    "nodeSetting": "RAILPACK_NODE_VERSION=24",
+    "historicalRegion": "europe-west4-drams3a"
+  },
+  "targetInputSources": {
+    "projectId": {
+      "independentlyReviewed": false,
+      "source": null,
+      "reviewer": null
+    },
+    "environmentId": {
+      "independentlyReviewed": true,
+      "source": "docs/0114e-qualification-target-evidence.json#identifiers.environmentId",
+      "reviewer": "AT"
+    },
+    "serviceId": {
+      "independentlyReviewed": true,
+      "source": "docs/0114e-qualification-target-evidence.json#identifiers.serviceId",
+      "reviewer": "AT"
+    },
+    "serviceInstanceId": {
+      "independentlyReviewed": false,
+      "source": null,
+      "reviewer": null
+    },
+    "serviceName": {
+      "independentlyReviewed": true,
+      "source": "docs/0114e-qualification-target-evidence.json#qualificationReview.reviewedContext.serviceName",
+      "reviewer": "AT"
+    }
+  },
+  "forbiddenRailwayInventory": {
+    "inventoryReviewed": false,
+    "basis": null,
+    "provenance": null,
+    "projectIds": {
+      "reviewed": false,
+      "completenessAcknowledged": false,
+      "completenessIsOperatorAssertion": false,
+      "ids": null,
+      "labels": null
+    },
+    "environmentIds": {
+      "reviewed": false,
+      "completenessAcknowledged": false,
+      "completenessIsOperatorAssertion": false,
+      "ids": null,
+      "labels": null
+    },
+    "serviceIds": {
+      "reviewed": false,
+      "completenessAcknowledged": false,
+      "completenessIsOperatorAssertion": false,
+      "ids": null,
+      "labels": null
+    },
+    "serviceInstanceIds": {
+      "reviewed": false,
+      "completenessAcknowledged": false,
+      "completenessIsOperatorAssertion": false,
+      "ids": null,
+      "labels": null
+    }
+  },
+  "hostReview": {
+    "reviewed": false,
+    "reviewer": null,
+    "checklist": {
+      "nodeMajor": null,
+      "normalReviewedAdapter": false,
+      "noNodeDebugEnvironment": false,
+      "nativeHttpHttpsDebugDisabled": false,
+      "noRailwayApiTokenPresence": false,
+      "tokenProvisionedPrivatelyOutsideCodex": false,
+      "noTokenInArgv": false,
+      "noTokenInCommandHistory": false,
+      "noTokenInOutput": false,
+      "noTokenInArtifacts": false,
+      "noTokenSharedInChat": false,
+      "noProxyOverride": false,
+      "certificateVerificationEnabled": false,
+      "firstRequestContextOnly": false,
+      "stopOnError": false,
+      "noRetryOrFallback": false,
+      "noSchemaBeforeSameContextAttestation": false
+    }
+  },
+  "codeIdentity": {
+    "baselineParentHead": "7c2346ce73d12e571b5ff8506fd8d02be48f44b7",
+    "sourceHashes": {
+      "qualification-railway-acquisition-wrapper.cjs": "4ac56edb3014a92a3edbbd1844fb795ce7fe6a2696344102a4aeaa9b8ee320b5",
+      "qualification-railway-first-context-wrapper.cjs": "7c3a376d1f7a1b733f3be90a3b7d43fb4aa2fd5256c5638a13e6301a3d78cf94",
+      "qualification-railway-https-adapter.cjs": "f25ff544ad0e61188b317c35b80c77c6994427e179cb91950ec62e381a9d833a",
+      "qualification-railway-target-identity.cjs": "9596537b7d997066a4b3d49bbac56c7a00a519d249c76f1fe73aa62a11c74422",
+      "qualification-railway-target-identity-provider-boundary.cjs": "cf22b4ce9d68b36fa6c325f289661528fcfb6ec8e75d6acad9af5429be53e1df",
+      "qualification-railway-context-review.cjs": "23fb65eef738136b68b3d8ce19a69e51482f9bc075c6a26940e2300108c6dd0f",
+      "qualification-railway-introspection-preflight.cjs": "88fe296bd5bfaa639844436c031dbdc674f29c25fbab3530081317143b3c9d74",
+      "qualification-railway-project-token-context.cjs": "cd862abc5b85b8663fbc1075263c0b5d3c6d05793a31e875db67457f4adb3085",
+      "qualification-railway-transport-contract.cjs": "33101241797b778067e2c44389c22c6b236e0f741e7565feae4cf8607e8b26de",
+      "qualification-railway-introspection-target.cjs": "2c236cc1a077fea457938b4317afd7488de010f725ec0a5463fb52d0ab12d199",
+      "qualification-railway-introspection-request.cjs": "62342054302e6f487708b85372b5f2cac7c1449e69ce3c25b0d142c1d4324ae3",
+      "qualification-railway-introspection-plan.cjs": "dacaf8a4aaecff254760da0c687ccc78b3569b7e5449d1a919ba4170d18fc0e3"
+    },
+    "authorizationBoundarySha256": "05a8ef85b6e07f6ff7b54270f67e45d2c6fb47966c3d779e3191f4965b04192c",
+    "canonicalSourceRule": "UTF-8; CRLF to LF only; preserve all other bytes and EOF",
+    "reviewedHead": null,
+    "reviewedBranch": null
+  },
+  "crossSystemForbidden": {
+    "provider": "Supabase",
+    "identifierKind": "project_ref",
+    "production": "xdfmoggrsucisfybqctb",
+    "inactive": "udlsysezmzutydnifhsq",
+    "consumedHistoricalDisposable": "uzkhnslyrhgucijcuoes",
+    "railwayNamespace": false,
+    "newQualificationAuthorized": false
+  },
+  "independentReview": {
+    "reviewed": false,
+    "reviewer": null,
+    "evidenceReference": null
+  },
+  "executableAcquisitionPrepared": false,
+  "providerObservationOccurred": false,
+  "targetIdentityProven": false,
+  "serviceIdentityProven": false,
+  "serviceInstanceIdentityProven": false,
+  "evidenceBinding": {
+    "path": "docs/0114e-qualification-target-evidence.json",
+    "sha256": "490018c865543a997c6a831a229ee61d6b5516be7f2ff48406ef4b92e728ea15",
+    "record": "qualificationReview.reviewedContext"
+  }
+}
