@@ -436,15 +436,37 @@ const qualificationFacts={
  'sourceConfiguration.appliedConfiguration.repo':null,'sourceConfiguration.appliedConfiguration.branch':null,
  'sourceConfiguration.appliedConfiguration.rootDirectory':null,
  'eligibility.environmentKindIntent':'disposable','eligibility.intentSource':'operator_report',
- 'eligibility.independentlyReviewed':false,'eligibility.eligibilityComplete':false,
- 'eligibility.environmentKind':null,'eligibility.lifecycle':null
+ 'eligibility.independentlyReviewed':true,'eligibility.eligibilityComplete':false,
+ 'eligibility.environmentKind':'disposable','eligibility.lifecycle':null,
+ 'eligibility.reviewerReference':'AT','eligibility.reviewedAt':'2026-10-15T18:11:49.000Z',
+ 'eligibility.reviewReference':'AT independently confirmed qualification is separate from production and movement-qualification belongs to the intended disposable qualification target',
+ 'qualificationReview.recordingContext.head':'e5e2481781b0861853ab4e5b7eb19a2fe62d1d0b',
+ 'qualificationReview.recordingContext.branch':branch,
+ 'qualificationReview.reviewerReference':'AT','qualificationReview.reviewedAt':'2026-10-15T18:11:49.000Z',
+ 'qualificationReview.reviewerIndependentlyInspectedProvider':true,'qualificationReview.reviewerDistinctFromAcquirer':true,
+ 'qualificationReview.result':'NO_MISMATCH',
+ 'qualificationReview.reviewReference':'AT independently inspected Railway and compared exact project environment and service IDs with the qualification context. No mismatch',
+ 'qualificationReview.reviewedContext.projectName':'thorough-blessing',
+ 'qualificationReview.reviewedContext.projectId':'0fa3268a-396f-4042-a4c0-a92c23fdf486',
+ 'qualificationReview.reviewedContext.environmentName':'qualification',
+ 'qualificationReview.reviewedContext.environmentId':'9410a813-0429-4bc7-bfbb-d54b85e17c8a',
+ 'qualificationReview.reviewedContext.serviceName':'movement-qualification',
+ 'qualificationReview.reviewedContext.serviceId':'ef516a68-9bb7-429e-a395-48ef2676593a',
+ 'qualificationReview.confirmedFacts.separateFromProduction':true,'qualificationReview.confirmedFacts.serviceBelongsToEnvironment':true,
+ 'qualificationReview.confirmedFacts.intendedDisposableQualificationTarget':true,
+ 'qualificationReview.confirmedFacts.serviceOffline':true,'qualificationReview.confirmedFacts.sourceSettingsPending':true
 };
 for(const key of ['reviewed','evidenceReviewComplete','inputReviewComplete','readyFor0114DPreparation','deploymentAuthorized',
  'liveAuthorized','manualLiveAuthorization','providerObservationOccurred','targetIdentityProven','executableAcquisitionPrepared'])qualificationFacts[key]=false;
 for(const field of ['environmentId','serviceId']){
- for(const key of ['independentlyReviewed','contextCompared','authoritativeForInputReview'])qualificationFacts['identifiers.'+field+'.'+key]=false;
- for(const key of ['reviewerReference','reviewedAt','reviewReference','acquiredByReference','acquiredAt'])qualificationFacts['identifiers.'+field+'.'+key]=null;
- qualificationFacts['identifiers.'+field+'.sourceClassification']='operator_acquired_not_independently_reviewed';
+ for(const key of ['independentlyReviewed','contextCompared','authoritativeForInputReview'])qualificationFacts['identifiers.'+field+'.'+key]=true;
+ for(const key of ['acquiredByReference','acquiredAt'])qualificationFacts['identifiers.'+field+'.'+key]=null;
+ qualificationFacts['identifiers.'+field+'.reviewerReference']='AT';
+ qualificationFacts['identifiers.'+field+'.reviewedAt']='2026-10-15T18:11:49.000Z';
+ qualificationFacts['identifiers.'+field+'.reviewReference']=field==='environmentId'
+  ?'AT independently inspected Railway and compared the exact qualification environment ID and intended context. No mismatch'
+  :'AT independently inspected Railway and compared the exact movement-qualification service ID and intended context. No mismatch';
+ qualificationFacts['identifiers.'+field+'.sourceClassification']='operator_supplied_provider_metadata';
  qualificationFacts['identifiers.'+field+'.sourceKind']='operator_visible_provider_metadata';
 }
 Object.assign(qualificationFacts,{
@@ -468,11 +490,12 @@ function inspectQualificationEvidence(c){
  exactKeys(c,['version','outcome','reviewed','evidenceReviewComplete','inputReviewComplete','readyFor0114DPreparation',
   'deploymentAuthorized','liveAuthorized','manualLiveAuthorization','providerObservationOccurred','targetIdentityProven',
   'executableAcquisitionPrepared','recordingContext','expectedContext','identifiers','projectEvidenceReference','priorAssessment',
-  'operatorObservations','sourceConfiguration','eligibility']);
+  'operatorObservations','sourceConfiguration','eligibility','qualificationReview']);
  for(const [p,value]of Object.entries(qualificationFacts))assert.deepEqual(getFact(c,p),value,p);
  for(const p of ['recordingContext','expectedContext','operatorObservations','operatorObservations.creation',
   'operatorObservations.service','operatorObservations.productionSafety','sourceConfiguration',
-  'sourceConfiguration.pendingIntended','sourceConfiguration.appliedConfiguration','eligibility']){
+  'sourceConfiguration.pendingIntended','sourceConfiguration.appliedConfiguration','eligibility','qualificationReview',
+  'qualificationReview.recordingContext','qualificationReview.reviewedContext','qualificationReview.confirmedFacts']){
   const keys=[...new Set(Object.keys(qualificationFacts).filter(k=>k.startsWith(p+'.')).map(k=>k.slice(p.length+1).split('.')[0]))];
   exactKeys(getFact(c,p),keys);
  }
@@ -561,7 +584,34 @@ test('qualification evidence stores only extracted IDs and inert source descript
  assert.doesNotMatch(actualRead(qualificationPath),/https?:\/\/|[?#]|environmentId=/);
  assert.deepEqual(c.identifiers.projectId,actualJSON(evidencePath).identifiers.projectId);
  for(const field of ['environmentId','serviceId']){
-  const r=c.identifiers[field];for(const flag of ['independentlyReviewed','authoritativeForInputReview','contextCompared'])assert.equal(r[flag],false);
-  for(const key of ['reviewerReference','reviewedAt','reviewReference'])assert.equal(r[key],null);
+  const r=c.identifiers[field];for(const flag of ['independentlyReviewed','authoritativeForInputReview','contextCompared'])assert.equal(r[flag],true);
+  assert.equal(r.reviewerReference,'AT');assert.equal(r.reviewedAt,'2026-10-15T18:11:49.000Z');assert.ok(r.reviewReference);
  }
+});
+for(const path of ['identifiers.environmentId','identifiers.serviceId','eligibility'])
+ for(const [key,value]of [['reviewerReference','Railway AI'],['reviewerReference',null],
+  ['reviewedAt',null],['reviewedAt','2026-10-15T14:01:00.000Z'],['reviewedAt','2026-10-15T18:11:48.000Z'],
+  ['reviewReference',null],['reviewReference',''],['independentlyReviewed',false]])
+ test('new qualification human review rejects '+path+' '+key+' '+JSON.stringify(value),t=>{
+  offline(t);const c=actualJSON(qualificationPath);getFact(c,path)[key]=value;reject(()=>inspectQualificationEvidence(c));
+ });
+for(const field of ['environmentId','serviceId'])test('qualification review is separate from historical production review '+field,t=>{
+ offline(t);const c=actualJSON(qualificationPath),old=actualJSON(evidencePath).identifiers[field];
+ assert.notEqual(c.identifiers[field].value,old.value);assert.notEqual(c.identifiers[field].reviewedAt,old.reviewedAt);
+ c.identifiers[field]=clone(old);reject(()=>inspectQualificationEvidence(c));
+});
+for(const key of ['reviewerIndependentlyInspectedProvider','reviewerDistinctFromAcquirer'])
+ test('qualification human review requires explicit independence '+key,t=>{
+  offline(t);const c=actualJSON(qualificationPath);c.qualificationReview[key]=false;reject(()=>inspectQualificationEvidence(c));
+ });
+test('historical project and operator source are untouched by new qualification review',t=>{
+ offline(t);const cp=require('node:child_process');
+ const old=JSON.parse(cp.execFileSync('git',['-c','safe.directory='+path.resolve(root,'..'),'show',
+  'e5e2481781b0861853ab4e5b7eb19a2fe62d1d0b:movement-app/'+qualificationPath],{encoding:'utf8',env:{},windowsHide:true}));
+ const c=actualJSON(qualificationPath);
+ assert.deepEqual(c.identifiers.projectId,old.identifiers.projectId);assert.deepEqual(c.projectEvidenceReference,old.projectEvidenceReference);
+ assert.deepEqual(c.sourceConfiguration,old.sourceConfiguration);assert.deepEqual(c.identifiers.serviceInstanceId,old.identifiers.serviceInstanceId);
+ assert.equal(c.eligibility.environmentKind,'disposable');assert.equal(c.eligibility.independentlyReviewed,true);
+ assert.equal(c.eligibility.lifecycle,null);assert.equal(c.eligibility.eligibilityComplete,false);
+ assert.equal(c.reviewed,false);assert.equal(c.evidenceReviewComplete,false);assert.equal(c.inputReviewComplete,false);
 });

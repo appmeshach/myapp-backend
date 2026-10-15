@@ -61,14 +61,14 @@
       "sourceSurface": "identifier_query_parameter",
       "sourceParameterName": "environmentId",
       "sourceReference": "Operator-supplied named environmentId parameter with qualification selected in project thorough-blessing",
-      "sourceClassification": "operator_acquired_not_independently_reviewed",
+      "sourceClassification": "operator_supplied_provider_metadata",
       "acquiredByReference": null,
       "acquiredAt": null,
       "acquisitionReference": "Operator-supplied qualification target creation report",
-      "independentlyReviewed": false,
-      "reviewerReference": null,
-      "reviewedAt": null,
-      "reviewReference": null,
+      "independentlyReviewed": true,
+      "reviewerReference": "AT",
+      "reviewedAt": "2026-10-15T18:11:49.000Z",
+      "reviewReference": "AT independently inspected Railway and compared the exact qualification environment ID and intended context. No mismatch",
       "labelContext": {
         "projectName": "thorough-blessing",
         "environmentName": "qualification",
@@ -76,8 +76,8 @@
         "branch": null,
         "rootDirectory": null
       },
-      "contextCompared": false,
-      "authoritativeForInputReview": false
+      "contextCompared": true,
+      "authoritativeForInputReview": true
     },
     "serviceId": {
       "field": "serviceId",
@@ -87,14 +87,14 @@
       "sourceSurface": "identifier_url_path_segment",
       "sourceParameterName": null,
       "sourceReference": "Operator-supplied typed service path segment with movement-qualification selected",
-      "sourceClassification": "operator_acquired_not_independently_reviewed",
+      "sourceClassification": "operator_supplied_provider_metadata",
       "acquiredByReference": null,
       "acquiredAt": null,
       "acquisitionReference": "Operator-supplied qualification target creation report",
-      "independentlyReviewed": false,
-      "reviewerReference": null,
-      "reviewedAt": null,
-      "reviewReference": null,
+      "independentlyReviewed": true,
+      "reviewerReference": "AT",
+      "reviewedAt": "2026-10-15T18:11:49.000Z",
+      "reviewReference": "AT independently inspected Railway and compared the exact movement-qualification service ID and intended context. No mismatch",
       "labelContext": {
         "projectName": "thorough-blessing",
         "environmentName": "qualification",
@@ -102,8 +102,8 @@
         "branch": null,
         "rootDirectory": null
       },
-      "contextCompared": false,
-      "authoritativeForInputReview": false
+      "contextCompared": true,
+      "authoritativeForInputReview": true
     },
     "serviceInstanceId": {
       "field": "serviceInstanceId",
@@ -205,9 +205,39 @@
   "eligibility": {
     "environmentKindIntent": "disposable",
     "intentSource": "operator_report",
-    "independentlyReviewed": false,
+    "independentlyReviewed": true,
     "eligibilityComplete": false,
-    "environmentKind": null,
-    "lifecycle": null
+    "environmentKind": "disposable",
+    "lifecycle": null,
+    "reviewerReference": "AT",
+    "reviewedAt": "2026-10-15T18:11:49.000Z",
+    "reviewReference": "AT independently confirmed qualification is separate from production and movement-qualification belongs to the intended disposable qualification target"
+  },
+  "qualificationReview": {
+    "recordingContext": {
+      "head": "e5e2481781b0861853ab4e5b7eb19a2fe62d1d0b",
+      "branch": "feature/0092-shared-segment-suitability"
+    },
+    "reviewerReference": "AT",
+    "reviewedAt": "2026-10-15T18:11:49.000Z",
+    "reviewerIndependentlyInspectedProvider": true,
+    "reviewerDistinctFromAcquirer": true,
+    "result": "NO_MISMATCH",
+    "reviewReference": "AT independently inspected Railway and compared exact project environment and service IDs with the qualification context. No mismatch",
+    "reviewedContext": {
+      "projectName": "thorough-blessing",
+      "projectId": "0fa3268a-396f-4042-a4c0-a92c23fdf486",
+      "environmentName": "qualification",
+      "environmentId": "9410a813-0429-4bc7-bfbb-d54b85e17c8a",
+      "serviceName": "movement-qualification",
+      "serviceId": "ef516a68-9bb7-429e-a395-48ef2676593a"
+    },
+    "confirmedFacts": {
+      "separateFromProduction": true,
+      "serviceBelongsToEnvironment": true,
+      "intendedDisposableQualificationTarget": true,
+      "serviceOffline": true,
+      "sourceSettingsPending": true
+    }
   }
 }

@@ -22,8 +22,8 @@ The safe worksheet remains byte-identical; no completion rule is relaxed.
 
 The intended qualification target is now separately recorded in
 [qualification target evidence](0114e-qualification-target-evidence.json).
-The new qualification environment and movement-qualification service are
-operator-acquired, not independently reviewed. Production remains historically
+AT has now independently reviewed the new qualification environment and
+movement-qualification service identities/context. Production remains historically
 reviewed, but is no longer the intended qualification target. Deployment and
 0114D preparation remain unauthorized; pending Railway source changes must not
 be applied by this milestone.
@@ -378,7 +378,7 @@ The already untracked capsule is unread and untouched. No stage, commit, push,
 deploy or restart occurred. No operational STOP condition was encountered; the
 unresolved review inputs above prevent inputReviewComplete=true and readiness.
 
-## Qualification target evidence update, without deployment
+## Historical qualification target acquisition and provenance correction
 
 Starting HEAD: 4f8d8b043f1876e1f4ff3bfa66ef85aa7ffed4e0, branch
 feature/0092-shared-segment-suitability. This update records only the operator's
@@ -541,3 +541,98 @@ safe templates remain byte-identical. git diff --check and new-file whitespace
 checks pass; the index remains empty and HEAD/branch unchanged. The capsule is
 unread, untouched and untracked. No stage, commit, push, deploy, restart or pending
 Railway change application occurred.
+
+## Independent human qualification-target review: AT
+
+Starting HEAD: e5e2481781b0861853ab4e5b7eb19a2fe62d1d0b, branch
+feature/0092-shared-segment-suitability. The operator supplied AT's independent
+Railway inspection result: NO MISMATCH, reviewedAt=2026-10-15T18:11:49.000Z
+(2026-10-15 19:11:49 WAT). AT is a different human from the acquisition operator;
+Railway AI is not the reviewer. Codex records this supplied human evidence without
+contacting Railway or independently asserting a runtime provider observation.
+
+The qualificationReview object records the new review, its current repository
+recording context, exact project/environment/service names and IDs, independence
+assertions, result and explicitly confirmed facts. The artifact's original
+recordingContext remains the acquisition milestone context. Neither it nor the
+historical project review is rewritten as this new review. The separate project
+operatorSource remains unreviewed; its existing qualificationContextCompared=false
+describes that earlier source reference, not AT's new qualificationReview.
+
+For environmentId 9410a813-0429-4bc7-bfbb-d54b85e17c8a and serviceId
+ef516a68-9bb7-429e-a395-48ef2676593a, independentlyReviewed, contextCompared and
+authoritativeForInputReview are true, reviewerReference is AT, and reviewedAt is
+exactly 2026-10-15T18:11:49.000Z. Each inert reviewReference records the exact
+resource/context comparison with no mismatch. sourceClassification advances to
+operator_supplied_provider_metadata. The environment query surface and exact
+environmentId parameter, service path surface and null service parameter remain
+unchanged. No raw URL/query/fragment, acquisition identity or acquisition time is
+introduced. The original supplied acquisition provenance is retained; this scoped
+human review is not an assertion that a complete 0114E worksheet now passes.
+
+AT independently confirmed qualification is separate from production, that
+movement-qualification belongs to it and is the intended disposable qualification
+target, that the service is offline, and that source settings remain pending.
+eligibility.environmentKind=disposable and eligibility.independentlyReviewed=true
+are tied explicitly to AT, the same exact review timestamp and a contextual review
+reference. The original environmentKindIntent and operator creation report remain
+historical assertions. The binder separately requires lifecycle=active; no policy
+defines creation or an offline service as sufficient evidence of active lifecycle.
+Therefore lifecycle stays null and eligibilityComplete stays false.
+
+sourceConfigurationApplied remains false. The repo appmeshach/myapp-backend,
+branch feature/0092-shared-segment-suitability and root /movement-app remain
+pendingIntended only. AT's confirmation of pending settings is recorded in
+qualificationReview; activeConfigurationVerified remains false and all applied
+configuration fields remain null. No pending change is applied and no deployment
+is authorized. serviceInstanceId and its unresolved record remain unchanged/null.
+
+### Scoped evidence review versus package completion
+
+Top-level reviewed and evidenceReviewComplete remain false. They conservatively
+represent completion of this whole mixed-scope evidence artifact, which still
+contains operator-only creation/production-safety observations and an unreviewed
+project operatorSource. AT's new target/context comparison is recorded separately
+and does not claim independent review of those other assertions or of an entire
+0114E input package. This preserves the existing fail-closed completion semantics.
+inputReviewComplete, readyFor0114DPreparation, deploymentAuthorized, liveAuthorized,
+manualLiveAuthorization, providerObservationOccurred, targetIdentityProven and
+executableAcquisitionPrepared also remain false. Human metadata review does not
+establish the provider/runtime identity proof reserved for later controlled work.
+
+The historical production evidence, copied project review, prior actual 0114E
+assessment and safe template remain unchanged. A later 0114E assessment must be
+regenerated/reviewed against the new target and then-current code, with complete
+forbidden inventory, execution-host and independent whole-package attestations,
+lifecycle evidence and service-name compatibility resolved separately. No runtime
+or preflight change, new pin, migration, executable draft, ticket, context/session,
+wrapper acquisition, provider/service-instance/schema request or 0114D authority
+is created here. Nothing is deployed, restarted or applied in Railway.
+
+The only network activity for this new review task is the single permitted read
+of https://docs.expo.dev/versions/v57.0.0/ to satisfy AGENTS.md. The request carried
+only the public URL and response-length setting, no repository, target, environment,
+source, user or secret data. No links were followed or other network access made.
+
+### Independent qualification review validation
+
+0114E: 459/459 PASS. 0114F: 240/240, 0114D: 141/141, 0114C: 96/96,
+0114B: 72/72, 0114A: 63/63, 0113: 63/63, 0112: 62/62, 0111: 101/101,
+0110: 63/63, 0109: 78/78. Total focused: 1,438 PASS, zero failures/skips.
+The established 19-file serialized chain passes with --test-concurrency=1:
+1,117 tests, 1,114 PASS, zero failures and three existing OS-specific skips.
+Existing execution regression objects remain isolated synthetic fixtures.
+App, Edge and worker typechecks pass using installed local tsc.
+
+All 99 migrations match the index through clean checkout filtering and have no
+diff against HEAD. All twelve pins and the authorization self hash match the
+current tracked/committed sources. No runtime/preflight source changes. Historical
+production evidence, the prior actual assessment and safe templates remain
+byte-identical. The copied historical project record, its evidence reference,
+pending source configuration and unresolved instance record are unchanged.
+JSON, whitespace and git diff --check pass. Only the qualification evidence,
+this procedure, readiness register and 0114E tests change. Index is empty;
+HEAD/branch remain as above. Capsule unread, untouched and untracked. No stage,
+commit, push, deploy, restart or pending Railway change application occurred.
+No STOP condition was encountered. Lifecycle, complete inventory, host/package
+attestations and runtime compatibility remain gates for later separately reviewed work.
