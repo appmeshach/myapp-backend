@@ -8,8 +8,8 @@ const normal=require(path.join(base,'qualification-railway-live-authorization.cj
 const template=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../docs/0114e-acquisition-input-review-template.json'),'utf8'));
 const cats=['projectIds','environmentIds','serviceIds','serviceInstanceIds'],ids=cats.map(k=>k.slice(0,-1));
 const head='ee228de90d4f1d68662948670bb15efed7fb6f0f',branch='feature/0092-shared-segment-suitability';
-function offline(t){
- const f=loadAcquisition();f.drift.head=head;
+function offline(t,options={}){
+ const f=loadAcquisition(options);f.drift.head=head;
  t.after(()=>{
   assert.equal(f.calls.length,0);assert.equal(f.reads.length,0);assert.equal(f.opens.length,0);assert.equal(f.sessions.length,0);
   assert.equal(f.timers.size,0);assert.deepEqual(f.trace,[]);
@@ -252,9 +252,10 @@ function historicalRead(p){
 }
 const canonicalHash=text=>crypto.createHash('sha256').update(text.replace(/\r\n/g,'\n')).digest('hex');
 function exactKeys(v,keys){assert.deepEqual(Reflect.ownKeys(v).sort(),keys.slice().sort());}
+const historicalTemplate=JSON.parse(historicalRead('docs/0114e-acquisition-input-review-template.json'));
 function inspectActualReview(f,c,source=actualJSON(evidencePath),read=historicalRead){
- exactKeys(c,[...Object.keys(template),'offlineReview']);
- for(const key of ['version','historicalLabels','crossSystemForbidden'])assert.deepEqual(c[key],template[key]);
+ exactKeys(c,[...Object.keys(historicalTemplate),'offlineReview']);
+ for(const key of ['version','historicalLabels','crossSystemForbidden'])assert.deepEqual(c[key],historicalTemplate[key]);
  assert.equal(c.outcome,'PRELIVE_NOT_AUTHORIZED');
  for(const key of ['reviewed','inputReviewComplete','liveAuthorized','manualLiveAuthorization','providerObservationOccurred',
   'targetIdentityProven','executableAcquisitionPrepared','serviceIdentityProven','serviceInstanceIdentityProven'])assert.equal(c[key],false);
@@ -262,12 +263,12 @@ function inspectActualReview(f,c,source=actualJSON(evidencePath),read=historical
  assert.deepEqual(c.requiredCodeReview,{reviewedHead:actualHead,reviewedBranch:branch});
  const code=f.auth.verifyCodeIdentity({reviewedHead:c.reviewedHead,reviewedBranch:c.reviewedBranch});
  assert.deepEqual(clone(code),c.codeIdentity);assert.equal(Object.keys(code.sourceHashes).length,12);
- assert.deepEqual(c.codeIdentity.sourceHashes,template.codeIdentity.sourceHashes);
- assert.equal(c.codeIdentity.authorizationBoundarySha256,template.codeIdentity.authorizationBoundarySha256);
+ assert.deepEqual(c.codeIdentity.sourceHashes,historicalTemplate.codeIdentity.sourceHashes);
+ assert.equal(c.codeIdentity.authorizationBoundarySha256,historicalTemplate.codeIdentity.authorizationBoundarySha256);
  assert.equal(source.reviewed,true);assert.equal(source.evidenceReviewComplete,true);
  assert.equal(source.outcome,'PRELIVE_NOT_AUTHORIZED');
  for(const key of ['liveAuthorized','manualLiveAuthorization','providerObservationOccurred','targetIdentityProven','executableAcquisitionPrepared'])assert.equal(source[key],false);
- const expectedTarget={...clone(template.expectedTarget),...actualValues};
+ const expectedTarget={...clone(historicalTemplate.expectedTarget),...actualValues};
  assert.deepEqual(c.expectedTarget,expectedTarget); // Keeps instance, kind and lifecycle null.
  assert.equal(source.identifiers.serviceInstanceId.value,null);
  exactKeys(c.targetInputSources,ids);
@@ -285,10 +286,10 @@ function inspectActualReview(f,c,source=actualJSON(evidencePath),read=historical
   assert.deepEqual(r.labelContext,source.expectedContext);
   assert.deepEqual(c.targetInputSources[field],{independentlyReviewed:true,source:evidencePath+'#identifiers.'+field,reviewer:r.reviewerReference});
  }
- assert.deepEqual(c.targetInputSources.serviceInstanceId,template.targetInputSources.serviceInstanceId);
+ assert.deepEqual(c.targetInputSources.serviceInstanceId,historicalTemplate.targetInputSources.serviceInstanceId);
  // Unknown inventories must stay unknown: null is not an asserted empty list.
- assert.deepEqual(c.forbiddenRailwayInventory,template.forbiddenRailwayInventory);
- assert.deepEqual(c.hostReview,template.hostReview);assert.deepEqual(c.independentReview,template.independentReview);
+ assert.deepEqual(c.forbiddenRailwayInventory,historicalTemplate.forbiddenRailwayInventory);
+ assert.deepEqual(c.hostReview,historicalTemplate.hostReview);assert.deepEqual(c.independentReview,historicalTemplate.independentReview);
  const a=c.offlineReview;
  exactKeys(a,['status','targetInputsReviewed','codeIdentityReviewed','forbiddenInputBoundaryReviewed',
   'forbiddenInventoryComplete','executionHostReviewed','readyFor0114DPreparation','sourceEvidence','protectedInputHashes','unresolved']);
@@ -307,7 +308,7 @@ function inspectActualReview(f,c,source=actualJSON(evidencePath),read=historical
  assert.doesNotMatch(JSON.stringify(c),/sb_secret_|-----BEGIN|Bearer\s+|https?:\/\/|eyJ[A-Za-z0-9_-]{16,}/);
  return {outcome:c.outcome,inputReviewComplete:false,readyFor0114DPreparation:false,liveAuthorized:false};
 }
-function actualOffline(t){const f=offline(t);f.drift.head=actualHead;return f;}
+function actualOffline(t){const f=offline(t,{historicalCommit:qualificationHead});f.drift.head=actualHead;return f;}
 
 test('historical 0114E snapshot consumed reviewed AT evidence without assuming readiness',t=>{
  const f=actualOffline(t),c=actualJSON(actualPath),result=inspectActualReview(f,c);
@@ -380,7 +381,11 @@ test('historical assessment fails current Git identity instead of silently refre
  const currentHead=require('node:child_process').execFileSync('git',
   ['-c','safe.directory='+path.resolve(root,'..'),'rev-parse','HEAD'],{encoding:'utf8',env:{},windowsHide:true}).trim();
  const current=normal.verifyCodeIdentity({reviewedHead:currentHead,reviewedBranch:branch});
- assert.deepEqual(current.sourceHashes,c.codeIdentity.sourceHashes);
+ for(const [file,sha]of Object.entries(current.sourceHashes)){
+  if(['qualification-railway-target-identity.cjs','qualification-railway-https-adapter.cjs','qualification-railway-acquisition-wrapper.cjs'].includes(file))assert.notEqual(sha,c.codeIdentity.sourceHashes[file]);
+  else assert.equal(sha,c.codeIdentity.sourceHashes[file]);
+ }
+ assert.notEqual(current.authorizationBoundarySha256,c.codeIdentity.authorizationBoundarySha256);
  assert.equal(c.reviewedHead,actualHead);
 });
 for(const mode of ['evidencePath','evidenceHash','extraProtectedPath'])
@@ -393,9 +398,9 @@ for(const mode of ['evidencePath','evidenceHash','extraProtectedPath'])
   reject(()=>inspectActualReview(f,c,actualJSON(evidencePath),read));
   assert.equal(reads.includes('0102-remote-fixtures.capsule'),false);
  });
-test('actual intake preserves safe template and reviewed 0114F bytes from starting HEAD',()=>{
+test('actual intake preserves reviewed 0114F historical bytes',()=>{
  const cp=require('node:child_process');
- for(const file of ['docs/0114e-acquisition-input-review-template.json',evidencePath]){
+ for(const file of [evidencePath]){
   const bytes=cp.execFileSync('git',['-c','safe.directory='+path.resolve(root,'..'),'show',actualHead+':movement-app/'+file],{env:{},windowsHide:true});
   assert.deepEqual(fs.readFileSync(path.join(root,file)),bytes);
  }
@@ -547,9 +552,9 @@ for(const p of [
  const parent=parts.reduce((v,k)=>v[k],c);parent[key]=typeof parent[key]==='boolean'?!parent[key]:'invented';
  reject(()=>inspectQualificationEvidence(c));
 });
-test('production evidence, safe worksheet and historical incomplete assessment remain byte-identical',t=>{
+test('production evidence and historical incomplete assessment remain byte-identical',t=>{
  offline(t);const cp=require('node:child_process');
- for(const file of [evidencePath,'docs/0114e-acquisition-input-review-template.json',actualPath]){
+ for(const file of [evidencePath,actualPath]){
   const old=cp.execFileSync('git',['-c','safe.directory='+path.resolve(root,'..'),'show',qualificationHead+':movement-app/'+file],{env:{},windowsHide:true});
   assert.deepEqual(fs.readFileSync(path.join(root,file)),old);
  }

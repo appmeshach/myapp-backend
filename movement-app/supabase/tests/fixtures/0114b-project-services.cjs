@@ -9,7 +9,7 @@ const binding = () => targets.bindTarget(scope, scope, { inventoryReviewed: true
 const clone = v => JSON.parse(JSON.stringify(v));
 function serviceBody() { return { data: { project: { id: scope.projectId, services: { edges: [{ node: { id: scope.serviceId, name: 'myapp-backend' } }], pageInfo: { hasNextPage: false } } } } }; }
 function loadServices(driver = {}) {
- const cache = new Map(), records = [], calls = [], reads = [], timers = new Map(); let ownerOverride = null;
+ const cache = new Map(), records = [], calls = [], reads = [], timers = new Map(); let ownerOverride = null; let makePermit;
  class CapturedWeakMap extends WeakMap { set(key, value) { records.push({ key, value }); return super.set(key, value); } }
  const env = new Proxy({ RAILWAY_TOKEN: 'synthetic-private-credential' }, { get(target, key) { reads.push(key); return target[key]; } });
  const https = { request(options, callback) {
@@ -39,12 +39,14 @@ function loadServices(driver = {}) {
   vm.runInNewContext(fs.readFileSync(path.join(base, key), 'utf8'), { module, Buffer, WeakMap: CapturedWeakMap, process: { env },
    setTimeout(fn, ms) { const t = {}; timers.set(t, { fn, ms }); return t; }, clearTimeout(t) { timers.delete(t); },
    require(name) {
+    if (name === './qualification-railway-live-authorization.cjs') { makePermit=require('./0114h-reviewed-context.cjs').connect(module); return {}; }
     if (name === 'node:https') return https;
     if (name === 'node:util') return { TextDecoder: require('node:util').TextDecoder, debuglog: () => ({ enabled: false }) };
     if (name.startsWith('./')) { const dep = name.slice(2); if (dep === keys[1] && ownerOverride) return ownerOverride;
      return keys.includes(dep) ? load(dep) : require(path.join(base, dep)); }
     return require(name);
    } }, { filename: path.join(base, key) });
+  if(key===keys[1]){const raw=module.exports;module.exports=Object.freeze({...raw,startTargetIdentitySession(...args){return args.length===1?raw.startTargetIdentitySession(args[0],makePermit(args[0])):raw.startTargetIdentitySession(...args);}});}
   return module.exports;
  }
  const identity = load(keys[1]), adapter = load(keys[0]), ingress = load(keys[2]);

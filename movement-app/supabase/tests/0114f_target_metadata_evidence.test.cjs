@@ -211,11 +211,12 @@ test('copied/serialized evidence and review summaries remain ordinary data',()=>
  assert.equal(Object.hasOwn(result,'contextHandoff'),false);assert.equal(result.automaticallyPromoted,false);
  // No authorization or wrapper function is invoked even with invalid inputs.
 });
-test('0114E safe template remains byte-identical to starting HEAD',()=>{
+test('0114E current v2 template preserves safe defaults; historical v1 stays historical',()=>{
  const old=cp.execFileSync('git',['-c','safe.directory='+path.resolve(root,'..'),'show',
   '19150ae041e7cf78cedd5ba1247a551a5d26df06:movement-app/docs/0114e-acquisition-input-review-template.json'],
   {encoding:'utf8',env:{},windowsHide:true});
- assert.equal(fs.readFileSync(ePath,'utf8').replace(/\r\n/g,'\n'),old.replace(/\r\n/g,'\n'));
+ assert.equal(JSON.parse(old).version,'movement_railway_acquisition_input_review_v1');
+ assert.equal(eSafe.version,'movement_railway_acquisition_input_review_v2');assert.equal(eSafe.expectedTarget.serviceName,null);assert.equal(eSafe.inputReviewComplete,false);
  for(const field of fields)assert.equal(eSafe.expectedTarget[field],null);
 });
 test('all 12 pins and authorization self hash remain exact',()=>{
@@ -343,12 +344,14 @@ test('recorded operator and AT must be different whenever an operator reference 
  reject(()=>inspectCandidate(c));
  c.identifiers.projectId.reviewerReference='at';reject(()=>inspectCandidate(c));
 });
-test('0114E safe template bytes match required starting HEAD',()=>{
+test('0114E versioned safe template cannot inherit historical authority',()=>{
  const opts={env:{},windowsHide:true};
  const gitArgs=['-c','safe.directory='+path.resolve(root,'..')];
  const old=cp.execFileSync('git',[...gitArgs,'show',acquisitionCommit+':movement-app/docs/0114e-acquisition-input-review-template.json'],opts);
- const work=fs.readFileSync(ePath);
- assert.deepEqual(work,old);
+ const historical=JSON.parse(old.toString('utf8')),work=JSON.parse(fs.readFileSync(ePath,'utf8'));
+ assert.equal(historical.version,'movement_railway_acquisition_input_review_v1');assert.equal(work.version,'movement_railway_acquisition_input_review_v2');
+ for(const k of ['reviewed','inputReviewComplete','liveAuthorized','manualLiveAuthorization'])assert.equal(work[k],false);
+ assert.equal(work.expectedTarget.serviceName,null);assert.equal(work.targetInputSources.serviceName.independentlyReviewed,false);
 });
 
 test('safe golden evidence template stays unpopulated with nullable parameter declarations',()=>{

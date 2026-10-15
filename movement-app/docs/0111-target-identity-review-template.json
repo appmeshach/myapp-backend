@@ -10,7 +10,6 @@
   "expectations": {
     "projectName": "thorough-blessing",
     "environmentName": null,
-    "serviceName": "myapp-backend",
     "branch": "feature/0092-shared-segment-suitability",
     "rootDirectory": "/movement-app",
     "historicalRegion": "europe-west4-drams3a",

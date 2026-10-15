@@ -5,6 +5,7 @@ const targets = require('./qualification-railway-introspection-target.cjs');
 const context = require('./qualification-railway-project-token-context.cjs');
 const provider = require('./qualification-railway-target-identity-provider-boundary.cjs');
 const adapter = require('./qualification-railway-https-adapter.cjs');
+let consumeAcquisitionTarget = null;
 const fail = () => { throw Error('Railway target identity unavailable'); };
 const freeze = v => { if (v && typeof v === 'object') { Object.values(v).forEach(freeze); Object.freeze(v); } return v; };
 const hash = v => crypto.createHash('sha256').update(v, 'utf8').digest('hex');
@@ -27,7 +28,7 @@ function identifier(v) {
 function label(v) {
  if (typeof v !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_. /-]{0,127}$/.test(v) || sensitive.test(v)) fail(); return v;
 }
-const expectations = freeze({ projectName: 'thorough-blessing', environmentName: null, serviceName: 'myapp-backend',
+const expectations = freeze({ projectName: 'thorough-blessing', environmentName: null,
  branch: 'feature/0092-shared-segment-suitability', rootDirectory: '/movement-app', historicalRegion: 'europe-west4-drams3a', labelsAuthoritative: false });
 const crossSystemForbidden = freeze({ provider: 'Supabase', identifierKind: 'project_ref', production: 'xdfmoggrsucisfybqctb',
  inactive: 'udlsysezmzutydnifhsq', consumedHistoricalDisposable: 'uzkhnslyrhgucijcuoes', railwayNamespace: false, newQualificationAuthorized: false });
@@ -72,10 +73,16 @@ const contextPermits = new WeakMap(), contextSlots = new WeakMap(), slotRecords 
 const CATEGORIES = ['projectIds', 'environmentIds', 'serviceIds', 'serviceInstanceIds'];
 function record(session) { const r = sessions.get(session); if (!r) fail(); return r; }
 function startTargetIdentitySession(...args) {
- if (args.length !== 1) fail(); let target;
+ // A located genuine permit burns even when arity/binding is wrong.
+ let acquisition = null;
+ try { if (args.length > 1 && consumeAcquisitionTarget) acquisition = consumeAcquisitionTarget(args[1],args[0],...args.slice(2)); }
+ catch { fail(); }
+ if (args.length !== 1 && args.length !== 2 || args.length === 2 && !acquisition) fail(); let target;
  try { target = targets.describeTarget(args[0]); } catch { fail(); }
+ if (acquisition) for (const k of ['projectId','environmentId','serviceId','serviceInstanceId','environmentKind','lifecycle'])
+  if (acquisition.expectedTarget[k] !== target[k]) fail();
  const session = Object.freeze({});
- sessions.set(session, { binding: args[0], target, stage: 'context_expected', revision: 0, executionContext: null,
+ sessions.set(session, { binding: args[0], target, acquisition, stage: 'context_expected', revision: 0, executionContext: null,
   contextFacts: null, serviceFacts: null, serviceObservation: null, serviceReviewIssued: false, serviceApproval: null, instanceFacts: null, activeHandoff: null, activeInvocation: null, candidate: null, contextTransferLock: null });
  return session;
 }
@@ -83,14 +90,15 @@ function inspectSession(...args) {
  if (args.length !== 1) fail(); const r = record(args[0]);
  const sources = { projectId: 'provider_project_token_context', environmentId: 'provider_project_token_context',
   serviceId: 'provider_project_services', serviceInstanceId: 'provider_service_instance_metadata' };
- return freeze({ outcome: r.candidate ? 'TARGET_IDENTITY_CANDIDATE' : 'TARGET_IDENTITY_UNRESOLVED', stage: r.stage, expectations,
+ return freeze({ outcome: r.candidate ? 'TARGET_IDENTITY_CANDIDATE' : 'TARGET_IDENTITY_UNRESOLVED', stage: r.stage, expectations: {...expectations,serviceName:r.acquisition?.expectedTarget.serviceName ?? null},
   ids: Object.fromEntries(Object.keys(sources).map(k => [k, { operatorExpectedValue: r.target[k],
    providerObservedValue: k === 'serviceId' ? r.serviceFacts?.serviceId ?? null : k === 'serviceInstanceId' ? r.instanceFacts?.serviceInstanceId ?? null : r.contextFacts?.[k] ?? null,
    expectedSource: 'operator_expected_constraint', providerEvidenceSource: sources[k] }])),
   projectNameObserved: null, environmentNameObserved: null, providerObserved: r.candidate !== null, globalAuthority: state });
 }
 function validateProjectServices(...args) {
- if (args.length !== 2) fail(); const [projectId, body] = args; identifier(projectId);
+ if (args.length !== 2) fail(); const [session, body] = args, r = record(session);
+ if (!r.acquisition) fail(); const expected = r.acquisition.expectedTarget, projectId = r.target.projectId; identifier(projectId);
  exact(body, ['data']); exact(body.data, ['project']); exact(body.data.project, ['id', 'services']);
  const project = body.data.project; if (identifier(project.id) !== projectId) fail();
  exact(project.services, ['edges', 'pageInfo']); exact(project.services.pageInfo, ['hasNextPage']);
@@ -103,14 +111,15 @@ function validateProjectServices(...args) {
  for (const edge of edges) {
   exact(edge, ['node']); exact(edge.node, ['id', 'name']); const id = identifier(edge.node.id), name = label(edge.node.name);
   if (ids.has(id) || names.has(name)) fail(); ids.add(id); names.add(name);
-  if (name === expectations.serviceName) { if (selected) fail(); selected = { serviceId: id, serviceName: name }; }
+  if (name === expected.serviceName) { if (selected) fail(); selected = { serviceId: id, serviceName: name }; }
  }
- if (!selected) fail(); return freeze({ ...selected, validationOnly: true, serviceContextProven: false });
+ if (!selected || selected.serviceId !== expected.serviceId) fail(); return freeze({ ...selected, validationOnly: true, serviceContextProven: false });
 }
 function validateServiceInstance(...args) {
- if (args.length !== 1) fail(); const body = args[0]; exact(body, ['data']); exact(body.data, ['serviceInstance']);
+ if (args.length !== 2) fail(); const [session,body] = args, r = record(session); if (!r.acquisition) fail();
+ const expected = r.acquisition.expectedTarget; exact(body, ['data']); exact(body.data, ['serviceInstance']);
  const value = body.data.serviceInstance; exact(value, ['id', 'serviceName', 'rootDirectory', 'region']);
- const serviceInstanceId = identifier(value.id); if (value.serviceName !== expectations.serviceName) fail();
+ const serviceInstanceId = identifier(value.id); if (value.serviceName !== expected.serviceName || expected.serviceInstanceId !== null && serviceInstanceId !== expected.serviceInstanceId) fail();
  if (value.rootDirectory !== null && value.rootDirectory !== expectations.rootDirectory) fail();
  if (value.region !== null) label(value.region);
  return freeze({ serviceInstanceId, serviceName: value.serviceName, rootDirectory: value.rootDirectory, region: value.region,
@@ -192,7 +201,7 @@ function acceptContextObservation(...args) {
 }
 function requestFor(r) {
  const key = r.stage === 'project_services' ? 'projectServices' : r.stage === 'service_instance' ? 'serviceInstance' : null;
- if (!key || !r.contextFacts || !r.executionContext) fail();
+ if (!key || !r.contextFacts || !r.executionContext || !r.acquisition) fail();
  if (key === 'serviceInstance') {
   const a = r.serviceApproval;
   if (!a || a.facts !== r.serviceFacts || a.observation !== r.serviceObservation || a.binding !== r.binding ||
@@ -248,15 +257,16 @@ function acceptIdentityObservation(...args) {
    observed.endpoint !== 'https://backboard.railway.com/graphql/v2' || observed.authKind !== 'project_token' ||
    canonical(observed.request) !== canonical(entry.request)) fail();
   if (entry.stage === 'project_services') {
-   const facts = validateProjectServices(r.contextFacts.projectId, observed.body);
+   const facts = validateProjectServices(entry.session, observed.body);
    if (facts.serviceId !== r.target.serviceId) fail(); r.serviceFacts = facts; r.serviceObservation = observed; r.stage = 'service_review';
   } else {
-   const facts = validateServiceInstance(observed.body);
+   const facts = validateServiceInstance(entry.session, observed.body);
    if (r.target.serviceInstanceId !== null && facts.serviceInstanceId !== r.target.serviceInstanceId) fail();
    r.instanceFacts = facts; r.stage = 'candidate';
    r.candidate = freeze({ projectId: r.contextFacts.projectId, environmentId: r.contextFacts.environmentId,
     serviceId: r.serviceFacts.serviceId, serviceInstanceId: facts.serviceInstanceId, projectNameExpected: expectations.projectName,
-    projectNameObserved: null, environmentNameObserved: null, serviceNameExpected: expectations.serviceName, serviceNameObserved: facts.serviceName,
+    projectNameObserved: null, environmentNameObserved: null, serviceNameExpected: r.acquisition.expectedTarget.serviceName, serviceNameObserved: facts.serviceName,
+    expectedServiceId:r.acquisition.expectedTarget.serviceId,observedServiceId:r.serviceFacts.serviceId,manifestSha256:r.acquisition.manifestSha256,
     rootDirectoryObserved: facts.rootDirectory, regionObserved: facts.region,
     evidence: { projectEnvironment: 'provider_project_token_context', service: 'provider_project_services', serviceInstance: 'provider_service_instance_metadata' },
     providerObserved: true, humanReviewed: false, serviceContextProven: false });
@@ -270,7 +280,7 @@ function reviewObservedServiceCandidate(...args) {
  if (args.length !== 1) fail(); const session = args[0], r = record(session);
  if (r.stage !== 'service_review' || !r.serviceFacts || !r.serviceObservation || r.serviceReviewIssued || r.serviceApproval) fail();
  const candidate = freeze({ observedServiceId: r.serviceFacts.serviceId, observedServiceName: r.serviceFacts.serviceName,
-  expectedServiceId: r.target.serviceId, expectedServiceName: expectations.serviceName, providerObserved: true,
+  expectedServiceId: r.target.serviceId, expectedServiceName: r.acquisition.expectedTarget.serviceName, manifestSha256:r.acquisition.manifestSha256, providerObserved: true,
   evidenceSource: 'provider_project_services', projectId: r.contextFacts.projectId, environmentId: r.contextFacts.environmentId,
   projectNameExpected: expectations.projectName, environmentNameExpected: expectations.environmentName,
   projectNameObserved: null, environmentNameObserved: null, parentContextEvidenceSource: 'provider_project_token_context' });
@@ -346,7 +356,13 @@ function reviewTemplate(...args) {
    ...Object.fromEntries(CATEGORIES.map(k => [k, { reviewed: false, completenessAcknowledged: false, completenessIsOperatorAssertion: true, ids: null, labels: [] }])) },
   crossSystemForbidden, documents });
 }
-module.exports = Object.freeze({ state, documents, contextTransfer, startTargetIdentitySession, inspectSession,
+module.exports = Object.assign(Object.create(null), { state, documents, contextTransfer, startTargetIdentitySession, inspectSession,
  validateProjectServices, validateServiceInstance, acceptContextObservation, reviewNextIdentityRequest,
  approveIdentityReview, consumeIdentityPermitForFutureAdapter, takeIdentityHandoffForFutureAdapter, acceptIdentityObservation, reviewForbiddenInventory,
  reviewObservedServiceCandidate, approveObservedServiceCandidate, reviewTargetCandidate, approveTargetCandidate, takeReviewedTargetFor0110, reviewTemplate });
+Object.defineProperty(module.exports,'_connectAcquisitionTargetConsumer',{configurable:true,value(...args){
+ if (args.length !== 1 || consumeAcquisitionTarget || typeof args[0] !== 'function') fail();
+ consumeAcquisitionTarget = args[0]; Reflect.deleteProperty(module.exports,'_connectAcquisitionTargetConsumer'); Object.freeze(module.exports);
+}});
+// Export the private initialization slot before entering either side of the cycle.
+require('./qualification-railway-live-authorization.cjs');

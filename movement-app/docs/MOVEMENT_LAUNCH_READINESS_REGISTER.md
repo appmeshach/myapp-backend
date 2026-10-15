@@ -647,3 +647,32 @@ unchanged. Remaining gates include lifecycle, inventory completeness, host and
 whole-package attestations, current-code review and runtime service-name compatibility.
 No pending changes, deployment, restart or 0114D authorization occurred. Only the
 single permitted Expo v57 documentation read used network access in this task.
+
+## 0114H local service-name compatibility implementation
+
+Starting HEAD 53ba9a2fbea1c727ab062893608d7c005c4300ef. The reviewed 0114H design
+is implemented locally within its four approved runtime files. Executable v3 binds
+one reviewed name/ID/input/evidence context, privately transfers a one-use target
+permit before context open, preserves exact machine equality and both human gates,
+and blocks context-only 0113 continuation. No name is a built-in trusted default
+or fallback. Twelve source pins remain; current safe templates are regenerated.
+
+See [the implementation record](0114h-railway-service-name-compatibility-implementation.md)
+for ownership, input contract, validation and remaining gates. The reviewed design,
+historical evidence, qualification evidence and all 99 migrations are unchanged.
+No completed current 0114E package is supplied. Lifecycle and serviceInstanceId
+remain null; inputReviewComplete, readyFor0114DPreparation and all deployment/live/
+manual/provider/identity authority flags remain false. Exact implementation review,
+eligibility, inventory, host and whole-package attestations remain required.
+No Railway changes, provider observations, deployment, restart, staging, commit,
+push or 0114D use occurred. External network access was limited to the explicitly
+permitted Expo documentation read; the user separately authorized loopback-only
+HTTP regression coverage. The capsule remains unread, untouched and untracked.
+
+Focused validation passed 1,503 tests, including 65 new 0114H tests; app, Edge and
+worker typechecks passed. After explicit loopback-only authorization, the complete
+19-file regression passed with concurrency 1: 1,117 tests, 1,114 passed, zero
+failures, three existing OS-specific skips. The initial partial run had an unchanged
+0099 child-timeout assertion failure; that test passed on the complete rerun without
+runtime/test changes. Local validation is complete; independent implementation review
+and the unresolved acquisition-input/eligibility/host/inventory gates remain.

@@ -34,10 +34,10 @@ function exact(v, keys) {
  dataKeys(v); // Reject hidden/symbol fields and getters without reading them.
 }
 const SOURCE_HASHES = freeze({
- 'qualification-railway-acquisition-wrapper.cjs': '0dc8a07daace32d4984f3edf73301e4143cd2cb2de6232d5880bec33485b103e',
+ 'qualification-railway-acquisition-wrapper.cjs': '4ac56edb3014a92a3edbbd1844fb795ce7fe6a2696344102a4aeaa9b8ee320b5',
  'qualification-railway-first-context-wrapper.cjs': '7c3a376d1f7a1b733f3be90a3b7d43fb4aa2fd5256c5638a13e6301a3d78cf94',
- 'qualification-railway-https-adapter.cjs': '6c25068a45e7ffe98f9db8bd1efe20e0bebad5140f740ea20725785af6361d6b',
- 'qualification-railway-target-identity.cjs': '1dce76ecf7657f40d6ad98a7347eecff868772c5812eeadf025165c80ebfcb47',
+ 'qualification-railway-https-adapter.cjs': 'f25ff544ad0e61188b317c35b80c77c6994427e179cb91950ec62e381a9d833a',
+ 'qualification-railway-target-identity.cjs': '9596537b7d997066a4b3d49bbac56c7a00a519d249c76f1fe73aa62a11c74422',
  'qualification-railway-target-identity-provider-boundary.cjs': 'cf22b4ce9d68b36fa6c325f289661528fcfb6ec8e75d6acad9af5429be53e1df',
  'qualification-railway-context-review.cjs': '23fb65eef738136b68b3d8ce19a69e51482f9bc075c6a26940e2300108c6dd0f',
  'qualification-railway-introspection-preflight.cjs': '88fe296bd5bfaa639844436c031dbdc674f29c25fbab3530081317143b3c9d74',
@@ -238,7 +238,7 @@ function createAcquisitionDraft(...args) {
  const reviewedInventory = inventory(forbidden, target), codeIdentity = verifyCodeIdentity(reviewedCode);
  const expectedTarget = freeze({ projectId: target.projectId, environmentId: target.environmentId,
   serviceId: target.serviceId, serviceInstanceId: target.serviceInstanceId,
-  serviceName: identity.reviewTemplate().expectations.serviceName, environmentKind: target.environmentKind, lifecycle: target.lifecycle,
+  serviceName: null, environmentKind: target.environmentKind, lifecycle: target.lifecycle,
   independentlyAuthoritative: false });
  const manifest = acquisitionFacts(codeIdentity, expectedTarget, reviewedInventory), draft = Object.freeze({});
  acquisitionDrafts.set(draft, { binding, manifest, codeIdentity,
@@ -267,34 +267,116 @@ function approveAcquisitionPackageReview(...args) {
 function acquisitionReviewTemplate(...args) {
  if (args.length) fail(); const codeIdentity = freeze({ ...verifySources(), reviewedHead: null, reviewedBranch: null });
  const expectedTarget = { projectId: null, environmentId: null, serviceId: null, serviceInstanceId: null,
-  serviceName: identity.reviewTemplate().expectations.serviceName, environmentKind: null, lifecycle: null, independentlyAuthoritative: false };
+  serviceName: null, environmentKind: null, lifecycle: null, independentlyAuthoritative: false };
  const forbidden = { inventoryReviewed: false, ...Object.fromEntries(CATEGORIES.map(k => [k, { reviewed: false, ids: null }])) };
  return freeze({ notice: 'LIVE ACQUISITION NOT AUTHORIZED', outcome: 'PRELIVE_NOT_AUTHORIZED',
   manifest: acquisitionFacts(codeIdentity, expectedTarget, forbidden), actualRailwayIdsUnresolved: true,
   reviewed: false, localReviewComplete: false, manualLiveAuthorization: false, liveAuthorized: false,
   executableAuthorization: executableAcquisitionReviewTemplate() });
 }
-// Executable v2 is separate from the unchanged v1 planning-only pool.
+// Executable v3 is separate from historical v1/v2 material.
 const executableDrafts = new WeakMap(), executableReviews = new WeakMap(), acquisitionTickets = new WeakMap();
+const acquisitionTargets = new WeakMap();
+const INPUT_PATH = 'docs/0114e-current-acquisition-input-review.json';
+const EVIDENCE_PATH = 'docs/0114e-qualification-target-evidence.json';
+const SCOPE_KEYS = ['projectId','environmentId','serviceId','serviceInstanceId','environmentKind','lifecycle'];
+function textReference(v) {
+ if (typeof v !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_. /:#-]{0,255}$/.test(v) || /sb_secret_|^eyJ|privatekey|railway.*token/i.test(v)) fail(); return v;
+}
+function serviceLabel(v) {
+ if (typeof v !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_. /-]{0,127}$/.test(v) || /sb_secret_|^eyJ|privatekey|railway.*token/i.test(v)) fail(); return v;
+}
+function digest(v) { if (typeof v !== 'string' || !/^[a-f0-9]{64}$/.test(v)) fail(); return v; }
+function reviewJson(text) {
+ // JSON.parse alone silently chooses the last duplicate key. Reviews must not.
+ const stack = []; let i = 0;
+ while (i < text.length) {
+  const c = text[i++];
+  if (c === '"') {
+   const start = i - 1; let closed = false;
+   while (i < text.length) { const next = text[i++]; if (next === '\\') i++; else if (next === '"') { closed = true; break; } }
+   if (!closed) fail(); const top = stack[stack.length-1];
+   if (top?.keyExpected) { const key = JSON.parse(text.slice(start,i)); if (top.keys.has(key)) fail(); top.keys.add(key); top.keyExpected = false; }
+  } else if (c === '{' || c === '[') stack.push({keys:new Set(),keyExpected:c === '{',object:c === '{'});
+  else if (c === '}' || c === ']') stack.pop();
+  else if (c === ',' && stack[stack.length-1]?.object) stack[stack.length-1].keyExpected = true;
+ }
+ return JSON.parse(text);
+}
+function trackedText(relative) {
+ if (![INPUT_PATH,EVIDENCE_PATH].includes(relative)) fail();
+ const value = fs.readFileSync(path.join(ROOT,relative),'utf8');
+ if (Buffer.byteLength(value,'utf8') > 1048576) fail();
+ return value.replace(/\r\n/g,'\n');
+}
+function reviewedInput(descriptor, target, codeIdentity, forbidden) {
+ exact(descriptor,['path','sha256']); if (descriptor.path !== INPUT_PATH) fail(); digest(descriptor.sha256);
+ const text = trackedText(INPUT_PATH); if (hash(text) !== descriptor.sha256) fail();
+ const value = reviewJson(text);
+ exact(value,['version','outcome','reviewed','inputReviewComplete','liveAuthorized','manualLiveAuthorization','reviewedHead','reviewedBranch',
+  'requiredCodeReview','expectedTarget','historicalLabels','targetInputSources','forbiddenRailwayInventory','hostReview','codeIdentity',
+  'crossSystemForbidden','independentReview','executableAcquisitionPrepared','providerObservationOccurred','targetIdentityProven',
+  'serviceIdentityProven','serviceInstanceIdentityProven','evidenceBinding']);
+ if (value.version !== 'movement_railway_acquisition_input_review_v2' || value.outcome !== 'PRELIVE_NOT_AUTHORIZED' ||
+  value.reviewed !== true || value.inputReviewComplete !== true) fail();
+ for (const k of ['liveAuthorized','manualLiveAuthorization','executableAcquisitionPrepared','providerObservationOccurred',
+  'targetIdentityProven','serviceIdentityProven','serviceInstanceIdentityProven']) if (value[k] !== false) fail();
+ if (value.reviewedHead !== codeIdentity.reviewedHead || value.reviewedBranch !== codeIdentity.reviewedBranch ||
+  canonical(value.requiredCodeReview) !== canonical({reviewedHead:codeIdentity.reviewedHead,reviewedBranch:codeIdentity.reviewedBranch}) ||
+  canonical(value.codeIdentity) !== canonical(codeIdentity) || canonical(value.historicalLabels) !== canonical(labels) ||
+  canonical(value.crossSystemForbidden) !== canonical(crossSystemForbidden) || canonical(value.forbiddenRailwayInventory) !== canonical(forbidden)) fail();
+ const expected = value.expectedTarget; exact(expected,[...SCOPE_KEYS,'serviceName','branch','rootDirectory']);
+ for (const k of SCOPE_KEYS) if (expected[k] !== target[k]) fail();
+ if (expected.branch !== BRANCH || expected.rootDirectory !== '/movement-app') fail(); serviceLabel(expected.serviceName);
+ exact(value.targetInputSources,['projectId','environmentId','serviceId','serviceInstanceId','serviceName']);
+ for (const k of ['projectId','environmentId','serviceId','serviceInstanceId','serviceName']) {
+  const e = value.targetInputSources[k]; exact(e,['independentlyReviewed','source','reviewer']);
+  if (k === 'serviceInstanceId' && expected[k] === null) { if (e.independentlyReviewed !== false || e.source !== null || e.reviewer !== null) fail(); }
+  else { if (e.independentlyReviewed !== true) fail(); textReference(e.source); textReference(e.reviewer); }
+ }
+ exact(value.hostReview,['reviewed','reviewer','checklist']); if (value.hostReview.reviewed !== true) fail();
+ textReference(value.hostReview.reviewer); const host = hostChecklist(value.hostReview.checklist);
+ const review = value.independentReview; exact(review,['reviewed','reviewer','evidenceReference']);
+ if (review.reviewed !== true) fail(); textReference(review.reviewer); textReference(review.evidenceReference);
+ const evidence = value.evidenceBinding; exact(evidence,['path','sha256','record']);
+ if (evidence.path !== EVIDENCE_PATH || evidence.record !== 'qualificationReview.reviewedContext') fail(); digest(evidence.sha256);
+ const evidenceText = trackedText(EVIDENCE_PATH); if (hash(evidenceText) !== evidence.sha256) fail();
+ const facts = reviewJson(evidenceText), scoped = facts.qualificationReview;
+ if (!scoped || scoped.result !== 'NO_MISMATCH' || scoped.reviewerIndependentlyInspectedProvider !== true || scoped.reviewerDistinctFromAcquirer !== true) fail();
+ textReference(scoped.reviewerReference);
+ const observed = scoped.reviewedContext;
+ for (const k of ['projectId','environmentId','serviceId','serviceName']) if (observed[k] !== expected[k]) fail();
+ for (const k of ['projectId','environmentId','serviceId']) if (facts.identifiers[k].value !== expected[k]) fail();
+ return freeze({ expectedTarget: {...Object.fromEntries(SCOPE_KEYS.map(k=>[k,target[k]])),serviceName:expected.serviceName,
+  inputReview:{path:descriptor.path,sha256:descriptor.sha256,reviewer:review.reviewer,evidenceReference:review.evidenceReference,
+   evidenceBinding:{...evidence}}},host });
+}
+function verifyAcquisition(e) {
+ if (canonical(verifyCodeIdentity(e.reviewedCode)) !== canonical(e.codeIdentity)) fail();
+ const current = reviewedInput(e.inputDescriptor,targets.describeTarget(e.binding),e.codeIdentity,e.inventoryReview.inventory);
+ if (canonical(current) !== canonical(e.inputSnapshot) || hash(canonical(e.manifest)) !== e.manifestSha256) fail();
+}
 const executionPolicy = freeze({ humanWaitMs: 300000, maxProviderRequests: 3, sameSessionContextLifetime: true,
  closeOnEveryTerminalExit: true, crashResumeSupported: false, retries: 0, fallbackAllowed: false, redirectPolicy: 'reject' });
 function executableManifest(codeIdentity, expectedTarget, forbidden) {
- return freeze({ ...acquisitionFacts(codeIdentity,expectedTarget,forbidden), version: 'movement_railway_identity_acquisition_auth_v2',
+ return freeze({ ...acquisitionFacts(codeIdentity,expectedTarget,forbidden), version: 'movement_railway_identity_acquisition_auth_v3',
   transportSupported: true, executionPolicy, manualLiveAuthorizationRequired: true });
 }
 function createExecutableAcquisitionDraft(...args) {
- if (args.length !== 3) fail(); const [binding, forbidden, code] = args, target = targets.describeTarget(binding);
+ if (args.length !== 4) fail(); const [binding, forbidden, code, input] = args, target = targets.describeTarget(binding);
  const inventoryReview = identity.reviewForbiddenInventory(binding,forbidden), codeIdentity = verifyCodeIdentity(code);
- const manifest = executableManifest(codeIdentity,{ ...target, expectations: identity.reviewTemplate().expectations },inventoryReview.inventory);
+ const inputSnapshot = reviewedInput(input,target,codeIdentity,inventoryReview.inventory);
+ const inputDescriptor = freeze({path:input.path,sha256:input.sha256});
+ const manifest = executableManifest(codeIdentity,{...inputSnapshot.expectedTarget,expectations:identity.reviewTemplate().expectations},inventoryReview.inventory);
  const draft = Object.freeze({});
- executableDrafts.set(draft,{ binding,inventoryReview,codeIdentity,manifest,contextReview: reviews.reviewProjectTokenContext(binding),
+ executableDrafts.set(draft,{ binding,inventoryReview,codeIdentity,manifest,inputSnapshot,inputDescriptor,manifestSha256:hash(canonical(manifest)),contextReview: reviews.reviewProjectTokenContext(binding),
   reviewedCode: freeze({ reviewedHead: codeIdentity.reviewedHead, reviewedBranch: codeIdentity.reviewedBranch }),
   reviewIssued: false, reviewComplete: false, ticketIssued: false, contextHandoff: null, host: null });
  return draft;
 }
 function reviewExecutableAcquisitionPackage(...args) {
  if (args.length !== 1) fail(); const e = executableDrafts.get(args[0]);
- if (!e || e.reviewIssued || canonical(verifyCodeIdentity(e.reviewedCode)) !== canonical(e.codeIdentity)) fail();
+ if (!e || e.reviewIssued) fail(); verifyAcquisition(e);
  const review = freeze({ outcome: 'PRELIVE_NOT_AUTHORIZED', manifest: e.manifest, manifestSha256: hash(canonical(e.manifest)),
   contextReviewMetadata: e.contextReview.meta, hostAttestationKeys: ['nodeMajor',...HOST_KEYS], liveAuthorized: false });
  executableReviews.set(review,e); e.reviewIssued = true; return review;
@@ -312,7 +394,9 @@ function approveExecutableAcquisitionPackageReview(...args) {
  if (ack.reviewed !== true || canonical(ack.manifest) !== canonical(e.manifest) ||
   ack.manifestSha256 !== hash(canonical(e.manifest)) || canonical(ack.contextReview) !== canonical({ reviewed: true,...e.contextReview.meta }) ||
   canonical(verifyCodeIdentity(e.reviewedCode)) !== canonical(e.codeIdentity)) fail();
+ verifyAcquisition(e);
  e.host = hostChecklist(ack.hostChecklist);
+ if (canonical(e.host) !== canonical(e.inputSnapshot.host)) fail();
  const p = reviews.approveProjectTokenContextReview(e.contextReview,ack.contextReview);
  e.contextHandoff = reviews.consumeProjectTokenContextPermitForAdapter(p,e.binding); e.reviewComplete = true;
  return freeze({ outcome: 'PRELIVE_NOT_AUTHORIZED', localReviewComplete: true, manifest: e.manifest, liveAuthorized: false,
@@ -323,7 +407,7 @@ function authorizeAcquisition(...args) {
  if (!e || args[1] !== e.binding || !e.reviewComplete || e.ticketIssued) fail();
  const expected = acquisitionFinalAcknowledgement(e), ack = args[2]; exact(ack,Object.keys(expected));
  for (const k of Object.keys(expected)) if (ack[k] !== (k === 'manualLiveAuthorization' ? true : expected[k])) fail();
- if (canonical(verifyCodeIdentity(e.reviewedCode)) !== canonical(e.codeIdentity)) fail();
+ verifyAcquisition(e);
  e.ticketIssued = true; const ticket = Object.freeze({}); acquisitionTickets.set(ticket,e); return ticket;
 }
 // Private redemption, installed only into the pinned literal acquisition owner.
@@ -331,14 +415,22 @@ function redeemAcquisitionTicketForWrapper(...args) {
  const e = acquisitionTickets.get(args[0]); if (!e) fail(); acquisitionTickets.delete(args[0]);
  if (args.length !== 1 || canonical(verifyCodeIdentity(e.reviewedCode)) !== canonical(e.codeIdentity) ||
   require('./qualification-railway-acquisition-wrapper.cjs') !== acquisitionOwner) fail();
+ verifyAcquisition(e);
+ const acquisitionTargetPermit = Object.freeze({}); acquisitionTargets.set(acquisitionTargetPermit,e);
  return freeze({ privateTarget: e.binding, contextHandoff: e.contextHandoff, inventoryReview: e.inventoryReview,
-  operationKind: 'target_identity_acquisition', executionPolicy });
+  acquisitionTargetPermit, operationKind: 'target_identity_acquisition', executionPolicy });
+}
+function consumeAcquisitionTarget(...args) {
+ const e = acquisitionTargets.get(args[0]); if (!e) fail(); acquisitionTargets.delete(args[0]);
+ if (args.length !== 2 || args[1] !== e.binding || require('./qualification-railway-target-identity.cjs') !== identityOwner) fail();
+ verifyAcquisition(e);
+ return freeze({expectedTarget:e.manifest.expectedTarget,manifestSha256:e.manifestSha256});
 }
 function executableAcquisitionReviewTemplate(...args) {
  if (args.length) fail(); const codeIdentity = freeze({ ...verifySources(), reviewedHead: null, reviewedBranch: null });
  const safe = identity.reviewTemplate();
  return freeze({ outcome: 'PRELIVE_NOT_AUTHORIZED', reviewed: false, liveAuthorized: false, manualLiveAuthorization: false,
-  manifest: executableManifest(codeIdentity,{ ...safe.ids, expectations: safe.expectations, environmentKind: null, lifecycle: null },
+  manifest: executableManifest(codeIdentity,{ ...safe.ids, serviceName:null, inputReview:null, expectations: safe.expectations, environmentKind: null, lifecycle: null },
    safe.forbiddenRailwayInventory) });
 }
 module.exports = Object.freeze(Object.assign(Object.create(null), { state, baselineParentHead: BASELINE_PARENT_HEAD, sourceHashes: SOURCE_HASHES, verifyCodeIdentity,
@@ -353,3 +445,7 @@ const acquisitionOwner = require('./qualification-railway-acquisition-wrapper.cj
 const connectAcquisitionOwner = Reflect.get(acquisitionOwner, '_connectAcquisitionRedemption');
 if (typeof connectAcquisitionOwner !== 'function') fail();
 connectAcquisitionOwner(redeemAcquisitionTicketForWrapper);
+const identityOwner = require('./qualification-railway-target-identity.cjs');
+const connectIdentityOwner = Reflect.get(identityOwner, '_connectAcquisitionTargetConsumer');
+if (typeof connectIdentityOwner !== 'function') fail();
+connectIdentityOwner(consumeAcquisitionTarget);

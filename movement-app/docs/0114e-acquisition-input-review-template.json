@@ -1,5 +1,5 @@
 {
-  "version": "movement_railway_acquisition_input_review_v1",
+  "version": "movement_railway_acquisition_input_review_v2",
   "outcome": "PRELIVE_NOT_AUTHORIZED",
   "reviewed": false,
   "inputReviewComplete": false,
@@ -8,7 +8,7 @@
   "reviewedHead": null,
   "reviewedBranch": null,
   "requiredCodeReview": {
-    "reviewedHead": "ee228de90d4f1d68662948670bb15efed7fb6f0f",
+    "reviewedHead": "53ba9a2fbea1c727ab062893608d7c005c4300ef",
     "reviewedBranch": "feature/0092-shared-segment-suitability"
   },
   "expectedTarget": {
@@ -16,7 +16,7 @@
     "environmentId": null,
     "serviceId": null,
     "serviceInstanceId": null,
-    "serviceName": "myapp-backend",
+    "serviceName": null,
     "branch": "feature/0092-shared-segment-suitability",
     "rootDirectory": "/movement-app",
     "environmentKind": null,
@@ -48,6 +48,11 @@
       "reviewer": null
     },
     "serviceInstanceId": {
+      "independentlyReviewed": false,
+      "source": null,
+      "reviewer": null
+    },
+    "serviceName": {
       "independentlyReviewed": false,
       "source": null,
       "reviewer": null
@@ -112,10 +117,10 @@
   "codeIdentity": {
     "baselineParentHead": "7c2346ce73d12e571b5ff8506fd8d02be48f44b7",
     "sourceHashes": {
-      "qualification-railway-acquisition-wrapper.cjs": "0dc8a07daace32d4984f3edf73301e4143cd2cb2de6232d5880bec33485b103e",
+      "qualification-railway-acquisition-wrapper.cjs": "4ac56edb3014a92a3edbbd1844fb795ce7fe6a2696344102a4aeaa9b8ee320b5",
       "qualification-railway-first-context-wrapper.cjs": "7c3a376d1f7a1b733f3be90a3b7d43fb4aa2fd5256c5638a13e6301a3d78cf94",
-      "qualification-railway-https-adapter.cjs": "6c25068a45e7ffe98f9db8bd1efe20e0bebad5140f740ea20725785af6361d6b",
-      "qualification-railway-target-identity.cjs": "1dce76ecf7657f40d6ad98a7347eecff868772c5812eeadf025165c80ebfcb47",
+      "qualification-railway-https-adapter.cjs": "f25ff544ad0e61188b317c35b80c77c6994427e179cb91950ec62e381a9d833a",
+      "qualification-railway-target-identity.cjs": "9596537b7d997066a4b3d49bbac56c7a00a519d249c76f1fe73aa62a11c74422",
       "qualification-railway-target-identity-provider-boundary.cjs": "cf22b4ce9d68b36fa6c325f289661528fcfb6ec8e75d6acad9af5429be53e1df",
       "qualification-railway-context-review.cjs": "23fb65eef738136b68b3d8ce19a69e51482f9bc075c6a26940e2300108c6dd0f",
       "qualification-railway-introspection-preflight.cjs": "88fe296bd5bfaa639844436c031dbdc674f29c25fbab3530081317143b3c9d74",
@@ -125,7 +130,7 @@
       "qualification-railway-introspection-request.cjs": "62342054302e6f487708b85372b5f2cac7c1449e69ce3c25b0d142c1d4324ae3",
       "qualification-railway-introspection-plan.cjs": "dacaf8a4aaecff254760da0c687ccc78b3569b7e5449d1a919ba4170d18fc0e3"
     },
-    "authorizationBoundarySha256": "601a71a287a07c439bd4b3a136a64773ca709ee8d3b86414b4e2cedb2a6f3bd4",
+    "authorizationBoundarySha256": "05a8ef85b6e07f6ff7b54270f67e45d2c6fb47966c3d779e3191f4965b04192c",
     "canonicalSourceRule": "UTF-8; CRLF to LF only; preserve all other bytes and EOF",
     "reviewedHead": null,
     "reviewedBranch": null
@@ -148,5 +153,10 @@
   "providerObservationOccurred": false,
   "targetIdentityProven": false,
   "serviceIdentityProven": false,
-  "serviceInstanceIdentityProven": false
+  "serviceInstanceIdentityProven": false,
+  "evidenceBinding": {
+    "path": "docs/0114e-qualification-target-evidence.json",
+    "sha256": null,
+    "record": "qualificationReview.reviewedContext"
+  }
 }

@@ -346,7 +346,7 @@ function prepareProjectServicesResult(...args) {
   assertServicesAttempt(e);
   // Early objective validation protects the transport attempt. The unchanged
   // identity owner independently repeats the final semantic/expected-ID checks.
-  const facts = e.owner.validateProjectServices(e.attestation.facts.projectId, result.body);
+  const facts = e.owner.validateProjectServices(e.session, result.body);
   if (facts.serviceId !== targets.describeTarget(e.binding).serviceId) fail();
   e.phase = 'receipt'; const receipt = Object.freeze({});
   servicesReceipts.set(receipt, result); e.record.servicesReceipts.add(receipt);
@@ -446,7 +446,7 @@ function prepareServiceInstanceResult(...args) {
    result.executionContext !== e.executionContext || result.invocation !== e.invocation || result.request !== e.request ||
    result.endpoint !== 'https://backboard.railway.com/graphql/v2' || result.authKind !== 'project_token') fail();
   assertInstanceAttempt(e);
-  const facts = e.owner.validateServiceInstance(result.body), expected = targets.describeTarget(e.binding).serviceInstanceId;
+  const facts = e.owner.validateServiceInstance(e.session, result.body), expected = targets.describeTarget(e.binding).serviceInstanceId;
   if (expected !== null && facts.serviceInstanceId !== expected) fail();
   e.phase = 'receipt'; const receipt = Object.freeze({});
   instanceReceipts.set(receipt, result); e.record.instanceReceipts.add(receipt);

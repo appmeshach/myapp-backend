@@ -6,7 +6,7 @@ const { EventEmitter } = require('node:events');
 const base = path.resolve(__dirname, '../../../scripts/assessment-worker');
 const keys = ['qualification-railway-https-adapter.cjs', 'qualification-railway-target-identity.cjs', 'qualification-railway-target-identity-provider-boundary.cjs'];
 function loadTransfer({ body = null } = {}) {
- const cache = new Map(), records = [], calls = [], reads = [], timers = new Map(); let ownerOverride = null;
+ const cache = new Map(), records = [], calls = [], reads = [], timers = new Map(); let ownerOverride = null; let makePermit;
  class CapturedWeakMap extends WeakMap { set(key, value) { records.push({ key, value }); return super.set(key, value); } }
  const env = new Proxy({ RAILWAY_TOKEN: 'synthetic-private-credential' }, { get(target, key) { reads.push(key); return target[key]; } });
  const https = { request(options, callback) {
@@ -26,6 +26,7 @@ function loadTransfer({ body = null } = {}) {
   const sandbox = { module, Buffer, WeakMap: CapturedWeakMap, process: { env },
    setTimeout(fn, ms) { const handle = {}; timers.set(handle, { fn, ms }); return handle; }, clearTimeout(handle) { timers.delete(handle); },
    require(name) {
+    if (name === './qualification-railway-live-authorization.cjs') { makePermit=require('./0114h-reviewed-context.cjs').connect(module); return {}; }
     if (name === 'node:https') return https;
     if (name === 'node:util') return { TextDecoder: require('node:util').TextDecoder, debuglog: () => ({ enabled: false }) };
     if (name.startsWith('./')) {
@@ -35,6 +36,7 @@ function loadTransfer({ body = null } = {}) {
     return require(name);
    } };
   vm.runInNewContext(fs.readFileSync(path.join(base, key), 'utf8'), sandbox, { filename: path.join(base, key) });
+  if(key===keys[1]){const raw=module.exports;module.exports=Object.freeze({...raw,startTargetIdentitySession(...args){return args.length===1?raw.startTargetIdentitySession(args[0],makePermit(args[0])):raw.startTargetIdentitySession(...args);}});}
   return module.exports;
  }
  const identity = load(keys[1]), adapter = load(keys[0]), ingress = load(keys[2]);

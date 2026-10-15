@@ -46,7 +46,7 @@ for(const field of ['S','C','credential','timeout','HTTPS','target','callback'])
 }
 for(const mode of ['copiedReview','serializedReview','wrongTarget','inventory','operations','requests','humanService','humanTarget','extraAck','manualShortcut']){
  test('package review rejects mismatch and burns original: '+mode,()=>{
-  const f=loadAcquisition(),target=f.binding(),d=f.auth.createExecutableAcquisitionDraft(target,inventory(),{reviewedHead:f.drift.head,reviewedBranch:f.drift.branch});
+  const f=loadAcquisition(),target=f.binding(),d=f.auth.createExecutableAcquisitionDraft(target,inventory(),{reviewedHead:f.drift.head,reviewedBranch:f.drift.branch},f.input(target).descriptor);
   const r=f.auth.reviewExecutableAcquisitionPackage(d),ack={reviewed:true,manifest:clone(r.manifest),manifestSha256:r.manifestSha256,
    contextReview:{reviewed:true,...clone(r.contextReviewMetadata)},hostChecklist:{nodeMajor:24,...Object.fromEntries(r.hostAttestationKeys.filter(k=>k!=='nodeMajor').map(k=>[k,true]))}};
   const args=[r,target,ack];
@@ -75,7 +75,7 @@ test('manual=false cannot authorize; exact final acknowledgement creates one tic
 for(const phase of ['review','authorize','redemption','redemptionAfterCopy'])for(const drift of ['head','branch',...Object.keys(normal.sourceHashes),'self']){
  test('code drift fails closed at '+phase+': '+drift,()=>{
   const f=loadAcquisition();let a,target,draft,ticket;
-  if(phase==='review'){target=f.binding();draft=f.auth.createExecutableAcquisitionDraft(target,inventory(),{reviewedHead:f.drift.head,reviewedBranch:f.drift.branch});}
+  if(phase==='review'){target=f.binding();draft=f.auth.createExecutableAcquisitionDraft(target,inventory(),{reviewedHead:f.drift.head,reviewedBranch:f.drift.branch},f.input(target).descriptor);}
   else {a=f.reviewed();if(phase==='redemption'||phase==='redemptionAfterCopy')ticket=f.auth.authorizeAcquisition(a.draft,a.target,{...a.approved.finalAcknowledgementTemplate,manualLiveAuthorization:true});if(phase==='redemptionAfterCopy')reject(()=>f.wrapper.beginAuthorizedAcquisition(clone(ticket)));}
   if(drift==='head')f.drift.head='b'.repeat(40);else if(drift==='branch')f.drift.branch='other';else{
    const file=path.join(base,drift==='self'?'qualification-railway-live-authorization.cjs':drift);f.drift.files.set(file,fs.readFileSync(file,'utf8')+'// drift');}
@@ -167,12 +167,13 @@ test('global state stays false/null after exact synthetic completion and safe te
  for(const [file,t]of[['0110-live-review-template.json',normal.reviewTemplate()],['0114a-acquisition-review-template.json',v1]])
   assert.deepEqual(JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../docs',file),'utf8')),t);
 });
-test('wrapper is pin 12; all eleven old pins unchanged and self/template hashes bind final bytes',()=>{
+test('twelve pins; approved v3 runtime changes and self/template hashes bind final bytes',()=>{
  const old=JSON.parse(cp.execFileSync('git',['-c','safe.directory='+path.resolve(__dirname,'../../..'),'show','7f1582bb3eaf244394e91da24909473fc38569fc:movement-app/docs/0110-live-review-template.json'],{encoding:'utf8',env:{},windowsHide:true}));
  assert.equal(Object.keys(normal.sourceHashes).length,12);
  for(const[file,sha]of Object.entries(normal.sourceHashes)){
   assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(base,file),'utf8').replace(/\r\n/g,'\n')).digest('hex'),sha);
   if(file==='qualification-railway-acquisition-wrapper.cjs')assert.equal(old.manifest.codeIdentity.sourceHashes[file],undefined);
+  else if(['qualification-railway-target-identity.cjs','qualification-railway-https-adapter.cjs'].includes(file))assert.notEqual(old.manifest.codeIdentity.sourceHashes[file],sha);
   else assert.equal(old.manifest.codeIdentity.sourceHashes[file],sha);
  }
  assert.notEqual(normal.reviewTemplate().manifest.codeIdentity.authorizationBoundarySha256,old.manifest.codeIdentity.authorizationBoundarySha256);

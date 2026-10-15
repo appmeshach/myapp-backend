@@ -44,7 +44,7 @@ function terminate(e) {
  e.terminal = true; runs.delete(e.handle); burnGate(e); issuedResults.delete(e.handle);
  const c = e.executionContext; e.executionContext = null;
  try { if (c) adapter.closeExecutionContext(c); }
- finally { e.session = null; e.target = null; e.inventoryReview = null; e.contextHandoff = null; }
+ finally { e.session = null; e.target = null; e.inventoryReview = null; e.contextHandoff = null; e.acquisitionTargetPermit = null; }
 }
 function gate(e, phase, review) {
  current(e, phase); e.phase = phase; e.review = review; e.promptTaken = false;
@@ -96,10 +96,10 @@ function beginAuthorizedAcquisition(...args) {
    extracted.executionPolicy.humanWaitMs !== HUMAN_WAIT_MS || extracted.executionPolicy.maxProviderRequests !== 3) fail();
   globals();
   const handle = Object.freeze({});
-  e = { handle, target: extracted.privateTarget, contextHandoff: extracted.contextHandoff, inventoryReview: extracted.inventoryReview,
+  e = { handle, target: extracted.privateTarget, acquisitionTargetPermit:extracted.acquisitionTargetPermit, contextHandoff: extracted.contextHandoff, inventoryReview: extracted.inventoryReview,
    session: null, executionContext: null, terminal: false, phase: 'context_expected', review: null, timer: null, deadline: null,
    promptTaken: false, providerRequests: 0 };
-  e.session = identity.startTargetIdentitySession(e.target);
+  e.session = identity.startTargetIdentitySession(e.target,e.acquisitionTargetPermit); e.acquisitionTargetPermit = null;
   e.executionContext = adapter.openExecutionContext(e.target);
   runs.set(handle,e); void acquireServices(e); return handle;
  } catch { if (e) { try { terminate(e); } catch {} } fail(); }

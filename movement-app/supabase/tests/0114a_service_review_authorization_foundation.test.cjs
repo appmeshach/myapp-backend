@@ -23,7 +23,7 @@ test('valid accepted service ends at service_review; old APIs, boolean and match
 test('review contains exact sufficient descriptive fields and exposes no capability or raw result', () => {
  const f = serviceFixture(), r = f.api.reviewObservedServiceCandidate(f.session);
  assert.deepEqual(Object.keys(r).sort(), ['candidate', 'liveAuthorized', 'revision']);
- assert.deepEqual(Object.keys(r.candidate).sort(), ['observedServiceId', 'observedServiceName', 'expectedServiceId', 'expectedServiceName',
+ assert.deepEqual(Object.keys(r.candidate).sort(), ['manifestSha256', 'observedServiceId', 'observedServiceName', 'expectedServiceId', 'expectedServiceName',
   'providerObserved', 'evidenceSource', 'projectId', 'environmentId', 'projectNameExpected', 'environmentNameExpected',
   'projectNameObserved', 'environmentNameObserved', 'parentContextEvidenceSource'].sort());
  assert.equal(r.candidate.observedServiceId, scope.serviceId); assert.equal(r.candidate.expectedServiceId, scope.serviceId);
@@ -47,7 +47,7 @@ for (const kind of ['spread', 'serialized', 'candidate', 'serviceFacts', 'acknow
  test('detached service input grants nothing: ' + kind, () => {
   const f = serviceFixture(), r = f.api.reviewObservedServiceCandidate(f.session);
   const input = kind === 'spread' ? { ...r } : kind === 'serialized' ? clone(r) : kind === 'candidate' ? clone(r.candidate) :
-   kind === 'serviceFacts' ? clone(identity.validateProjectServices(scope.projectId, serviceBody())) :
+   kind === 'serviceFacts' ? clone(f.api.validateProjectServices(f.session, serviceBody())) :
    kind === 'acknowledgement' ? serviceAck(r) : { serviceId: scope.serviceId, serviceName: 'myapp-backend', humanReviewed: true };
   reject(() => f.api.approveObservedServiceCandidate(input, f.session, serviceAck(r)));
   reject(() => f.api.reviewObservedServiceCandidate(input));

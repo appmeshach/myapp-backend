@@ -69,7 +69,7 @@ test('normal unresolved template has no actual IDs, observations, human review o
 });
 test('normal closed ingress accepts no caller-built, serialized, validator or synthetic VM result', () => {
  assert.equal(ingress.status.providerResultIngressConnected, false); assert.deepEqual(Object.keys(ingress), ['status', 'takeObservation']);
- for (const handle of [{}, contextBody(), normal.validateProjectServices(scope.projectId, serviceBody()), fixture().issue({})]) reject(() => ingress.takeObservation(handle));
+ for (const handle of [{}, contextBody(), validateServices(serviceBody()), fixture().issue({})]) reject(() => ingress.takeObservation(handle));
  const target = binding(), session = normal.startTargetIdentitySession(target);
  reject(() => normal.acceptContextObservation(session, contextBody())); assert.equal(normal.inspectSession(session).stage, 'failed');
 });
@@ -163,12 +163,12 @@ for (const [name, edit] of [
  ['missing ID', b => { delete b.data.project.services.edges[0].node.id; }],
  ['too many', b => { b.data.project.services.edges = Array.from({ length: 257 }, (_, i) => ({ node: { id: 'id-' + i, name: 'name-' + i } })); }],
  ['malformed edges', b => { b.data.project.services.edges = {}; }], ['null node', b => { b.data.project.services.edges[0].node = null; }]]) {
- test('project-services exact validation rejects ' + name, () => { const b = serviceBody(); edit(b); reject(() => normal.validateProjectServices(scope.projectId, b)); });
+ test('project-services exact validation rejects ' + name, () => { const b = serviceBody(); edit(b); reject(() => validateServices(b)); });
 }
 test('exact service selection does not choose first unrelated item; bounded valid array accepted', () => {
  const b = serviceBody(); b.data.project.services.edges.unshift({ node: { id: 'other', name: 'other' } });
- assert.equal(normal.validateProjectServices(scope.projectId, b).serviceId, scope.serviceId);
- assert.equal(normal.validateProjectServices(scope.projectId, b).serviceContextProven, false);
+ assert.equal(validateServices(b).serviceId, scope.serviceId);
+ assert.equal(validateServices(b).serviceContextProven, false);
 });
 test('fixed service query observes hasNextPage with updated canonical SHA and no paging inputs', () => {
  const doc = normal.documents.projectServices;
@@ -191,13 +191,13 @@ for (const [name, edit] of [
  ['true with exact target present', b => { b.data.project.services.pageInfo.hasNextPage = true; }],
  ...[null, undefined, 0, 1, 'false', 'true', [], {}].map(value => ['non-boolean ' + String(value), b => { b.data.project.services.pageInfo.hasNextPage = value; }])]) {
  test('pagination validation fails closed: ' + name, () => {
-  const b = serviceBody(); edit(b); reject(() => normal.validateProjectServices(scope.projectId, b));
+  const b = serviceBody(); edit(b); reject(() => validateServices(b));
  });
 }
 test('complete single-page false + unique exact target accepted; truncated empty page also rejected', () => {
- assert.equal(normal.validateProjectServices(scope.projectId, serviceBody()).serviceId, scope.serviceId);
+ assert.equal(validateServices(serviceBody()).serviceId, scope.serviceId);
  const b = serviceBody(); b.data.project.services.edges = []; b.data.project.services.pageInfo.hasNextPage = true;
- reject(() => normal.validateProjectServices(scope.projectId, b));
+ reject(() => validateServices(b));
 });
 test('truncated private observation fails session before storing service; cannot replay repaired body or generate another request', () => {
  const f = attest(), { receipt } = invocation(f), b = serviceBody(); b.data.project.services.pageInfo.hasNextPage = true;
@@ -218,11 +218,11 @@ for (const [name, edit] of [
  ['wrong name', b => { b.data.serviceInstance.serviceName = 'other'; }], ['case name', b => { b.data.serviceInstance.serviceName = 'MYAPP-BACKEND'; }],
  ['root mismatch', b => { b.data.serviceInstance.rootDirectory = '/other'; }], ['region malformed', b => { b.data.serviceInstance.region = {}; }],
  ['extra deployment', b => { b.data.serviceInstance.latestDeployment = {}; }]]) {
- test('service-instance exact validation rejects ' + name, () => { const b = instanceBody(); edit(b); reject(() => normal.validateServiceInstance(b)); });
+ test('service-instance exact validation rejects ' + name, () => { const b = instanceBody(); edit(b); reject(() => validateInstance(b)); });
 }
 test('null root/region allowed as unresolved corroboration; response ID alone supplies instance ID', () => {
  const b = instanceBody(); b.data.serviceInstance.rootDirectory = null; b.data.serviceInstance.region = null;
- const result = normal.validateServiceInstance(b); assert.equal(result.serviceInstanceId, 'synthetic-instance');
+ const result = validateInstance(b); assert.equal(result.serviceInstanceId, 'synthetic-instance');
  assert.equal(result.rootDirectory, null); assert.equal(result.region, null); assert.equal(result.validationOnly, true);
 });
 for (const stage of ['services', 'instance']) for (const wrong of ['serviceId', 'environmentId', 'execution', 'session', 'binding', 'invocation', 'endpoint', 'kind']) {
@@ -261,7 +261,7 @@ test('future ingress must burn results from closed credential lifetimes; no revi
 test('hidden credential fields/getters cannot enter exact provider or inventory records', () => {
  const f = fixture(), b = serviceBody(); let reads = 0;
  Object.defineProperty(b.data.project, 'secret', { value: 'synthetic', enumerable: false });
- reject(() => normal.validateProjectServices(scope.projectId, b));
+ reject(() => validateServices(b));
  const v = inventory(); Object.defineProperty(v.projectIds, 'reviewed', { enumerable: true, get() { reads++; throw Error('must not read'); } });
  reject(() => f.api.reviewForbiddenInventory(f.target, v)); assert.equal(reads, 0);
  reject(() => f.api.startTargetIdentitySession(f.target, () => assert.fail('env reader')));
@@ -344,3 +344,6 @@ test('authority stays unresolved after synthetic complete chain; source has no e
   assert.doesNotMatch(text, /process\.env|fetch\s*\(|https\.request\s*\(|child_process|openExecutionContext\s*\(|executeHandoff\s*\(/);
  }
 });
+
+function validateServices(body){const f=fixture();return f.api.validateProjectServices(f.session,body);}
+function validateInstance(body){const f=fixture();return f.api.validateServiceInstance(f.session,body);}
