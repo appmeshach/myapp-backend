@@ -1,0 +1,187 @@
+{
+  "version": "movement_railway_acquisition_input_review_v1",
+  "outcome": "PRELIVE_NOT_AUTHORIZED",
+  "reviewed": false,
+  "inputReviewComplete": false,
+  "liveAuthorized": false,
+  "manualLiveAuthorization": false,
+  "reviewedHead": "72ba10ec5a058d234749d177cc4d70ad07761faa",
+  "reviewedBranch": "feature/0092-shared-segment-suitability",
+  "requiredCodeReview": {
+    "reviewedHead": "72ba10ec5a058d234749d177cc4d70ad07761faa",
+    "reviewedBranch": "feature/0092-shared-segment-suitability"
+  },
+  "expectedTarget": {
+    "projectId": "0fa3268a-396f-4042-a4c0-a92c23fdf486",
+    "environmentId": "69b93a87-a91b-4c14-8656-6b0ca3135cee",
+    "serviceId": "b053fe9d-716b-49f4-ac24-324c221d054d",
+    "serviceInstanceId": null,
+    "serviceName": "myapp-backend",
+    "branch": "feature/0092-shared-segment-suitability",
+    "rootDirectory": "/movement-app",
+    "environmentKind": null,
+    "lifecycle": null
+  },
+  "historicalLabels": {
+    "category": "historical_operator_labels_only",
+    "projectName": "thorough-blessing",
+    "serviceName": "myapp-backend",
+    "branch": "feature/0092-shared-segment-suitability",
+    "rootDirectory": "/movement-app",
+    "nodeSetting": "RAILPACK_NODE_VERSION=24",
+    "historicalRegion": "europe-west4-drams3a"
+  },
+  "targetInputSources": {
+    "projectId": {
+      "independentlyReviewed": true,
+      "source": "docs/0114f-operator-acquired-target-metadata.json#identifiers.projectId",
+      "reviewer": "AT"
+    },
+    "environmentId": {
+      "independentlyReviewed": true,
+      "source": "docs/0114f-operator-acquired-target-metadata.json#identifiers.environmentId",
+      "reviewer": "AT"
+    },
+    "serviceId": {
+      "independentlyReviewed": true,
+      "source": "docs/0114f-operator-acquired-target-metadata.json#identifiers.serviceId",
+      "reviewer": "AT"
+    },
+    "serviceInstanceId": {
+      "independentlyReviewed": false,
+      "source": null,
+      "reviewer": null
+    }
+  },
+  "forbiddenRailwayInventory": {
+    "inventoryReviewed": false,
+    "basis": null,
+    "provenance": null,
+    "projectIds": {
+      "reviewed": false,
+      "completenessAcknowledged": false,
+      "completenessIsOperatorAssertion": false,
+      "ids": null,
+      "labels": null
+    },
+    "environmentIds": {
+      "reviewed": false,
+      "completenessAcknowledged": false,
+      "completenessIsOperatorAssertion": false,
+      "ids": null,
+      "labels": null
+    },
+    "serviceIds": {
+      "reviewed": false,
+      "completenessAcknowledged": false,
+      "completenessIsOperatorAssertion": false,
+      "ids": null,
+      "labels": null
+    },
+    "serviceInstanceIds": {
+      "reviewed": false,
+      "completenessAcknowledged": false,
+      "completenessIsOperatorAssertion": false,
+      "ids": null,
+      "labels": null
+    }
+  },
+  "hostReview": {
+    "reviewed": false,
+    "reviewer": null,
+    "checklist": {
+      "nodeMajor": null,
+      "normalReviewedAdapter": false,
+      "noNodeDebugEnvironment": false,
+      "nativeHttpHttpsDebugDisabled": false,
+      "noRailwayApiTokenPresence": false,
+      "tokenProvisionedPrivatelyOutsideCodex": false,
+      "noTokenInArgv": false,
+      "noTokenInCommandHistory": false,
+      "noTokenInOutput": false,
+      "noTokenInArtifacts": false,
+      "noTokenSharedInChat": false,
+      "noProxyOverride": false,
+      "certificateVerificationEnabled": false,
+      "firstRequestContextOnly": false,
+      "stopOnError": false,
+      "noRetryOrFallback": false,
+      "noSchemaBeforeSameContextAttestation": false
+    }
+  },
+  "codeIdentity": {
+    "baselineParentHead": "7c2346ce73d12e571b5ff8506fd8d02be48f44b7",
+    "sourceHashes": {
+      "qualification-railway-acquisition-wrapper.cjs": "0dc8a07daace32d4984f3edf73301e4143cd2cb2de6232d5880bec33485b103e",
+      "qualification-railway-first-context-wrapper.cjs": "7c3a376d1f7a1b733f3be90a3b7d43fb4aa2fd5256c5638a13e6301a3d78cf94",
+      "qualification-railway-https-adapter.cjs": "6c25068a45e7ffe98f9db8bd1efe20e0bebad5140f740ea20725785af6361d6b",
+      "qualification-railway-target-identity.cjs": "1dce76ecf7657f40d6ad98a7347eecff868772c5812eeadf025165c80ebfcb47",
+      "qualification-railway-target-identity-provider-boundary.cjs": "cf22b4ce9d68b36fa6c325f289661528fcfb6ec8e75d6acad9af5429be53e1df",
+      "qualification-railway-context-review.cjs": "23fb65eef738136b68b3d8ce19a69e51482f9bc075c6a26940e2300108c6dd0f",
+      "qualification-railway-introspection-preflight.cjs": "88fe296bd5bfaa639844436c031dbdc674f29c25fbab3530081317143b3c9d74",
+      "qualification-railway-project-token-context.cjs": "cd862abc5b85b8663fbc1075263c0b5d3c6d05793a31e875db67457f4adb3085",
+      "qualification-railway-transport-contract.cjs": "33101241797b778067e2c44389c22c6b236e0f741e7565feae4cf8607e8b26de",
+      "qualification-railway-introspection-target.cjs": "2c236cc1a077fea457938b4317afd7488de010f725ec0a5463fb52d0ab12d199",
+      "qualification-railway-introspection-request.cjs": "62342054302e6f487708b85372b5f2cac7c1449e69ce3c25b0d142c1d4324ae3",
+      "qualification-railway-introspection-plan.cjs": "dacaf8a4aaecff254760da0c687ccc78b3569b7e5449d1a919ba4170d18fc0e3"
+    },
+    "authorizationBoundarySha256": "601a71a287a07c439bd4b3a136a64773ca709ee8d3b86414b4e2cedb2a6f3bd4",
+    "canonicalSourceRule": "UTF-8; CRLF to LF only; preserve all other bytes and EOF",
+    "reviewedHead": "72ba10ec5a058d234749d177cc4d70ad07761faa",
+    "reviewedBranch": "feature/0092-shared-segment-suitability"
+  },
+  "crossSystemForbidden": {
+    "provider": "Supabase",
+    "identifierKind": "project_ref",
+    "production": "xdfmoggrsucisfybqctb",
+    "inactive": "udlsysezmzutydnifhsq",
+    "consumedHistoricalDisposable": "uzkhnslyrhgucijcuoes",
+    "railwayNamespace": false,
+    "newQualificationAuthorized": false
+  },
+  "independentReview": {
+    "reviewed": false,
+    "reviewer": null,
+    "evidenceReference": null
+  },
+  "executableAcquisitionPrepared": false,
+  "providerObservationOccurred": false,
+  "targetIdentityProven": false,
+  "serviceIdentityProven": false,
+  "serviceInstanceIdentityProven": false,
+  "offlineReview": {
+    "status": "INCOMPLETE",
+    "targetInputsReviewed": true,
+    "codeIdentityReviewed": true,
+    "forbiddenInputBoundaryReviewed": true,
+    "forbiddenInventoryComplete": false,
+    "executionHostReviewed": false,
+    "readyFor0114DPreparation": false,
+    "sourceEvidence": {
+      "path": "docs/0114f-operator-acquired-target-metadata.json",
+      "commit": "72ba10ec5a058d234749d177cc4d70ad07761faa",
+      "sha256": "ca09216e4be779a71e2ddb5a014d266d4d3fb2078c6e23a19acfeac2987af15b"
+    },
+    "protectedInputHashes": {
+      "docs/0114e-acquisition-input-review-template.json": "20e200fe8aeb634bb90bbcbb385226bd0fd0b345d87beb8b20eb4b026d5583c9",
+      "docs/0114f-operator-acquired-target-metadata.json": "ca09216e4be779a71e2ddb5a014d266d4d3fb2078c6e23a19acfeac2987af15b",
+      "docs/0114f-target-metadata-evidence-template.json": "4fab1265096553febed91a1031bfda418c50976467c0badc7ad8e8283a6e5cb8",
+      "docs/0114e-railway-acquisition-input-review.md": "29c3667fe29e333e5fde6b021fad585d72b0bfe2dd0039135865a61f5ff747ac",
+      "docs/0114f-railway-target-metadata-resolution.md": "4931ce2c10f47773cf4999f049f5bcd29b16ef932a938ae9f4a31f0fbad4b6e8",
+      "docs/0114d-railway-acquisition-wrapper.md": "0b7f8adb6d452e24d5f278229fee5177816f01c9efe4e935c75f56bf505efd1f",
+      "docs/MOVEMENT_LAUNCH_READINESS_REGISTER.md": "13e5489ca7a66a7515690303e44715b0ad5765c052b5b5d59919086104f823d2",
+      "supabase/tests/0114e_acquisition_input_review.test.cjs": "2d4ffbd278aea45ff8dbcec7c87450d58223d40df509b8ecf711197b80a6df51",
+      "supabase/tests/0114f_target_metadata_evidence.test.cjs": "941154a21f725c9243ad6044d2e925e97c43e04d2bee1ee63021ece520119248",
+      "supabase/tests/0114d_acquisition_wrapper.test.cjs": "fbe7e7e9911e31f4bbfe103214c27febc2ca810fc8099cb68e512c746ffb1fb1",
+      "supabase/tests/fixtures/0114d-acquisition-wrapper.cjs": "b818bf6040a55380eedf805f120bacdbe55a870950b83a32051ff9415a7320f6",
+      "supabase/tests/fixtures/0114d-authorization-loader.cjs": "384d3720572fbbfeeed6c342b4653f371457e71354c68d62cfd5f3d6dc7840b3"
+    },
+    "unresolved": {
+      "forbiddenInventory": "No complete forbidden Railway category inventory or independent completeness assertion is supplied in the inspected local review material.",
+      "hostChecklist": "No intended execution-host attestation is supplied. Historical settings and this local machine do not prove host or credential-handling conditions.",
+      "independentPackageReview": "AT independently reviewed target metadata only. No independent human review of this entire 0114E package is supplied.",
+      "environmentKind": "The reviewed environment label is production. Its eligibility under the existing disposable non-production target policy is not established.",
+      "lifecycle": "No independently reviewed current active lifecycle assertion is supplied."
+    }
+  }
+}

@@ -12,6 +12,13 @@ inventory and host attestations remain unresolved/unreviewed by default. Presenc
 of fields, successful structural checks, copied JSON, a reviewer signature or a
 completed worksheet cannot issue a ticket or prove any provider identity.
 
+The [actual offline assessment](0114e-actual-acquisition-input-review.json) now
+consumes AT's reviewed 0114F target evidence and binds the current committed code.
+Its result is INCOMPLETE: target/code review succeeds, but inventory completeness,
+execution-host attestations, independent package review and disposable/active
+target eligibility remain unresolved. reviewed/inputReviewComplete stay false.
+The safe worksheet remains byte-identical; no completion rule is relaxed.
+
 ## Known facts and unresolved inputs
 
 | Field | Safe value | Meaning |
@@ -138,7 +145,7 @@ The identity owner's policy is unchanged.
 
 ## Code identity and stale reviews
 
-Required initial reviewed HEAD: ee228de90d4f1d68662948670bb15efed7fb6f0f.
+Historical safe-template required HEAD: ee228de90d4f1d68662948670bb15efed7fb6f0f.
 Required reviewed branch: feature/0092-shared-segment-suitability.
 These are requiredCodeReview expectations, not filled reviewedHead/reviewedBranch
 attestations. The safe fields remain null. Git drift invalidates review.
@@ -194,8 +201,9 @@ IDs, independent provenance, optional instance expectation, full inventory revie
 and collisions, every host assertion, stale HEAD/branch, all 12 source pins and self
 drift, non-executable copied/serialized data and false/null global authority.
 
-Actual Railway IDs and independent target/inventory/host review remain unresolved.
-Future work must obtain those inputs explicitly, revalidate reviewed code and host,
+Actual Railway IDs and independent target review are now recorded in the separate
+actual assessment below. Inventory/host/package review and eligibility remain
+unresolved. Future work must obtain those inputs explicitly, revalidate code and host,
 create a genuine 0114D draft, review it and separately manually authorize execution.
 No provider request, credential read, CLI invocation, schema request, deployment or
 restart is part of this milestone. No target/service/instance identity is proven.
@@ -233,3 +241,130 @@ metadata and a different person must independently compare its value and context
 The safe evidence template grants no execution authority. The 0114E safe template,
 all runtime modules and 12 pins remain unchanged. Actual acquisition remains a
 separately reviewed 0114D package and final manual authorization step.
+
+## Actual offline input assessment using reviewed 0114F evidence
+
+Starting and reviewed HEAD: 72ba10ec5a058d234749d177cc4d70ad07761faa.
+Branch: feature/0092-shared-segment-suitability. This is the locally verified
+committed identity, not the historical requiredCodeReview in the safe template.
+Only the separate actual record updates requiredCodeReview, reviewedHead,
+reviewedBranch and the codeIdentity review fields to this identity.
+
+All twelve currently tracked pinned sources and the authorization boundary were
+read and reviewed locally. Canonical hashes match the existing pins exactly;
+authorizationBoundarySha256 remains
+601a71a287a07c439bd4b3a136a64773ca709ee8d3b86414b4e2cedb2a6f3bd4.
+The normal verifyCodeIdentity API checks local Git and canonical source hashes
+without opening a session/context, reading a token or preparing a draft.
+
+Target values are consumed only after verifying reviewed/evidenceReviewComplete
+and the three per-record independentlyReviewed/contextCompared/
+authoritativeForInputReview flags, exact operator_supplied_provider_metadata
+classification and AT's human review at 2026-10-15T14:01:00.000Z. Each
+targetInputSources entry links to the exact identifiers field in the 0114F JSON.
+offlineReview.sourceEvidence binds that file's path, committed review HEAD and
+canonical SHA-256. The complete reviewed record, including historical unknown
+acquisition time, remains unchanged. Railway AI cannot replace AT's human review.
+serviceInstanceId and its source entry stay unresolved/null; this alone is allowed
+at 0114E and is not the reason for incomplete input review.
+
+### Review findings and completion blockers
+
+| Review area | Actual local finding |
+| --- | --- |
+| Project/environment/service IDs | Exact reviewed 0114F values with preserved provenance |
+| Current code identity | Exact HEAD/branch, twelve pins and self hash verified |
+| Cross-system boundary | All three Supabase refs and labels are rejected as Railway IDs |
+| Proposed package inputs | Safe worksheet, reviewed non-secret 0114F data, tracked source and local Git only; no secret source is included |
+| Forbidden Railway inventory | Its full schema and collision/completeness policy were reviewed; no complete operator inventory or independent completeness assertion is supplied in the inspected 0114D/E/F material |
+| Host checklist | Exact existing fields reviewed; no attestation for the intended future execution host is supplied |
+| Target eligibility | production is the reviewed environment label; neither disposable environmentKind nor active lifecycle is established offline |
+| Independent package review | AT reviewed target metadata, not this entire 0114E package; no new human package reviewer is invented |
+
+The forbidden inventory retains inventoryReviewed=false, null basis/provenance
+and null ids/labels with every category acknowledgement false. This truthfully
+records incomplete inventory review; empty complete lists would invent evidence.
+The three cross-system Supabase refs remain explicit namespace exclusions, never
+substitutes for missing forbidden Railway IDs. No secret value was read to assess
+the proposed package boundaries, and no claim of global secret absence is made.
+
+hostReview remains unreviewed, reviewer=null, nodeMajor=null and every checklist
+assertion false. Historical Node 24/region/branch/root settings and this local
+typecheck machine do not attest the execution host. The source proves the reviewed
+adapter fixes certificate validation, first context request, stop/error handling
+and no retry/fallback paths; it does not prove host/environment/module-loader
+integrity, token provisioning or historical handling of any actual credential.
+No execution-host environment, token, command history or credential store was inspected.
+
+The existing binder requires environmentKind=disposable and lifecycle=active.
+Both remain null. The production label does not establish eligibility, and this
+review neither reclassifies it nor asserts that it is disposable/non-production.
+Any later package needs an explicit independently justified eligibility decision
+consistent with the unchanged target policy. No actual-target binding is created.
+
+Therefore this task completes the permitted offline assessment, but cannot
+truthfully complete the full 0114E input package. The actual artifact records
+reviewed=false, inputReviewComplete=false and readyFor0114DPreparation=false.
+No 0114D draft or authorization may be prepared from it as a completed input review.
+Further evidence must be supplied through a separately authorized human process;
+this task makes no additional network request to resolve the gaps.
+
+### Descriptive assessment extension and staleness
+
+All established worksheet fields retain their existing semantics. One additional
+offlineReview object records the partial findings, explicit unresolved reasons,
+source-evidence linkage and protectedInputHashes. It is descriptive JSON only,
+not a new parser, production API, authorization architecture or executable package.
+The targetInputSources entries use the existing three-field schema unchanged.
+
+protectedInputHashes are review-freshness checks for the named documentation,
+safe templates, evidence, conformance suites and review fixtures. They are separate
+from codeIdentity.sourceHashes; the runtime pin count stays twelve. The canonical
+rule remains UTF-8 with CRLF-to-LF only, preserving BOM, other bytes and EOF.
+Every protected-input digest, source pin and self hash must be rechecked together
+with exact current HEAD/branch before this assessment is treated as current.
+Changes to any of them invalidate it, even while HEAD is unchanged. A later commit
+also makes the recorded HEAD stale; it requires a new review rather than silently
+updating the record or accepting the historical safe-template HEAD.
+
+The test-only conformance model checks these conditions without creating any
+execution capability. Negative tests cover source and candidate ID substitution,
+unreviewed/AI provenance, forbidden namespaces, missing completeness, fabricated
+host/package review, eligibility invention, authority flags and stale review inputs.
+The full-completion worksheet tests remain intact and reject this incomplete record.
+
+### Network and execution audit
+
+Exactly one direct web-tool read of https://docs.expo.dev/versions/v57.0.0/ was
+performed under the task's explicit exception for AGENTS.md. The request contained
+only that public URL and a response-length setting. It sent no target IDs,
+repository/source data, environment variables, user data, credentials or secrets.
+No links were followed. No other documentation, web search, HTTP/HTTPS/fetch,
+Railway website/API/GraphQL/CLI, Supabase/GitHub API or registry access occurred.
+All subsequent work and tests are local; no install or npx command is used.
+
+The actual input review creates no ticket, executable draft, execution authority,
+Railway context/session, wrapper acquisition, provider/service-instance/schema
+request or 0114D authorization. All live/manual/provider/identity/preparation flags
+remain false. Regression suites retain their isolated synthetic execution cases.
+
+### Actual assessment validation
+
+0114E: 259/259 PASS, including the original 141 cases. 0114F: 240/240,
+0114D: 141/141, 0114C: 96/96, 0114B: 72/72, 0114A: 63/63, 0113: 63/63,
+0112: 62/62, 0111: 101/101, 0110: 63/63, 0109: 78/78. Total focused:
+1,238 PASS, zero failures/skips. The established 19-file serialized chain passes
+with --test-concurrency=1: 1,117 tests, 1,114 PASS, zero failures and three existing
+OS-specific skips. App, Edge and worker typechecks pass using installed local tsc;
+no npm/npx lookup or dependency change occurred.
+
+All 99 migrations match the index through clean checkout filtering and have no
+diff against HEAD. All twelve source pins, the authorization boundary and every
+production/preflight source remain unchanged. The safe 0114E template and reviewed
+0114F JSON are byte-identical to the starting commit. The new assessment has valid
+JSON, a final newline and no trailing whitespace; git diff --check passes.
+Only the two review documents, this stage's conformance tests and its separate
+actual JSON assessment change. The index is empty; HEAD/branch remain as above.
+The already untracked capsule is unread and untouched. No stage, commit, push,
+deploy or restart occurred. No operational STOP condition was encountered; the
+unresolved review inputs above prevent inputReviewComplete=true and readiness.

@@ -541,3 +541,31 @@ untouched null record. The 0114E safe template and all runtime modules and 12 pi
 remain unchanged; PRELIVE_NOT_AUTHORIZED and all live/provider/identity flags
 remain false. Separate 0114E input review and later explicit manual authorization
 remain necessary. No live execution is authorized.
+
+## 0114E actual offline input assessment
+
+The separate [actual assessment](0114e-actual-acquisition-input-review.json) consumes
+the exact three reviewed 0114F IDs with AT provenance, source-evidence digest and
+review commit linkage. serviceInstanceId stays null. Local Git verifies HEAD
+72ba10ec5a058d234749d177cc4d70ad07761faa and branch
+feature/0092-shared-segment-suitability. All twelve pinned sources and the
+authorization self hash are exact and unchanged. Protected documentation/evidence/
+test input hashes additionally invalidate a stale assessment without adding pins.
+
+The result remains INCOMPLETE: no complete forbidden Railway inventory and
+independent completeness assertion, intended execution-host checklist attestation,
+independent whole-package review or disposable/active target eligibility is
+established locally. production is the reviewed environment label, not proof of
+disposable eligibility. Null/false inventory, host and eligibility fields remain
+unresolved. reviewed/inputReviewComplete and readyFor0114DPreparation remain false.
+The package boundary was inspected using permitted non-secret inputs only; no
+global secret absence or inventory completeness claim is inferred.
+
+The safe 0114E template and reviewed 0114F evidence remain unchanged. Outcome stays
+PRELIVE_NOT_AUTHORIZED; liveAuthorized, manualLiveAuthorization,
+providerObservationOccurred, targetIdentityProven and executableAcquisitionPrepared
+are false. No executable draft, ticket, session/context, provider/service-instance/
+schema request or 0114D authorization was created. Exactly one Expo v57 public
+documentation read was permitted and performed; the remaining work is offline.
+Complete the unresolved human evidence and refresh code/input freshness checks
+before considering a separately prepared and manually authorized 0114D package.
