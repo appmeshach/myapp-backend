@@ -240,9 +240,19 @@ const actualValues={projectId:'0fa3268a-396f-4042-a4c0-a92c23fdf486',
  environmentId:'69b93a87-a91b-4c14-8656-6b0ca3135cee',serviceId:'b053fe9d-716b-49f4-ac24-324c221d054d'};
 const actualRead=p=>fs.readFileSync(path.join(root,p),'utf8');
 const actualJSON=p=>JSON.parse(actualRead(p));
+// Preserve the previous assessment exactly. Its review inputs were recorded in
+// this later commit, while its reviewed code HEAD remains the older actualHead.
+const qualificationHead='4f8d8b043f1876e1f4ff3bfa66ef85aa7ffed4e0';
+const historicalInputs=new Map();
+function historicalRead(p){
+ assert.ok(protectedInputs.includes(p));
+ if(!historicalInputs.has(p))historicalInputs.set(p,require('node:child_process').execFileSync('git',
+  ['-c','safe.directory='+path.resolve(root,'..'),'show',qualificationHead+':movement-app/'+p],{encoding:'utf8',env:{},windowsHide:true}));
+ return historicalInputs.get(p);
+}
 const canonicalHash=text=>crypto.createHash('sha256').update(text.replace(/\r\n/g,'\n')).digest('hex');
 function exactKeys(v,keys){assert.deepEqual(Reflect.ownKeys(v).sort(),keys.slice().sort());}
-function inspectActualReview(f,c,source=actualJSON(evidencePath),read=actualRead){
+function inspectActualReview(f,c,source=actualJSON(evidencePath),read=historicalRead){
  exactKeys(c,[...Object.keys(template),'offlineReview']);
  for(const key of ['version','historicalLabels','crossSystemForbidden'])assert.deepEqual(c[key],template[key]);
  assert.equal(c.outcome,'PRELIVE_NOT_AUTHORIZED');
@@ -299,7 +309,7 @@ function inspectActualReview(f,c,source=actualJSON(evidencePath),read=actualRead
 }
 function actualOffline(t){const f=offline(t);f.drift.head=actualHead;return f;}
 
-test('actual 0114E consumes reviewed AT evidence and current code without assuming readiness',t=>{
+test('historical 0114E snapshot consumed reviewed AT evidence without assuming readiness',t=>{
  const f=actualOffline(t),c=actualJSON(actualPath),result=inspectActualReview(f,c);
  assert.equal(result.inputReviewComplete,false);assert.equal(result.readyFor0114DPreparation,false);
  for(const [field,value]of Object.entries(actualValues))assert.equal(c.expectedTarget[field],value);
@@ -356,7 +366,7 @@ for(const file of [...Object.keys(normal.sourceHashes),'qualification-railway-li
   reject(()=>inspectActualReview(f,actualJSON(actualPath)));
  });
 for(const file of protectedInputs)test('actual review becomes stale on protected input change '+file,t=>{
- const f=actualOffline(t),read=p=>actualRead(p)+(p===file?'\n':'');
+ const f=actualOffline(t),read=p=>historicalRead(p)+(p===file?'\n':'');
  reject(()=>inspectActualReview(f,actualJSON(actualPath),actualJSON(evidencePath),read));
 });
 for(const key of ['liveAuthorized','manualLiveAuthorization','providerObservationOccurred','targetIdentityProven',
@@ -364,9 +374,14 @@ for(const key of ['liveAuthorized','manualLiveAuthorization','providerObservatio
  test('actual candidate rejects authority or secret-bearing field '+key,t=>{
   const f=actualOffline(t),c=actualJSON(actualPath);c[key]=true;reject(()=>inspectActualReview(f,c));
  });
-test('actual candidate current identity verified by normal local Git only',()=>{
+test('historical assessment fails current Git identity instead of silently refreshing',()=>{
  const c=actualJSON(actualPath);
- assert.deepEqual(clone(normal.verifyCodeIdentity({reviewedHead:c.reviewedHead,reviewedBranch:c.reviewedBranch})),c.codeIdentity);
+ reject(()=>normal.verifyCodeIdentity({reviewedHead:c.reviewedHead,reviewedBranch:c.reviewedBranch}));
+ const currentHead=require('node:child_process').execFileSync('git',
+  ['-c','safe.directory='+path.resolve(root,'..'),'rev-parse','HEAD'],{encoding:'utf8',env:{},windowsHide:true}).trim();
+ const current=normal.verifyCodeIdentity({reviewedHead:currentHead,reviewedBranch:branch});
+ assert.deepEqual(current.sourceHashes,c.codeIdentity.sourceHashes);
+ assert.equal(c.reviewedHead,actualHead);
 });
 for(const mode of ['evidencePath','evidenceHash','extraProtectedPath'])
  test('actual evidence linkage cannot redirect reads or replace digest '+mode,t=>{
@@ -374,7 +389,7 @@ for(const mode of ['evidencePath','evidenceHash','extraProtectedPath'])
   if(mode==='evidencePath')c.offlineReview.sourceEvidence.path='0102-remote-fixtures.capsule';
   if(mode==='evidenceHash')c.offlineReview.sourceEvidence.sha256='0'.repeat(64);
   if(mode==='extraProtectedPath')c.offlineReview.protectedInputHashes['0102-remote-fixtures.capsule']='0'.repeat(64);
-  const read=p=>{reads.push(p);assert.ok(protectedInputs.includes(p));return actualRead(p);};
+  const read=p=>{reads.push(p);assert.ok(protectedInputs.includes(p));return historicalRead(p);};
   reject(()=>inspectActualReview(f,c,actualJSON(evidencePath),read));
   assert.equal(reads.includes('0102-remote-fixtures.capsule'),false);
  });
@@ -383,5 +398,170 @@ test('actual intake preserves safe template and reviewed 0114F bytes from starti
  for(const file of ['docs/0114e-acquisition-input-review-template.json',evidencePath]){
   const bytes=cp.execFileSync('git',['-c','safe.directory='+path.resolve(root,'..'),'show',actualHead+':movement-app/'+file],{env:{},windowsHide:true});
   assert.deepEqual(fs.readFileSync(path.join(root,file)),bytes);
+ }
+});
+
+const qualificationPath='docs/0114e-qualification-target-evidence.json';
+const qualificationFacts={
+ 'version':'movement_railway_qualification_target_evidence_v1','outcome':'PRELIVE_NOT_AUTHORIZED',
+ 'recordingContext.head':qualificationHead,'recordingContext.branch':branch,
+ 'expectedContext.projectName':'thorough-blessing','expectedContext.environmentName':'qualification',
+ 'expectedContext.serviceName':'movement-qualification','expectedContext.branch':null,'expectedContext.rootDirectory':null,
+ 'identifiers.projectId.value':'0fa3268a-396f-4042-a4c0-a92c23fdf486',
+ 'identifiers.environmentId.value':'9410a813-0429-4bc7-bfbb-d54b85e17c8a',
+ 'identifiers.serviceId.value':'ef516a68-9bb7-429e-a395-48ef2676593a','identifiers.serviceInstanceId.value':null,
+ 'projectEvidenceReference.scope':'prior_review_of_unchanged_project_identity_only',
+ 'projectEvidenceReference.qualificationContextCompared':false,
+ 'priorAssessment.historicalOnly':true,'priorAssessment.currentForQualification':false,'priorAssessment.requiresNew0114EReview':true,
+ 'operatorObservations.sourceClassification':'operator_acquired_not_independently_reviewed','operatorObservations.independentlyReviewed':false,
+ 'operatorObservations.creation.environmentCreated':true,'operatorObservations.creation.createdForQualification':true,
+ 'operatorObservations.creation.separateFromProduction':true,'operatorObservations.creation.creationMethod':'Empty Environment',
+ 'operatorObservations.creation.productionDuplicated':false,'operatorObservations.creation.productionVariablesCopied':false,
+ 'operatorObservations.creation.onlyNewEmptyService':true,
+ 'operatorObservations.service.created':true,'operatorObservations.service.initialGeneratedName':'athletic-serenity',
+ 'operatorObservations.service.name':'movement-qualification','operatorObservations.service.renameApplied':true,
+ 'operatorObservations.service.status':'offline','operatorObservations.service.variablesAdded':false,
+ 'operatorObservations.service.deploymentAuthorized':false,
+ 'operatorObservations.productionSafety.autoDeployManuallyDisabled':true,
+ 'operatorObservations.productionSafety.disabledBeforeQualificationSetup':true,
+ 'operatorObservations.productionSafety.productionRestarted':false,
+ 'operatorObservations.productionSafety.previousCrashedQualificationDeploymentRestarted':false,
+ 'operatorObservations.productionSafety.serviceHealth':null,'operatorObservations.productionSafety.previousRemoteWritesOccurred':null,
+ 'operatorObservations.productionSafety.logMessage':'Remote qualification unavailable; ENVIRONMENT TEARDOWN REQUIRED if remote writes began',
+ 'operatorObservations.productionSafety.logMessageIsConditional':true,
+ 'sourceConfiguration.status':'pending_not_applied','sourceConfiguration.sourceConfigurationApplied':false,
+ 'sourceConfiguration.applyingWouldRedeploy':true,'sourceConfiguration.activeConfigurationVerified':false,
+ 'sourceConfiguration.pendingIntended.repo':'appmeshach/myapp-backend',
+ 'sourceConfiguration.pendingIntended.branch':branch,'sourceConfiguration.pendingIntended.rootDirectory':'/movement-app',
+ 'sourceConfiguration.appliedConfiguration.repo':null,'sourceConfiguration.appliedConfiguration.branch':null,
+ 'sourceConfiguration.appliedConfiguration.rootDirectory':null,
+ 'eligibility.environmentKindIntent':'disposable','eligibility.intentSource':'operator_report',
+ 'eligibility.independentlyReviewed':false,'eligibility.eligibilityComplete':false,
+ 'eligibility.environmentKind':null,'eligibility.lifecycle':null
+};
+for(const key of ['reviewed','evidenceReviewComplete','inputReviewComplete','readyFor0114DPreparation','deploymentAuthorized',
+ 'liveAuthorized','manualLiveAuthorization','providerObservationOccurred','targetIdentityProven','executableAcquisitionPrepared'])qualificationFacts[key]=false;
+for(const field of ['environmentId','serviceId']){
+ for(const key of ['independentlyReviewed','contextCompared','authoritativeForInputReview'])qualificationFacts['identifiers.'+field+'.'+key]=false;
+ for(const key of ['reviewerReference','reviewedAt','reviewReference','acquiredByReference','acquiredAt'])qualificationFacts['identifiers.'+field+'.'+key]=null;
+ qualificationFacts['identifiers.'+field+'.sourceClassification']='operator_acquired_not_independently_reviewed';
+ qualificationFacts['identifiers.'+field+'.sourceKind']='operator_visible_provider_metadata';
+}
+Object.assign(qualificationFacts,{
+ 'identifiers.environmentId.sourceSurface':'identifier_query_parameter',
+ 'identifiers.environmentId.sourceParameterName':'environmentId',
+ 'identifiers.serviceId.sourceSurface':'identifier_url_path_segment',
+ 'identifiers.serviceId.sourceParameterName':null,
+ 'projectEvidenceReference.operatorSource.sourceSurface':'identifier_url_path_segment',
+ 'projectEvidenceReference.operatorSource.sourceParameterName':null,
+ 'projectEvidenceReference.operatorSource.sourceReference':'Operator-supplied typed project path segment for thorough-blessing with qualification selected',
+ 'projectEvidenceReference.operatorSource.independentlyReviewed':false
+});
+const getFact=(c,p)=>p.split('.').reduce((v,k)=>v[k],c);
+function inspectQualificationSurface(r,field){
+ assert.ok(['identifier_field','copy_identifier_control','identifier_url_path_segment','identifier_query_parameter'].includes(r.sourceSurface));
+ if(r.sourceSurface==='identifier_query_parameter'){
+  assert.equal(field,'environmentId');assert.equal(r.sourceParameterName,'environmentId');
+ }else assert.equal(r.sourceParameterName,null);
+}
+function inspectQualificationEvidence(c){
+ exactKeys(c,['version','outcome','reviewed','evidenceReviewComplete','inputReviewComplete','readyFor0114DPreparation',
+  'deploymentAuthorized','liveAuthorized','manualLiveAuthorization','providerObservationOccurred','targetIdentityProven',
+  'executableAcquisitionPrepared','recordingContext','expectedContext','identifiers','projectEvidenceReference','priorAssessment',
+  'operatorObservations','sourceConfiguration','eligibility']);
+ for(const [p,value]of Object.entries(qualificationFacts))assert.deepEqual(getFact(c,p),value,p);
+ for(const p of ['recordingContext','expectedContext','operatorObservations','operatorObservations.creation',
+  'operatorObservations.service','operatorObservations.productionSafety','sourceConfiguration',
+  'sourceConfiguration.pendingIntended','sourceConfiguration.appliedConfiguration','eligibility']){
+  const keys=[...new Set(Object.keys(qualificationFacts).filter(k=>k.startsWith(p+'.')).map(k=>k.slice(p.length+1).split('.')[0]))];
+  exactKeys(getFact(c,p),keys);
+ }
+ const historical=actualJSON(evidencePath);
+ assert.deepEqual(c.identifiers.projectId,historical.identifiers.projectId);
+ assert.equal(historical.reviewed,true);assert.equal(historical.evidenceReviewComplete,true);
+ assert.equal(historical.identifiers.environmentId.value,'69b93a87-a91b-4c14-8656-6b0ca3135cee');
+ assert.equal(historical.identifiers.serviceId.value,'b053fe9d-716b-49f4-ac24-324c221d054d');
+ assert.deepEqual(c.projectEvidenceReference,{path:evidencePath,record:'identifiers.projectId',
+  commit:'72ba10ec5a058d234749d177cc4d70ad07761faa',sha256:canonicalHash(actualRead(evidencePath)),
+  scope:'prior_review_of_unchanged_project_identity_only',qualificationContextCompared:false,
+  operatorSource:{sourceSurface:'identifier_url_path_segment',sourceParameterName:null,
+   sourceReference:'Operator-supplied typed project path segment for thorough-blessing with qualification selected',independentlyReviewed:false}});
+ inspectQualificationSurface(c.projectEvidenceReference.operatorSource,'projectId');
+ assert.deepEqual(c.priorAssessment,{path:actualPath,snapshotCommit:qualificationHead,sha256:canonicalHash(actualRead(actualPath)),
+  historicalOnly:true,currentForQualification:false,requiresNew0114EReview:true});
+ const fSafe=actualJSON('docs/0114f-target-metadata-evidence-template.json');
+ exactKeys(c.identifiers,ids);
+ for(const field of ['environmentId','serviceId','serviceInstanceId']){
+  const r=c.identifiers[field];exactKeys(r,Object.keys(fSafe.identifiers[field]));
+  assert.equal(r.field,field);assert.equal(r.provider,'Railway');assert.deepEqual(r.labelContext,c.expectedContext);
+  if(field==='serviceInstanceId')assert.deepEqual(r,{...fSafe.identifiers[field],labelContext:c.expectedContext});
+  else{
+   inspectQualificationSurface(r,field);
+   assert.match(r.value,/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/);
+   for(const key of ['sourceReference','acquisitionReference'])assert.match(r[key],/^[A-Za-z0-9][A-Za-z0-9 ._:/()-]{0,255}$/);
+  }
+ }
+ assert.doesNotMatch(JSON.stringify(c),/https?:\/\/|[?#]|environmentId=|sb_secret_|-----BEGIN|Bearer\s+|eyJ[A-Za-z0-9_-]{16,}/);
+ return {reviewed:false,inputReviewComplete:false,readyFor0114DPreparation:false};
+}
+for(const [p,value]of Object.entries(qualificationFacts))test('qualification operator evidence preserves '+p,t=>{
+ const f=offline(t),c=actualJSON(qualificationPath);assert.deepEqual(getFact(c,p),value);inspectQualificationEvidence(c);
+ assert.equal(f.records.length,0);
+});
+for(const p of [
+ 'identifiers.projectId.value','identifiers.environmentId.value','identifiers.serviceId.value','identifiers.serviceInstanceId.value',
+ 'identifiers.environmentId.independentlyReviewed','identifiers.serviceId.independentlyReviewed',
+ 'identifiers.environmentId.authoritativeForInputReview','identifiers.serviceId.authoritativeForInputReview',
+ 'identifiers.environmentId.contextCompared','identifiers.serviceId.contextCompared',
+ 'identifiers.environmentId.reviewerReference','identifiers.serviceId.reviewedAt','identifiers.environmentId.reviewReference',
+ 'sourceConfiguration.sourceConfigurationApplied','sourceConfiguration.activeConfigurationVerified',
+ 'sourceConfiguration.appliedConfiguration.repo','sourceConfiguration.appliedConfiguration.branch','sourceConfiguration.appliedConfiguration.rootDirectory',
+ 'operatorObservations.productionSafety.previousRemoteWritesOccurred','eligibility.eligibilityComplete','eligibility.lifecycle',
+ 'reviewed','inputReviewComplete','readyFor0114DPreparation','deploymentAuthorized','liveAuthorized','manualLiveAuthorization',
+ 'providerObservationOccurred','targetIdentityProven','executableAcquisitionPrepared'
+])test('qualification evidence rejects authority transfer or invented fact '+p,t=>{
+ offline(t);const c=actualJSON(qualificationPath),parts=p.split('.'),key=parts.pop();
+ const parent=parts.reduce((v,k)=>v[k],c);parent[key]=typeof parent[key]==='boolean'?!parent[key]:'invented';
+ reject(()=>inspectQualificationEvidence(c));
+});
+test('production evidence, safe worksheet and historical incomplete assessment remain byte-identical',t=>{
+ offline(t);const cp=require('node:child_process');
+ for(const file of [evidencePath,'docs/0114e-acquisition-input-review-template.json',actualPath]){
+  const old=cp.execFileSync('git',['-c','safe.directory='+path.resolve(root,'..'),'show',qualificationHead+':movement-app/'+file],{env:{},windowsHide:true});
+  assert.deepEqual(fs.readFileSync(path.join(root,file)),old);
+ }
+});
+test('historical assessment is stale against changed worktree inputs and new qualification facts',t=>{
+ const f=actualOffline(t);reject(()=>inspectActualReview(f,actualJSON(actualPath),actualJSON(evidencePath),actualRead));
+ reject(()=>inspectActualReview(f,actualJSON(qualificationPath)));
+});
+for(const field of ['serviceId','projectId'])test('qualification query source cannot identify '+field,t=>{
+ offline(t);const r={sourceSurface:'identifier_query_parameter',sourceParameterName:'environmentId'};
+ reject(()=>inspectQualificationSurface(r,field));
+ const c=actualJSON(qualificationPath);
+ if(field==='projectId')Object.assign(c.projectEvidenceReference.operatorSource,r);
+ else Object.assign(c.identifiers[field],r);
+ reject(()=>inspectQualificationEvidence(c));
+});
+for(const name of ['projectId','serviceId','foo','EnvironmentId','environment',null])
+ test('qualification environment query name must be exact '+name,t=>{
+  offline(t);const c=actualJSON(qualificationPath);c.identifiers.environmentId.sourceParameterName=name;
+  reject(()=>inspectQualificationSurface(c.identifiers.environmentId,'environmentId'));
+  reject(()=>inspectQualificationEvidence(c));
+ });
+for(const field of ['environmentId','serviceId','projectId'])
+ for(const text of ['https://invalid.example/path','?environmentId=synthetic','environmentId=synthetic','#fragment'])
+ test('qualification source description rejects raw URL query or fragment '+field+' '+text.split(/[?=#]/)[0],t=>{
+  offline(t);const c=actualJSON(qualificationPath);
+  const r=field==='projectId'?c.projectEvidenceReference.operatorSource:c.identifiers[field];
+  r.sourceReference=text;reject(()=>inspectQualificationEvidence(c));
+ });
+test('qualification evidence stores only extracted IDs and inert source descriptions',t=>{
+ offline(t);const c=actualJSON(qualificationPath);inspectQualificationEvidence(c);
+ assert.doesNotMatch(actualRead(qualificationPath),/https?:\/\/|[?#]|environmentId=/);
+ assert.deepEqual(c.identifiers.projectId,actualJSON(evidencePath).identifiers.projectId);
+ for(const field of ['environmentId','serviceId']){
+  const r=c.identifiers[field];for(const flag of ['independentlyReviewed','authoritativeForInputReview','contextCompared'])assert.equal(r[flag],false);
+  for(const key of ['reviewerReference','reviewedAt','reviewReference'])assert.equal(r[key],null);
  }
 });

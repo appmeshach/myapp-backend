@@ -12,12 +12,21 @@ inventory and host attestations remain unresolved/unreviewed by default. Presenc
 of fields, successful structural checks, copied JSON, a reviewer signature or a
 completed worksheet cannot issue a ticket or prove any provider identity.
 
-The [actual offline assessment](0114e-actual-acquisition-input-review.json) now
-consumes AT's reviewed 0114F target evidence and binds the current committed code.
-Its result is INCOMPLETE: target/code review succeeds, but inventory completeness,
+The preserved [historical offline assessment](0114e-actual-acquisition-input-review.json)
+consumed AT's reviewed production-target evidence and recorded its then-reviewed
+code identity. It is not current for qualification. Its result is INCOMPLETE:
+target/code review succeeded at that milestone, but inventory completeness,
 execution-host attestations, independent package review and disposable/active
 target eligibility remain unresolved. reviewed/inputReviewComplete stay false.
 The safe worksheet remains byte-identical; no completion rule is relaxed.
+
+The intended qualification target is now separately recorded in
+[qualification target evidence](0114e-qualification-target-evidence.json).
+The new qualification environment and movement-qualification service are
+operator-acquired, not independently reviewed. Production remains historically
+reviewed, but is no longer the intended qualification target. Deployment and
+0114D preparation remain unauthorized; pending Railway source changes must not
+be applied by this milestone.
 
 ## Known facts and unresolved inputs
 
@@ -242,7 +251,7 @@ The safe evidence template grants no execution authority. The 0114E safe templat
 all runtime modules and 12 pins remain unchanged. Actual acquisition remains a
 separately reviewed 0114D package and final manual authorization step.
 
-## Actual offline input assessment using reviewed 0114F evidence
+## Historical offline input assessment using reviewed 0114F evidence
 
 Starting and reviewed HEAD: 72ba10ec5a058d234749d177cc4d70ad07761faa.
 Branch: feature/0092-shared-segment-suitability. This is the locally verified
@@ -368,3 +377,167 @@ actual JSON assessment change. The index is empty; HEAD/branch remain as above.
 The already untracked capsule is unread and untouched. No stage, commit, push,
 deploy or restart occurred. No operational STOP condition was encountered; the
 unresolved review inputs above prevent inputReviewComplete=true and readiness.
+
+## Qualification target evidence update, without deployment
+
+Starting HEAD: 4f8d8b043f1876e1f4ff3bfa66ef85aa7ffed4e0, branch
+feature/0092-shared-segment-suitability. This update records only the operator's
+supplied normal-Railway-UI observations. Codex did not inspect Railway, apply
+pending changes, deploy, restart, acquire a token or make a provider request.
+
+| Field | Intended qualification value | Evidence status |
+| --- | --- | --- |
+| projectName | thorough-blessing | Unchanged project |
+| projectId | 0fa3268a-396f-4042-a4c0-a92c23fdf486 | Prior reviewed project identity referenced |
+| environmentName | qualification | Operator report |
+| environmentId | 9410a813-0429-4bc7-bfbb-d54b85e17c8a | Operator-acquired, not independently reviewed |
+| serviceName | movement-qualification | Operator-reported applied rename |
+| serviceId | ef516a68-9bb7-429e-a395-48ef2676593a | Operator-acquired, not independently reviewed |
+| serviceInstanceId | null | Unresolved; no lookup performed |
+
+The separate JSON reuses the established identifier-record terminology. The
+project record is an exact copy of prior reviewed project evidence, linked by
+file, record path, review commit and canonical SHA-256. Its labelContext and AT
+review describe that historical review, including its production context.
+projectEvidenceReference.scope limits reuse to unchanged project identity;
+qualificationContextCompared=false explicitly denies a new-context attestation.
+No production environment/service review authority transfers to the new IDs.
+
+For both new records, sourceClassification is
+operator_acquired_not_independently_reviewed; independentlyReviewed,
+contextCompared and authoritativeForInputReview are false. reviewerReference,
+reviewedAt and reviewReference are null. No acquisition operator or exact time
+was supplied, so acquiredByReference/acquiredAt remain null. The operator also
+supplied the normal dashboard location from this same evidence collection.
+Only its extracted typed identifiers and inert descriptions are retained:
+environmentId uses identifier_query_parameter with sourceParameterName exactly
+environmentId; serviceId uses identifier_url_path_segment with a null parameter.
+The query-parameter surface is restricted to environmentId, never projectId,
+serviceId or another parameter name. No raw dashboard URL, query string or
+fragment is stored. This source classification is not independent comparison.
+The records remain unreviewed and do not qualify for completed 0114F/0114E intake.
+
+The supplied project path also supports identifier_url_path_segment with a null
+parameter. It is recorded separately in projectEvidenceReference.operatorSource
+as not independently reviewed. The copied historical project record and its
+original source surface, AT review, reference/hash and scope remain unchanged;
+the additional operator source does not extend that review to qualification.
+
+### Operator-reported applied state and disposable intent
+
+The operator reports creation specifically for qualification, separate from
+production, using Empty Environment rather than Duplicate Environment. Production
+was not duplicated and production variables were not copied. Only a new empty
+service was created; its generated name athletic-serenity was renamed through
+the actual Name control to movement-qualification. The service is offline, no
+variables/secrets were added, and no qualification deployment was authorized.
+These assertions are recorded as operatorObservations, not independent human or
+runtime provider proof.
+
+eligibility.environmentKindIntent=disposable records that factual intent only.
+eligibilityComplete and independentlyReviewed remain false; the final
+environmentKind and lifecycle remain null. A created environment or offline
+service does not establish active lifecycle under the existing policy. The
+qualification name is not proof of disposable/non-production eligibility.
+
+### Source settings remain pending
+
+sourceConfigurationApplied=false and activeConfigurationVerified=false.
+Only sourceConfiguration.pendingIntended contains:
+
+| Pending setting | Intended value |
+| --- | --- |
+| repo | appmeshach/myapp-backend |
+| branch | feature/0092-shared-segment-suitability |
+| rootDirectory | /movement-app |
+
+The operator reports that Railway's dialog says applying these settings would
+redeploy movement-qualification. They were deliberately not applied. The applied
+configuration fields and qualification labelContext branch/root remain null;
+they do not claim that the pending values are active provider configuration.
+Historical project labelContext is retained only as historical evidence.
+
+### Production safety, historical evidence and next review
+
+The operator reports production auto-deploy was manually disabled before creating
+and configuring qualification. Production and the prior crashed qualification
+deployment were not restarted. This is descriptive human evidence, not provider
+or cryptographic proof. Production service health is unknown. The earlier log
+message remains conditional: "Remote qualification unavailable; ENVIRONMENT
+TEARDOWN REQUIRED if remote writes began". previousRemoteWritesOccurred=null;
+neither occurrence nor absence of previous remote writes is inferred.
+
+The reviewed production JSON remains byte-identical, preserving environmentId
+69b93a87-a91b-4c14-8656-6b0ca3135cee and serviceId
+b053fe9d-716b-49f4-ac24-324c221d054d. The incomplete actual 0114E assessment is
+also preserved byte-identically as historical evidence at this starting commit.
+It retains its older reviewed HEAD and production inputs. It is stale for current
+use and is not retargeted or refreshed by changing its hashes. Historical tests
+validate its original protected-file snapshot through local Git; a separate check
+rejects current use against changed HEAD/files and the new target.
+
+After independent human review of the new IDs and qualification context, a later
+0114E assessment must be regenerated and independently reviewed against the new
+target, exact then-current code and protected inputs. Inventory completeness,
+execution-host attestation, independent whole-package review, eligibility and
+lifecycle remain unresolved. Existing safe templates and runtime service-name
+expectations are unchanged; compatibility with movement-qualification must be
+reviewed separately before any later 0114D preparation. No runtime modification
+is needed or authorized to record this evidence bridge.
+
+For the new evidence, reviewed, evidenceReviewComplete, inputReviewComplete,
+readyFor0114DPreparation, deploymentAuthorized, liveAuthorized,
+manualLiveAuthorization, providerObservationOccurred, targetIdentityProven and
+executableAcquisitionPrepared all remain false. No draft, ticket, execution
+authority, session/context, wrapper acquisition, service-instance/schema request,
+0114D authorization, pending-change application or deployment is created.
+
+This task's only network activity was one direct web-tool read of
+https://docs.expo.dev/versions/v57.0.0/ under the explicit AGENTS.md exception.
+Only that public URL and response-length setting were supplied; no repository,
+target, credential, environment, source or user data was transmitted. No link was
+followed and no other network or provider access occurred. Remaining work and
+validation are local, using installed tooling without npm/npx registry access.
+
+### Qualification evidence validation
+
+Original qualification-evidence validation: 0114E 383/383 PASS, retaining the earlier conformance coverage with the prior
+assessment explicitly tested as historical. 0114F: 240/240, 0114D: 141/141,
+0114C: 96/96, 0114B: 72/72, 0114A: 63/63, 0113: 63/63, 0112: 62/62,
+0111: 101/101, 0110: 63/63, 0109: 78/78. Total focused: 1,362 PASS,
+zero failures/skips. The established 19-file serialized chain passes with
+--test-concurrency=1: 1,117 tests, 1,114 PASS, zero failures and three existing
+OS-specific skips. Existing execution regression objects are synthetic only.
+App, Edge and worker typechecks pass using installed local tsc.
+
+All 99 migrations match the index through clean checkout filtering and have no
+diff against HEAD. All twelve pins and the authorization self hash match the
+current tracked/committed runtime files, which remain unchanged. Historical
+production evidence, the safe 0114E template and the prior actual assessment
+remain byte-identical to starting HEAD. The new JSON parses and has no trailing
+whitespace; git diff --check passes. Only this procedure, the readiness register,
+0114E conformance tests and the separate qualification evidence file change.
+The index is empty; HEAD/branch remain as recorded above. The capsule remains
+unread, untouched and untracked. No stage, commit, push, deploy, restart or pending
+Railway change application occurred. No STOP condition was encountered.
+
+### Provenance correction validation
+
+The correction replaces the inaccurate missing-surface statement using the
+already-supplied dashboard provenance, without retaining the raw location or
+promoting review authority. The prior project record remains unchanged; its
+additional operator path source is separate and unreviewed. No second Expo read
+or other network lookup occurred. All pending settings and PRELIVE flags remain
+unchanged, and acquisition operator/time and independent review remain unresolved.
+
+0114E: 408/408 PASS. 0114F: 240/240, 0114D: 141/141, 0114C: 96/96,
+0114B: 72/72, 0114A: 63/63, 0113: 63/63, 0112: 62/62, 0111: 101/101,
+0110: 63/63, 0109: 78/78. Total focused: 1,387 PASS, zero failures/skips.
+The same 19-file serialized chain passes with --test-concurrency=1: 1,117 tests,
+1,114 PASS, zero failures and three existing OS-specific skips. App, Edge and
+worker typechecks pass. All 99 migrations, twelve runtime pins and authorization
+self hash are unchanged. Historical production evidence, prior assessment and
+safe templates remain byte-identical. git diff --check and new-file whitespace
+checks pass; the index remains empty and HEAD/branch unchanged. The capsule is
+unread, untouched and untracked. No stage, commit, push, deploy, restart or pending
+Railway change application occurred.

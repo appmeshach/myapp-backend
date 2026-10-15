@@ -542,7 +542,7 @@ remain unchanged; PRELIVE_NOT_AUTHORIZED and all live/provider/identity flags
 remain false. Separate 0114E input review and later explicit manual authorization
 remain necessary. No live execution is authorized.
 
-## 0114E actual offline input assessment
+## 0114E historical offline input assessment
 
 The separate [actual assessment](0114e-actual-acquisition-input-review.json) consumes
 the exact three reviewed 0114F IDs with AT provenance, source-evidence digest and
@@ -569,3 +569,52 @@ schema request or 0114D authorization was created. Exactly one Expo v57 public
 documentation read was permitted and performed; the remaining work is offline.
 Complete the unresolved human evidence and refresh code/input freshness checks
 before considering a separately prepared and manually authorized 0114D package.
+
+## 0114E qualification target evidence update
+
+[Qualification evidence](0114e-qualification-target-evidence.json) records the
+operator's new intended target: thorough-blessing project
+0fa3268a-396f-4042-a4c0-a92c23fdf486, qualification environment
+9410a813-0429-4bc7-bfbb-d54b85e17c8a, movement-qualification service
+ef516a68-9bb7-429e-a395-48ef2676593a. The unchanged project identity references
+prior AT-reviewed evidence only; the new environment/service have no independent
+review, context comparison, reviewer/time or input-review authority. Instance is null.
+
+The operator reports Empty Environment creation without duplicating production
+or copying its variables, a new empty service renamed from athletic-serenity,
+service offline and no variables or authorized deployment. Disposable intent is
+descriptive; independently reviewed eligibility and active lifecycle remain
+unresolved. Production auto-deploy was reportedly manually disabled first;
+production and the prior crashed deployment were not restarted. No production
+health or prior remote-write outcome is inferred from the conditional teardown log.
+
+Repo appmeshach/myapp-backend, branch feature/0092-shared-segment-suitability and
+root /movement-app remain pending intended source settings only. Applying them
+would reportedly redeploy the service; sourceConfigurationApplied=false and no
+active source configuration is claimed. Pending changes must remain unapplied.
+
+Historical reviewed production evidence and the prior incomplete 0114E assessment
+remain byte-identical. Production is no longer the intended qualification target.
+The prior assessment is stale for current qualification use. After independent
+human review, regenerate/review a later assessment against the new target and
+current code; preserve inventory, host, package, eligibility and lifecycle gates.
+Unchanged runtime/safe-template service expectations also require a separate
+compatibility review. No runtime change or new pin is made here.
+
+0114E remains incomplete. reviewed, inputReviewComplete,
+readyFor0114DPreparation and all live/manual/provider/identity/preparation flags
+are false; deployment is unauthorized. No pending-change application, deployment,
+restart, ticket/draft, context/session, provider request or 0114D authorization
+occurred. Starting HEAD is 4f8d8b043f1876e1f4ff3bfa66ef85aa7ffed4e0.
+Only the single permitted Expo v57 documentation read used network access.
+
+The qualification provenance correction records the operator-supplied typed
+service path segment and explicitly named environmentId query parameter as
+identifier_url_path_segment/null and identifier_query_parameter/environmentId,
+respectively. The query surface is restricted to environmentId only. A separate
+unreviewed project-path source is linked alongside unchanged prior project
+evidence. Only extracted IDs and inert descriptions are retained; no raw dashboard
+URL, query string or fragment is stored. This correction does not supply a human
+reviewer or timestamp, transfer review authority, apply pending source settings
+or complete/authorize 0114E, deployment or 0114D preparation. No second Expo read
+or other network lookup was performed for the correction.
