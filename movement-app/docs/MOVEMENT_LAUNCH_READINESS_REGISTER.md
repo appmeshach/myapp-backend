@@ -507,7 +507,7 @@ execution; the safe outcome remains PRELIVE_NOT_AUTHORIZED.
 
 [0114F metadata intake](0114f-railway-target-metadata-resolution.md) records the
 tracked-source search: no independently authoritative actual Railway target IDs
-were found. All actual IDs remain null; synthetic fixtures and historical labels
+were found. The safe template's actual IDs remain null; synthetic fixtures and historical labels
 cannot populate live inputs. A human must acquire minimal non-secret typed provider
 metadata and a different person must independently compare its value and context.
 The safe evidence template grants no execution authority. The 0114E safe template,
@@ -523,9 +523,21 @@ The three original surfaces remain allowed. Raw URLs, query strings, fragments
 and arbitrary parameter inference remain prohibited.
 
 A separate [operator-acquired record](0114f-operator-acquired-target-metadata.json)
-holds the three supplied project/environment/service IDs without independent
-review or input-review authority. Instance remains null. Railway AI corroboration
-is supporting information, not a second human reviewer. Reviewer identities and
-timestamps remain unfilled. The 0114E safe template and all runtime modules/pins
+holds the three supplied project/environment/service IDs. AT has now independently
+checked Railway itself and compared the exact values and intended context, with
+no mismatch, at 2026-10-15T14:01:00.000Z (15:01 WAT). AT is a different human from
+the acquisition operator; Railway AI is not the reviewer. All three records have
+independentlyReviewed, contextCompared and authoritativeForInputReview true, with
+sourceClassification=operator_supplied_provider_metadata. reviewed and
+evidenceReviewComplete are true.
+
+Acquisition date is 2026-10-14; the exact acquisition time is unknown, explicitly
+represented by acquisitionTimeKnown=false and acquiredAt=null, with
+historicalAcquisitionCommit=13120f715ea70913eb791f0fb8bc224f2c67a15c.
+The narrowly bound historical exception preserves the unrecorded operator identity
+as null and requires a distinct human reviewer; ordinary future acquisitions still
+require exact timestamps. No acquisition time was invented. Instance remains the
+untouched null record. The 0114E safe template and all runtime modules and 12 pins
 remain unchanged; PRELIVE_NOT_AUTHORIZED and all live/provider/identity flags
-remain false. No live execution is authorized.
+remain false. Separate 0114E input review and later explicit manual authorization
+remain necessary. No live execution is authorized.

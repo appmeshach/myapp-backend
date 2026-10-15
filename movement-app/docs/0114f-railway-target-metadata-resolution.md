@@ -5,8 +5,9 @@ template and conformance tests. No production/preflight module, automated metada
 resolver, parser CLI, new capability, pin or live execution path is added.
 
 Outcome remains PRELIVE_NOT_AUTHORIZED. The safe templates retain null actual IDs.
-The follow-up below separately records three operator-acquired IDs with independent
-review and authority flags false. No reviewer identity or timestamp is invented.
+The separate operator-acquired record now includes AT's independent human review
+of the three mandatory IDs. Input-review authority is true; execution authority
+remains false. The acquisition date is known; its exact time is explicitly unknown.
 The 0114E safe template is unchanged.
 
 ## Local tracked-source search, before implementation
@@ -140,6 +141,33 @@ Use concise plain descriptions (1-256 characters) and ISO UTC timestamps with
 milliseconds. Review time must not precede acquisition time. Record actual times;
 do not fill the template with this document's creation time.
 
+### Narrow historical unknown-time condition
+
+The ordinary safe template is unchanged. Fresh acquisitions still require an exact
+acquiredAt timestamp, an acquisition reference and an operator reference. Known
+acquisition times must not be omitted, and reviewedAt must not precede acquiredAt.
+
+Only the three mandatory records already preserved in acquisition commit
+13120f715ea70913eb791f0fb8bc224f2c67a15c may use this historical extension:
+acquisitionDate="2026-10-14", acquisitionTimeKnown=false,
+historicalAcquisitionCommit="13120f715ea70913eb791f0fb8bc224f2c67a15c",
+reviewerDistinctFromAcquirer=true, and acquiredAt=null. acquisitionReference points
+to that immutable repository record. The original acquiredByReference remains null
+because no operator identity was recorded. This does not assert that Git proves
+the acquisition date or the humans' independence; those facts are supplied by the
+human review report. The test model binds this exception to the original values,
+source descriptions, source surfaces and label context. It rejects fresh IDs,
+guessed times, missing extension fields and invented operator references.
+
+An exact later review timestamp and all independent human comparison requirements
+still apply. With no acquisition minute available, the model conservatively
+requires review on a later UTC calendar date; it cannot prove ordering within the
+acquisition date. The human report establishes that AT is a different person from
+the acquisition operator. Railway AI cannot satisfy this condition. Neither a
+reviewer string nor a boolean independently proves human identity.
+
+The optional serviceInstanceId record remains untouched, unresolved and null.
+
 1. Operator acquisition: operator A reads a clearly typed visible identifier and
    confirms its resource and context. A records only the minimal value, source,
    acquisition reference/time and their non-secret reference. This alone is NOT
@@ -229,9 +257,9 @@ or restart occurs. All production/preflight files and pins remain unchanged.
 
 After successful metadata intake, the next step is separate 0114E input completion
 and then separately reviewed 0114D package preparation and explicit final manual
-authorization. Execution never follows automatically. The follow-up supplies three acquired IDs,
-but independent human review remains missing. Neither acquired values nor provider
-AI corroboration completes 0114E or authorizes 0114D.
+authorization. Execution never follows automatically. AT's review now supplies
+input-review authority for the three acquired IDs. Separate 0114E completion is
+still required, and this does not authorize 0114D execution.
 
 ## Tests and regression compatibility
 
@@ -267,7 +295,7 @@ and untouched. No stage, commit, push, deploy, restart, live provider/network
 action, Railway CLI, Supabase/GitHub API, real credential or environment-secret
 read occurred. No STOP condition was encountered.
 
-## Follow-up: explicitly named environment identifier parameter
+## Historical follow-up: explicitly named environment identifier parameter
 
 Required starting HEAD for this correction:
 cf8cdefe11fb5408d67c8f3c6574c0f5933d912c.
@@ -341,3 +369,50 @@ HTTP/HTTPS/fetch/provider request, Supabase/GitHub API, live session/context,
 draft/ticket/wrapper acquisition, schema, stage, commit, push, deploy or restart
 occurred. Existing regressions exercised synthetic execution only.
 No STOP condition was encountered.
+
+## Independent review completion: AT
+
+Starting HEAD: 13120f715ea70913eb791f0fb8bc224f2c67a15c, on
+feature/0092-shared-segment-suitability. The human report states AT independently
+checked Railway itself, compared the exact project/environment/service IDs and
+intended thorough-blessing / production / myapp-backend context, and found no
+mismatch. AT is a second human, not the acquisition operator or Railway AI.
+Review time is 2026-10-15 15:01 WAT, exactly 2026-10-15T14:01:00.000Z.
+
+For each mandatory ID, independentlyReviewed, contextCompared and
+authoritativeForInputReview are true, with sourceClassification advanced to
+operator_supplied_provider_metadata. Top-level reviewed and evidenceReviewComplete
+are true. The original acquisition occurred on 2026-10-14; no exact minute for all
+three fields was recorded. No timestamp or operator identity has been invented.
+The historical extension above records that uncertainty explicitly and preserves
+the immutable acquisition commit reference. serviceInstanceId remains untouched.
+
+This is recorded human evidence for later 0114E input review. Outcome remains
+PRELIVE_NOT_AUTHORIZED; liveAuthorized, manualLiveAuthorization,
+providerObservationOccurred, targetIdentityProven and executableAcquisitionPrepared
+remain false. No runtime/preflight source, pin or safe template changes. No provider
+operation or executable artifact is created. A required Expo v57 documentation
+lookup used HTTPS during this task; the evidence workflow/tests make no real
+HTTP/HTTPS/fetch or provider request. No credential or secret reads occurred.
+
+### Independent review validation
+
+0114F: 240/240 PASS. 0114E: 141/141, 0114D: 141/141, 0114C: 96/96,
+0114B: 72/72, 0114A: 63/63, 0113: 63/63, 0112: 62/62, 0111: 101/101,
+0110: 63/63, 0109: 78/78. Total focused: 1,120 PASS, zero failures/skips.
+The earlier conformance cases remain passing; the previous unreviewed-current-data
+assertion now checks the supplied completed human review rather than obsolete flags.
+New cases bind the historical exception to the immutable acquisition record and
+reject missing conditions, changed IDs, guessed times, invented operators, missing
+independent review, AI reviewers and non-authoritative classifications.
+
+The same 19-file serialized regression chain passes with --test-concurrency=1:
+1,117 tests, 1,114 PASS, zero failures, three existing OS-specific skips. Earlier
+regressions exercise synthetic execution only; no real provider action occurs.
+
+App, Edge and worker typechecks pass. All 99 migrations match the index Git blobs
+through clean checkout filtering and have no diff against HEAD. Both safe JSON
+templates are byte-identical to starting HEAD. All 12 source pins and production/
+preflight files remain unchanged. The index remains empty; HEAD and branch remain
+as recorded above. The existing untracked capsule is unread and untouched. No
+stage, commit, push, deploy or restart occurred. No STOP condition was encountered.

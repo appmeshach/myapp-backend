@@ -9,6 +9,10 @@ const template=JSON.parse(fs.readFileSync(path.join(root,'docs/0114f-target-meta
 const ePath=path.join(root,'docs/0114e-acquisition-input-review-template.json');
 const eSafe=JSON.parse(fs.readFileSync(ePath,'utf8'));
 const fields=['projectId','environmentId','serviceId','serviceInstanceId'];
+const acquisitionCommit='13120f715ea70913eb791f0fb8bc224f2c67a15c';
+const recordedAcquisition=JSON.parse(cp.execFileSync('git',['-c','safe.directory='+path.resolve(root,'..'),'show',acquisitionCommit+
+ ':movement-app/docs/0114f-operator-acquired-target-metadata.json'],{encoding:'utf8',env:{},windowsHide:true}));
+const historicalKeys=['acquisitionDate','acquisitionTimeKnown','historicalAcquisitionCommit','reviewerDistinctFromAcquirer'];
 const blocked=['xdfmoggrsucisfybqctb','udlsysezmzutydnifhsq','uzkhnslyrhgucijcuoes',
  'thorough-blessing','myapp-backend','feature/0092-shared-segment-suitability','/movement-app','europe-west4-drams3a','RAILPACK_NODE_VERSION=24'];
 const fixtureValues=['synthetic-project','synthetic-env','synthetic-environment','synthetic-service','synthetic-instance',
@@ -36,7 +40,8 @@ function inspectSourceSurface(r,field){
 // Structural assertion model ONLY: human source authenticity cannot be derived
 // from JSON, reviewer strings or UUID spelling. Never writes or promotes inputs.
 function inspectRecord(r,field){
- exact(r,Object.keys(template.identifiers[field]));safeData(r);
+ const historical=Object.hasOwn(r,'historicalAcquisitionCommit');
+ exact(r,[...Object.keys(template.identifiers[field]),...(historical?historicalKeys:[])]);safeData(r);
  assert.equal(r.field,field);assert.equal(r.provider,'Railway');
  assert.ok(typeof r.value==='string'&&/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(r.value));
  assert.equal(blocked.includes(r.value),false);
@@ -44,9 +49,26 @@ function inspectRecord(r,field){
  assert.doesNotMatch(r.value,/^(synthetic|test|fixture|example)(?:[-_]|$)/i);
  assert.equal(r.sourceClassification,'operator_supplied_provider_metadata');
  inspectSourceSurface(r,field);
- for(const k of ['sourceReference','acquiredByReference','acquisitionReference','reviewerReference','reviewReference'])reference(r[k]);
- timestamp(r.acquiredAt);timestamp(r.reviewedAt);assert.ok(Date.parse(r.reviewedAt)>=Date.parse(r.acquiredAt));
- assert.notEqual(r.acquiredByReference.trim().toLowerCase(),r.reviewerReference.trim().toLowerCase());
+ for(const k of ['sourceReference','acquisitionReference','reviewerReference','reviewReference'])reference(r[k]);
+ timestamp(r.reviewedAt);
+ if(historical){
+  // This exception is bound to the already committed acquisition, not fresh intake.
+  assert.ok(template.requiredFields.includes(field));
+  assert.equal(r.historicalAcquisitionCommit,acquisitionCommit);
+  assert.equal(r.acquisitionDate,'2026-10-14');assert.equal(r.acquisitionTimeKnown,false);
+  assert.equal(r.acquiredAt,null);assert.equal(r.reviewerDistinctFromAcquirer,true);
+  assert.equal(r.acquisitionReference,'Repository acquisition record '+acquisitionCommit);
+  for(const k of ['value','provider','sourceKind','sourceSurface','sourceParameterName','sourceReference','acquiredByReference','labelContext'])
+   assert.deepEqual(r[k],recordedAcquisition.identifiers[field][k]);
+  assert.ok(r.reviewedAt.slice(0,10)>r.acquisitionDate);
+ }else{
+  reference(r.acquiredByReference);timestamp(r.acquiredAt);
+  assert.ok(Date.parse(r.reviewedAt)>=Date.parse(r.acquiredAt));
+ }
+ if(r.acquiredByReference!==null){
+  reference(r.acquiredByReference);
+  assert.notEqual(r.acquiredByReference.trim().toLowerCase(),r.reviewerReference.trim().toLowerCase());
+ }
  assert.doesNotMatch(r.reviewerReference,/railway\s+ai|\bai\s+agent\b/i);
  assert.equal(r.independentlyReviewed,true);assert.equal(r.authoritativeForInputReview,true);assert.equal(r.contextCompared,true);
  exact(r.labelContext,Object.keys(template.expectedContext));
@@ -266,28 +288,69 @@ test('URL inference or operator acquisition alone does not satisfy independent r
  r.independentlyReviewed=false;r.authoritativeForInputReview=false;r.reviewerReference=null;r.reviewedAt=null;r.reviewReference=null;
  reject(()=>inspectCandidate(c));
 });
-test('operator-acquired actual metadata is representable only as currently unreviewed data',()=>{
- const actual=JSON.parse(fs.readFileSync(path.join(root,'docs/0114f-operator-acquired-target-metadata.json'),'utf8'));
+function actualEvidence(){
+ return JSON.parse(fs.readFileSync(path.join(root,'docs/0114f-operator-acquired-target-metadata.json'),'utf8'));
+}
+test('AT independently reviewed exact actual metadata with explicit historical unknown acquisition time',()=>{
+ const actual=actualEvidence();
  assert.equal(actual.outcome,'PRELIVE_NOT_AUTHORIZED');
- for(const k of ['reviewed','evidenceReviewComplete','liveAuthorized','manualLiveAuthorization','providerObservationOccurred','targetIdentityProven','executableAcquisitionPrepared'])assert.equal(actual[k],false);
- assert.equal(actual.identifiers.projectId.value,'0fa3268a-396f-4042-a4c0-a92c23fdf486');
- assert.equal(actual.identifiers.environmentId.value,'69b93a87-a91b-4c14-8656-6b0ca3135cee');
- assert.equal(actual.identifiers.serviceId.value,'b053fe9d-716b-49f4-ac24-324c221d054d');
- assert.equal(actual.identifiers.serviceInstanceId.value,null);
- for(const field of fields){
-  const r=actual.identifiers[field];
-  assert.equal(r.independentlyReviewed,false);assert.equal(r.authoritativeForInputReview,false);assert.equal(r.contextCompared,false);
-  for(const k of ['acquiredByReference','acquiredAt','acquisitionReference','reviewerReference','reviewedAt','reviewReference'])assert.equal(r[k],null);
-  if(field!=='serviceInstanceId'){
-   inspectSourceSurface(r,field);safeData(r);reference(r.sourceReference);assert.doesNotMatch(r.sourceReference,/[?=#]/);
-   assert.equal(r.sourceClassification,'operator_acquired_not_independently_reviewed');
-   reject(()=>inspectRecord(r,field));
-  }
+ assert.equal(actual.reviewed,true);assert.equal(actual.evidenceReviewComplete,true);
+ for(const k of ['liveAuthorized','manualLiveAuthorization','providerObservationOccurred','targetIdentityProven','executableAcquisitionPrepared'])assert.equal(actual[k],false);
+ const values={projectId:'0fa3268a-396f-4042-a4c0-a92c23fdf486',environmentId:'69b93a87-a91b-4c14-8656-6b0ca3135cee',serviceId:'b053fe9d-716b-49f4-ac24-324c221d054d'};
+ for(const [field,value]of Object.entries(values)){
+  const r=actual.identifiers[field];inspectRecord(r,field);
+  assert.equal(r.value,value);assert.equal(r.reviewerReference,'AT');
+  assert.equal(r.reviewedAt,'2026-10-15T14:01:00.000Z');
+  assert.equal(r.acquiredAt,null);assert.equal(r.acquiredByReference,null);
+  assert.equal(r.acquisitionDate,'2026-10-14');assert.equal(r.acquisitionTimeKnown,false);
+  assert.equal(r.historicalAcquisitionCommit,acquisitionCommit);assert.equal(r.reviewerDistinctFromAcquirer,true);
+  assert.equal(r.independentlyReviewed,true);assert.equal(r.contextCompared,true);
+  assert.equal(r.authoritativeForInputReview,true);assert.equal(r.sourceClassification,'operator_supplied_provider_metadata');
  }
+ assert.deepEqual(actual.identifiers.serviceInstanceId,recordedAcquisition.identifiers.serviceInstanceId);
+ assert.equal(actual.identifiers.serviceInstanceId.value,null);
+ assert.deepEqual(actual.codeIdentity,recordedAcquisition.codeIdentity);
+ assert.equal(Object.keys(actual.codeIdentity.sourceHashes).length,12);
  assert.equal(actual.identifiers.environmentId.sourceParameterName,'environmentId');
  assert.equal(actual.expectedContext.environmentName,'production');
  const text=JSON.stringify(actual);assert.doesNotMatch(text,/https?:\/\//);assert.doesNotMatch(text,/environmentId=/);
 });
+for(const field of ['projectId','environmentId','serviceId']){
+ for(const key of historicalKeys)test('historical exception requires explicit '+field+' '+key,()=>{
+  const r=clone(actualEvidence().identifiers[field]);delete r[key];reject(()=>inspectRecord(r,field));
+ });
+ for(const [key,value]of [
+  ['acquisitionDate','2026-10-13'],['acquisitionDate','2026-02-30'],['acquisitionTimeKnown',true],
+  ['historicalAcquisitionCommit','0'.repeat(40)],['acquiredAt','2026-10-14T22:00:00.000Z'],
+  ['reviewerDistinctFromAcquirer',false],['reviewedAt','2026-10-14T23:59:59.000Z'],
+  ['value','fresh-unrecorded-id'],['acquiredByReference','invented operator'],['acquisitionReference',null],
+  ['independentlyReviewed',false],['contextCompared',false],['authoritativeForInputReview',false],
+  ['reviewerReference',null],['reviewerReference','Railway AI'],['reviewReference',null],['reviewedAt',null],
+  ['sourceClassification','operator_acquired_not_independently_reviewed']
+ ])test('historical unknown-time review rejects '+field+' '+key+' '+JSON.stringify(value),()=>{
+  const r=clone(actualEvidence().identifiers[field]);r[key]=value;reject(()=>inspectRecord(r,field));
+ });
+}
+test('fresh acquisitions cannot borrow the historical unknown-time exception',()=>{
+ const r=clone(actualEvidence().identifiers.projectId);
+ r.value='00000000-0000-4000-8000-000000000099';reject(()=>inspectRecord(r,'projectId'));
+ for(const value of [null,'',undefined]){
+  const c=candidate();c.identifiers.projectId.acquiredAt=value;reject(()=>inspectCandidate(c));
+ }
+});
+test('recorded operator and AT must be different whenever an operator reference exists',()=>{
+ const c=candidate();c.identifiers.projectId.acquiredByReference='AT';c.identifiers.projectId.reviewerReference='AT';
+ reject(()=>inspectCandidate(c));
+ c.identifiers.projectId.reviewerReference='at';reject(()=>inspectCandidate(c));
+});
+test('0114E safe template bytes match required starting HEAD',()=>{
+ const opts={env:{},windowsHide:true};
+ const gitArgs=['-c','safe.directory='+path.resolve(root,'..')];
+ const old=cp.execFileSync('git',[...gitArgs,'show',acquisitionCommit+':movement-app/docs/0114e-acquisition-input-review-template.json'],opts);
+ const work=fs.readFileSync(ePath);
+ assert.deepEqual(work,old);
+});
+
 test('safe golden evidence template stays unpopulated with nullable parameter declarations',()=>{
  for(const field of fields){
   assert.equal(template.identifiers[field].value,null);assert.equal(template.identifiers[field].sourceParameterName,null);
