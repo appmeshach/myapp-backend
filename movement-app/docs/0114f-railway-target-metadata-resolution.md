@@ -4,9 +4,10 @@
 template and conformance tests. No production/preflight module, automated metadata
 resolver, parser CLI, new capability, pin or live execution path is added.
 
-Outcome remains PRELIVE_NOT_AUTHORIZED. Actual projectId, environmentId, serviceId
-and serviceInstanceId remain null. No real evidence, reviewer identity or review
-time has been invented. The 0114E safe template is unchanged.
+Outcome remains PRELIVE_NOT_AUTHORIZED. The safe templates retain null actual IDs.
+The follow-up below separately records three operator-acquired IDs with independent
+review and authority flags false. No reviewer identity or timestamp is invented.
+The 0114E safe template is unchanged.
 
 ## Local tracked-source search, before implementation
 
@@ -100,11 +101,19 @@ sourceSurface must be one of:
 - copy_identifier_control: an explicitly labeled ID-copy control for that resource;
 - identifier_url_path_segment: a visibly typed identifier path segment whose
   resource type and enclosing project/environment/service are independently
-  corroborated in the provider UI. A bare opaque URL segment is insufficient.
+  corroborated in the provider UI. A bare opaque URL segment is insufficient;
+- identifier_query_parameter: only an explicitly named environmentId parameter for
+  an environmentId record, with sourceParameterName exactly environmentId and
+  selected production environment in the intended thorough-blessing project context.
+  No other parameter name or resource field is permitted. Existing identifier grammar
+  and independent context comparison still apply. Only the extracted ID and inert
+  description are recorded; the raw URL and query string are not stored.
+
+sourceParameterName is required in the record shape: null for the three original
+surfaces and exactly environmentId for the restricted query-parameter surface.
 
 sourceReference is a short inert description of the UI location and non-secret
-evidence reference. Do not store raw URLs, query strings, fragments containing
-data, account/session links or browser exports. Only the extracted typed ID and
+evidence reference. Do not store raw URLs, query strings, fragments, account/session links or browser exports. Only the extracted typed ID and
 minimal context belong in the repository. No provider-visible value is assumed
 authentic merely because it matches syntax or a familiar label.
 
@@ -121,7 +130,7 @@ is suspected. Do not print the rejected content.
 [The safe evidence template](0114f-target-metadata-evidence-template.json) defines
 one exact record per field under identifiers. Each has:
 - field, value, provider=Railway;
-- sourceKind, sourceSurface, sourceReference, sourceClassification;
+- sourceKind, sourceSurface, sourceParameterName, sourceReference, sourceClassification;
 - acquiredByReference, acquiredAt, acquisitionReference;
 - independentlyReviewed, reviewerReference, reviewedAt, reviewReference;
 - labelContext, contextCompared, authoritativeForInputReview.
@@ -220,15 +229,17 @@ or restart occurs. All production/preflight files and pins remain unchanged.
 
 After successful metadata intake, the next step is separate 0114E input completion
 and then separately reviewed 0114D package preparation and explicit final manual
-authorization. Execution never follows automatically. No actual IDs or independent
-operator evidence have yet been supplied; that remains the current gap.
+authorization. Execution never follows automatically. The follow-up supplies three acquired IDs,
+but independent human review remains missing. Neither acquired values nor provider
+AI corroboration completes 0114E or authorizes 0114D.
 
 ## Tests and regression compatibility
 
 The focused suite guards real HTTP/HTTPS/fetch and uses the existing isolated
 module graph to assert zero credential reads, sessions, contexts, drafts, tickets,
-timers and execution calls. Tests use fabricated values and hypothetical actor
-references only, and produce no actual evidence record or live inputs.
+timers and execution calls. The original procedure simulations use fabricated values and hypothetical actor
+references. Follow-up data-integrity checks read the separately supplied non-secret
+acquired facts; they perform no provider verification or promotion to live inputs.
 
 The prior 0114E suite originally assumed its starting HEAD would remain current
 forever. Its one normal-Git check now verifies current identity and explicitly
@@ -236,7 +247,7 @@ rejects the historical HEAD when stale. The synthetic historical tests and golde
 0114E JSON remain unchanged. This is a test-only compatibility correction; no
 runtime verification is relaxed.
 
-## Completed validation
+## Original 0114F validation before this follow-up
 
 0114F: 137/137 PASS. 0114E: 141/141 PASS. Earlier focused suites:
 0114D 141/141, 0114C 96/96, 0114B 72/72, 0114A 63/63, 0113 63/63,
@@ -255,3 +266,78 @@ feature/0092-shared-segment-suitability. The already untracked capsule is unread
 and untouched. No stage, commit, push, deploy, restart, live provider/network
 action, Railway CLI, Supabase/GitHub API, real credential or environment-secret
 read occurred. No STOP condition was encountered.
+
+## Follow-up: explicitly named environment identifier parameter
+
+Required starting HEAD for this correction:
+cf8cdefe11fb5408d67c8f3c6574c0f5933d912c.
+Only docs, JSON evidence/template and conformance tests change. All 12 pins and
+production/preflight modules are unchanged.
+
+The operator reports a normal provider dashboard view with thorough-blessing as
+project context, production selected as environment and myapp-backend selected as
+service. That surrounding context permits the explicitly named environmentId
+query parameter to serve as a typed acquired identifier source. The source rule
+is not generalized to projectId, serviceId, foo or other parameter names.
+No developer tools, network trace, API, GraphQL or CLI evidence is admitted.
+
+The golden safe evidence template gains nullable sourceParameterName fields but
+retains null values and false review flags. The separate
+[operator-acquired record](0114f-operator-acquired-target-metadata.json) records:
+
+| Field | Operator-acquired value | Source classification |
+| --- | --- | --- |
+| projectId | 0fa3268a-396f-4042-a4c0-a92c23fdf486 | Operator reports Project Settings explicitly labeled Project ID |
+| environmentId | 69b93a87-a91b-4c14-8656-6b0ca3135cee | Named environmentId parameter with production selected in intended project |
+| serviceId | b053fe9d-716b-49f4-ac24-324c221d054d | Typed service path segment with myapp-backend visibly selected |
+| serviceInstanceId | null | Not supplied; later fixed provider observation remains necessary |
+
+These are OPERATOR-ACQUIRED / NOT YET INDEPENDENTLY REVIEWED facts supplied in the
+follow-up, not agent-discovered provider observations. Their sourceClassification
+is operator_acquired_not_independently_reviewed. independentlyReviewed,
+authoritativeForInputReview, contextCompared, reviewed and evidenceReviewComplete
+all remain false. Acquisition/reviewer references and timestamps remain null
+because they were not supplied. No operator or reviewer identity is invented.
+
+Railway's in-product AI Agent reportedly corroborated the environment interpretation
+and referred the operator to the named parameter. This is supporting provider-origin
+information only. It is not a second human reviewer and cannot turn any review or
+authority flag true. A different human must independently compare each exact ID
+and its project/environment/service context before it becomes input-review authority.
+
+The recorded environment label production is descriptive. It does not assert
+disposable environmentKind or alter existing lifecycle/target safety constraints.
+The supplied branch and root remain expected context, not new runtime proof.
+
+No raw supplied dashboard URL or raw query string is stored. sourceReference
+contains only inert descriptions. Query strings, fragments, session links,
+cookies, headers, HTML/DOM/network traces, API/GraphQL/CLI exports and developer-tools
+evidence remain prohibited artifacts. There is no URL parser or network resolver.
+Labels, fixture IDs and the three Supabase refs remain prohibited Railway IDs.
+
+The 0114E safe template remains byte-identical and all actual ID fields there stay
+null. No executable draft/ticket, session/context, wrapper acquisition or schema
+request is made. The next step is independent review by a second human, followed
+by separate 0114E completion and separately reviewed/manual 0114D authorization.
+
+### Follow-up validation
+
+0114F: 171/171 PASS, retaining all 137 original cases and adding 34.
+0114E: 141/141 PASS. Earlier focused suites: 0114D 141/141, 0114C 96/96,
+0114B 72/72, 0114A 63/63, 0113 63/63, 0112 62/62, 0111 101/101,
+0110 63/63, 0109 78/78. Total focused: 1,051 PASS, zero failures/skips.
+The unchanged 19-file serialized chain passed: 1,117 total, 1,114 PASS,
+zero failures, three existing OS-specific skips.
+
+App, Edge and worker typechecks passed. All 99 migrations are unchanged.
+The 0114E golden safe template remains byte-identical. All 12 pins and production
+modules are unchanged. git diff --check and new-file whitespace checks passed.
+No raw supplied provider URL/query string is present in the changed files.
+
+HEAD remains cf8cdefe11fb5408d67c8f3c6574c0f5933d912c on
+feature/0092-shared-segment-suitability. Index remains empty; capsule unread and
+untouched. No real credential/environment-secret read, Railway CLI/API/GraphQL,
+HTTP/HTTPS/fetch/provider request, Supabase/GitHub API, live session/context,
+draft/ticket/wrapper acquisition, schema, stage, commit, push, deploy or restart
+occurred. Existing regressions exercised synthetic execution only.
+No STOP condition was encountered.

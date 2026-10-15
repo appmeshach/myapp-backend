@@ -21,8 +21,18 @@ function safeData(v){
   assert.ok(Object.hasOwn(d,'value'));assert.doesNotMatch(key,/credential|password|cookie|header|token|private.?key/i);safeData(d.value);
  }
 }
-const reference=v=>assert.ok(typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9 ._:/()#-]{0,255}$/.test(v));
+const reference=v=>assert.ok(typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9 ._:/()-]{0,255}$/.test(v));
 function timestamp(v){assert.ok(typeof v==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(v));assert.equal(new Date(v).toISOString(),v);}
+
+function inspectSourceSurface(r,field){
+ assert.equal(r.sourceKind,'operator_visible_provider_metadata');
+ assert.ok(['identifier_field','copy_identifier_control','identifier_url_path_segment','identifier_query_parameter'].includes(r.sourceSurface));
+ if(r.sourceSurface==='identifier_query_parameter'){
+  assert.equal(field,'environmentId');assert.equal(r.sourceParameterName,'environmentId');
+  assert.equal(r.labelContext.environmentName,'production');
+  assert.equal(r.labelContext.projectName,template.expectedContext.projectName);
+ }else assert.equal(r.sourceParameterName,null);
+}
 // Structural assertion model ONLY: human source authenticity cannot be derived
 // from JSON, reviewer strings or UUID spelling. Never writes or promotes inputs.
 function inspectRecord(r,field){
@@ -33,11 +43,11 @@ function inspectRecord(r,field){
  assert.equal(fixtureValues.some(v=>v.toLowerCase()===r.value.toLowerCase()),false);
  assert.doesNotMatch(r.value,/^(synthetic|test|fixture|example)(?:[-_]|$)/i);
  assert.equal(r.sourceClassification,'operator_supplied_provider_metadata');
- assert.equal(r.sourceKind,'operator_visible_provider_metadata');
- assert.ok(['identifier_field','copy_identifier_control','identifier_url_path_segment'].includes(r.sourceSurface));
+ inspectSourceSurface(r,field);
  for(const k of ['sourceReference','acquiredByReference','acquisitionReference','reviewerReference','reviewReference'])reference(r[k]);
  timestamp(r.acquiredAt);timestamp(r.reviewedAt);assert.ok(Date.parse(r.reviewedAt)>=Date.parse(r.acquiredAt));
  assert.notEqual(r.acquiredByReference.trim().toLowerCase(),r.reviewerReference.trim().toLowerCase());
+ assert.doesNotMatch(r.reviewerReference,/railway\s+ai|\bai\s+agent\b/i);
  assert.equal(r.independentlyReviewed,true);assert.equal(r.authoritativeForInputReview,true);assert.equal(r.contextCompared,true);
  exact(r.labelContext,Object.keys(template.expectedContext));
  for(const k of ['projectName','serviceName','branch','rootDirectory'])assert.equal(r.labelContext[k],template.expectedContext[k]);
@@ -205,4 +215,81 @@ test('global authority remains false/null',()=>{
   for(const key of ['identity_proven','causality_proven','restart_origin_proven','platformRestart'])assert.equal(state[key],null);
  }
  assert.equal(f.identity.state.targetIdentityObserved,false);assert.equal(f.reads.length,0);
+});
+
+function queryCandidate(){
+ const c=candidate(),r=c.identifiers.environmentId;
+ r.sourceSurface='identifier_query_parameter';r.sourceParameterName='environmentId';
+ r.labelContext.environmentName='production';
+ r.sourceReference='Named environmentId parameter with production selected in project thorough-blessing';
+ return c;
+}
+test('only named environmentId query evidence with intended context passes the review model',()=>{
+ const r=inspectCandidate(queryCandidate());assert.equal(r.liveAuthorized,false);assert.equal(r.automaticallyPromoted,false);
+});
+for(const field of ['projectId','serviceId','serviceInstanceId'])test('query surface cannot identify '+field,()=>{
+ const c=queryCandidate();c.identifiers[field]={...clone(c.identifiers.environmentId),field,sourceParameterName:field};
+ reject(()=>inspectCandidate(c));
+});
+for(const name of ['projectId','serviceId','foo','EnvironmentId','environment','environmentId=synthetic-value',null])
+ test('query parameter name is exact and restricted: '+name,()=>{
+  const c=queryCandidate();c.identifiers.environmentId.sourceParameterName=name;reject(()=>inspectCandidate(c));
+ });
+for(const context of ['wrongEnvironment','nullEnvironment','wrongProject'])
+ test('query evidence requires production and intended project context: '+context,()=>{
+  const c=queryCandidate(),r=c.identifiers.environmentId;
+  if(context==='wrongEnvironment')r.labelContext.environmentName='staging';
+  if(context==='nullEnvironment')r.labelContext.environmentName=null;
+  if(context==='wrongProject')r.labelContext.projectName='different-project';
+  reject(()=>inspectCandidate(c));
+ });
+for(const surface of ['identifier_field','copy_identifier_control','identifier_url_path_segment'])
+ test('other surfaces must not carry a query parameter declaration: '+surface,()=>{
+  const c=candidate();c.identifiers.environmentId.sourceSurface=surface;c.identifiers.environmentId.sourceParameterName='environmentId';
+  reject(()=>inspectCandidate(c));
+ });
+for(const value of ['https://invalid.example/path?environmentId=synthetic-value','?environmentId=synthetic-value',
+ 'environmentId=synthetic-value','#environmentId=synthetic-value','review#fragment'])
+ test('raw URL query or fragment remains prohibited evidence reference: '+value.split(/[?=#]/)[0],()=>{
+  const c=queryCandidate();c.identifiers.environmentId.sourceReference=value;reject(()=>inspectCandidate(c));
+ });
+for(const value of [null,'',17,'has whitespace','bad?value','x'.repeat(129)])
+ test('query extraction does not relax environment ID grammar: '+JSON.stringify(value),()=>{
+  const c=queryCandidate();c.identifiers.environmentId.value=value;reject(()=>inspectCandidate(c));
+ });
+for(const reviewer of ['Railway AI Agent','Railway AI','AI Agent'])
+ test('provider AI cannot act as independent human reviewer: '+reviewer,()=>{
+  const c=queryCandidate();c.identifiers.environmentId.reviewerReference=reviewer;reject(()=>inspectCandidate(c));
+ });
+test('URL inference or operator acquisition alone does not satisfy independent review',()=>{
+ const c=queryCandidate(),r=c.identifiers.environmentId;
+ r.independentlyReviewed=false;r.authoritativeForInputReview=false;r.reviewerReference=null;r.reviewedAt=null;r.reviewReference=null;
+ reject(()=>inspectCandidate(c));
+});
+test('operator-acquired actual metadata is representable only as currently unreviewed data',()=>{
+ const actual=JSON.parse(fs.readFileSync(path.join(root,'docs/0114f-operator-acquired-target-metadata.json'),'utf8'));
+ assert.equal(actual.outcome,'PRELIVE_NOT_AUTHORIZED');
+ for(const k of ['reviewed','evidenceReviewComplete','liveAuthorized','manualLiveAuthorization','providerObservationOccurred','targetIdentityProven','executableAcquisitionPrepared'])assert.equal(actual[k],false);
+ assert.equal(actual.identifiers.projectId.value,'0fa3268a-396f-4042-a4c0-a92c23fdf486');
+ assert.equal(actual.identifiers.environmentId.value,'69b93a87-a91b-4c14-8656-6b0ca3135cee');
+ assert.equal(actual.identifiers.serviceId.value,'b053fe9d-716b-49f4-ac24-324c221d054d');
+ assert.equal(actual.identifiers.serviceInstanceId.value,null);
+ for(const field of fields){
+  const r=actual.identifiers[field];
+  assert.equal(r.independentlyReviewed,false);assert.equal(r.authoritativeForInputReview,false);assert.equal(r.contextCompared,false);
+  for(const k of ['acquiredByReference','acquiredAt','acquisitionReference','reviewerReference','reviewedAt','reviewReference'])assert.equal(r[k],null);
+  if(field!=='serviceInstanceId'){
+   inspectSourceSurface(r,field);safeData(r);reference(r.sourceReference);assert.doesNotMatch(r.sourceReference,/[?=#]/);
+   assert.equal(r.sourceClassification,'operator_acquired_not_independently_reviewed');
+   reject(()=>inspectRecord(r,field));
+  }
+ }
+ assert.equal(actual.identifiers.environmentId.sourceParameterName,'environmentId');
+ assert.equal(actual.expectedContext.environmentName,'production');
+ const text=JSON.stringify(actual);assert.doesNotMatch(text,/https?:\/\//);assert.doesNotMatch(text,/environmentId=/);
+});
+test('safe golden evidence template stays unpopulated with nullable parameter declarations',()=>{
+ for(const field of fields){
+  assert.equal(template.identifiers[field].value,null);assert.equal(template.identifiers[field].sourceParameterName,null);
+ }
 });

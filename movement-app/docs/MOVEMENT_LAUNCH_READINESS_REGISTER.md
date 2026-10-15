@@ -513,3 +513,19 @@ metadata and a different person must independently compare its value and context
 The safe evidence template grants no execution authority. The 0114E safe template,
 all runtime modules and 12 pins remain unchanged. Actual acquisition remains a
 separately reviewed 0114D package and final manual authorization step.
+
+## 0114F follow-up: named environment parameter evidence
+
+The evidence procedure now permits identifier_query_parameter only for an
+environmentId record whose sourceParameterName is exactly environmentId, with
+the intended project and selected production environment independently compared.
+The three original surfaces remain allowed. Raw URLs, query strings, fragments
+and arbitrary parameter inference remain prohibited.
+
+A separate [operator-acquired record](0114f-operator-acquired-target-metadata.json)
+holds the three supplied project/environment/service IDs without independent
+review or input-review authority. Instance remains null. Railway AI corroboration
+is supporting information, not a second human reviewer. Reviewer identities and
+timestamps remain unfilled. The 0114E safe template and all runtime modules/pins
+remain unchanged; PRELIVE_NOT_AUTHORIZED and all live/provider/identity flags
+remain false. No live execution is authorized.
