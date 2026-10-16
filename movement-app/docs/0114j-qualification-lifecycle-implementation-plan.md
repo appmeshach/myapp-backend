@@ -67,6 +67,19 @@ acceptance are still required. C2, B1, five files/bindings, thirteen source-pin 
 fourteen focused suites, nineteen regression paths, three TypeScript checks and
 the future security gate remain unchanged. No implementation authority is supplied.
 
+### Narrow RS1 native-error-to-terminal correction
+
+rs1CorrectionStartingHead: `c089d1222d2cd5d009b2233e7024e4f325516926`
+
+The [failed RS1 review](0114j-reconciled-c1-renewed-critical-review.md) remains
+immutable. Select the fixed private interrupt-aware CONSTANT writer bridge specified
+in A2.1, using Node native-error branding and reserved error.code metadata, never
+message matching. Keep default native evaluation with breakEvalOnSigint:true;
+no eval wrapper, Node-internal patch, second owner or custom REPL. This corrects
+RS1 in design only; renewed critical review and real interruption/TTY acceptance
+remain required before separate implementation authorization may be requested.
+RC1/RC3, C2/B1, five files/bindings and all frozen counts stay unchanged.
+
 ## Reviewed inputs and preserved policy
 
 Inputs inspected: [corrected 0114I design](0114i-qualification-lifecycle-policy-design.md),
@@ -277,7 +290,7 @@ Module is not the genuine host main; host require.main equality remains mandator
 
 preview:false disables native pre-Enter expression/string/error/object previews;
 the empty completer alone is not this protection. Completed evaluation values and
-errors still use the fixed writer, which returns only a constant marker: no
+errors still use the fixed writer, whose rendered output is only a constant marker: no
 util.inspect, coercion, getter or custom inspector. Automatic preview must not invoke
 custom inspection. Native evaluation and TTY line editing remain; no inspector
 listener/socket or custom engine is introduced. Intentional display uses bounded
@@ -291,6 +304,11 @@ existing trusted-process boundary; this is not a sandbox. Native lazy built-in
 bindings and explicit require/import remain possible. Malicious mutation of Node
 internals and pre-start injection are outside that boundary. No console operation
 replaces separate reviews/manual authorization.
+
+The writer also performs the fixed private RS1 metadata observation in A2.1 before
+rendering: a classified native-interruption signature enters terminal shutdown and
+does not return to native rendering/prompt continuation. No error text/value is
+printed by classification; ordinary rendering remains constant/non-inspecting.
 
 Support real TTY/native line input and redirected stdin in nonterminal mode. An open
 stdin pipe/readline handle keeps the host available after bootstrap without an
@@ -334,8 +352,13 @@ means the host terminates, rather than relying on that race to reject/resume awa
 These native consequences are acceptable inside the trusted-operator process; no
 claim is made that arbitrary JavaScript always can be synchronously cancelled.
 Signal JS handlers still cannot promise hard real-time cleanup during an event-loop
-stall. Authority protection is synchronous revocation on the first delivered host
-terminal notification, with subsequent owner checks and result release denied.
+stall. A VM-consumed synchronous SIGINT need not emit either registered signal
+event: native evaluation can instead report ERR_SCRIPT_EXECUTION_INTERRUPTED to
+the REPL error path. A2.1 makes that path a fixed terminal source before native
+rendering/another prompt; do not rely on listener restoration or accept mere error
+rendering as revocation. Authority protection is synchronous revocation on the
+first signal/input/failure OR classified native-error notification, with subsequent
+owner checks and result release denied.
 
 First terminal source wins: set the private latch/cause and host revocation before
 closing streams/console or invoking cleanup. No await or queued callback precedes
@@ -349,7 +372,7 @@ is cleanup failure as specified below.
 | Event | Required terminal behavior and exit code |
 | --- | --- |
 | Direct stdin end/close, or clean REPL close/exit including `.exit` | First latch revokes, closes all claimed graphs/resources and suppresses pending result; exit 0 only after clean cleanup. A known stream error is failure, not clean EOF. |
-| REPL SIGINT / TTY Ctrl+C or process SIGINT | One delivered interrupt terminates with cleanup; exit 130. |
+| REPL SIGINT / TTY Ctrl+C, process SIGINT or A2.1 classified VM interruption | First notification enters the same terminal latch; synchronous revocation/cleanup, no result or next usable prompt, exit 130. |
 | SIGTERM | Terminal cleanup; exit 143. |
 | Bootstrap/stream/cleanup failure | Fail closed; nonzero, normally 1 unless signal code applies; no usable console on bootstrap failure. |
 
@@ -390,6 +413,82 @@ cancellation; it is acceptable for the process to exit before evaluator completi
 once revocation/closure occurred synchronously. No pending/late success release is
 permitted, including after a cleanup exception. Explicit malicious trusted-process
 mutation remains outside the existing threat model.
+
+### A2.1. RS1 fixed private observation at the native writer boundary
+
+Keep `repl.start` on its DEFAULT native evaluator; pass NO eval option and do not
+replace server.eval afterward. Node v24.13.1 rejects eval plus breakEvalOnSigint:true
+with ERR_INVALID_REPL_EVAL_CONFIG. A callback-only eval wrapper is also insufficient
+for the native domain-error route. Neither an evaluator replacement nor private
+server._domain manipulation is selected.
+
+Use the supported writer option already owned by the host as the observation
+boundary. Create/capture ONE fixed interrupt-aware constant writer in the host
+before repl.start. It closes over only captured trusted built-ins and the existing
+private terminal handler. No writer, server, terminal callback or classifier is
+exported, returned via movement, placed on globalThis/process or supplied by a
+caller; no setter/reinstall path is added. The writer is not an authority owner.
+Native parsing, context, multiline/top-level-await semantics, VM/watchdog behavior
+and TTY key processing remain default; breakEvalOnSigint:true remains effective.
+
+Selected policy A: classify the RESERVED NATIVE INTERRUPTION SIGNATURE, not every
+evaluation error. Capture trusted node:util.types.isNativeError,
+Object.getOwnPropertyDescriptor and Object.hasOwn at startup. At each writer call:
+
+1. Check value with captured isNativeError, which accepts cross-context native
+   Errors and rejects proxies/non-Errors without calling their JavaScript hooks.
+2. Only for a native Error, get its OWN code descriptor using the captured built-in.
+3. Match ONLY an own DATA property (descriptor has its own value field) whose value
+   is exactly the primitive string ERR_SCRIPT_EXECUTION_INTERRUPTED.
+4. A match is SIGINT-equivalent: synchronously call the SAME private terminal
+   handler with cause VM_SIGINT_INTERRUPTION, mapped to exit 130. That handler first
+   latches revocation/disablement and then performs the reviewed CLOSED-first cleanup,
+   with no result, no prompt/authority continuation and no rearm. When initiating
+   shutdown it terminates the process after synchronous cleanup and does not return
+   to native writer/error rendering. Cleanup failures retain signal exit 130.
+5. All nonmatching values/errors return the fixed constant marker. No util.inspect,
+   custom inspection, coercion, error.name/message/stack read, code getter,
+   prototype-chain lookup, serialization or caller hook is used by this bridge.
+
+Use the exposed Node error CODE as the programmatic invariant; do not compare text
+such as 'interrupted' or inspect arbitrary error strings/stacks. This is a control-
+flow classification, NOT cryptographic proof of native origin. A trusted operator
+can deliberately create a native Error with the same reserved own data code, throw
+it or return it as a value; both also terminate with 130 by explicit fail-closed
+policy. That only reduces authority (the operator already has .exit/Ctrl+C), and
+cannot grant/reuse it. Native errors with only an identical MESSAGE, ordinary
+Error/SyntaxError/TypeError without this code, inherited/accessor code properties,
+non-Errors or proxy lookalikes are not classified by this bridge. They retain native
+evaluation/error handling and constant output; existing acquisition APIs still apply
+their own required failure/closure rules. No promise is made to contain deliberate
+trusted-process mutation of Node/built-ins/error-formatting internals.
+
+Policy B was considered and rejected: making every synchronous evaluation error
+terminal would turn a harmless typo/runtime error during an authorized host session
+into an ended attempt requiring fresh review/authorization, with no automatic
+resume. That would be fail-closed but is unnecessary when native branding plus the
+reserved own-data code provides the bounded rule above. Do not silently broaden
+ordinary-error handling or use error messages as a substitute. Reserved-code
+lookalikes are the explicit exception, including returned Error values.
+
+Ordering evidence: embedded Node repl defaultEval catches VM interruption and routes
+it through its native error pathway. That pathway invokes self.writer(error) before
+its output.write and before displayPrompt; completed values also call self.writer
+before output/next prompt. Thus the bridge runs synchronously before native
+rendering/usable prompt continuation, even when process SIGINT listeners were
+temporarily absent. Native error formatting may prepare a stack before the writer;
+the bridge does not replace that internal machinery or claim a sandbox against
+trusted operator stack-formatting hooks. No extra native renderer output or queued
+authority step is inserted between the writer's match and terminal revocation.
+
+If an original VM interruption on the supported Node version fails to arrive with
+this native-error/own-data-code representation or the writer is reached only after
+a new usable prompt, acceptance MUST STOP for plan/scope review. Do not weaken
+classification, add message fallback, patch Node or declare a synthetic error probe
+equivalent to actual signal delivery. Real VM-consumed SIGINT proof remains mandatory.
+First-cause/idempotence policy is unchanged: a previously latched EOF/signal/failure
+cannot be overwritten or cause another cleanup; the process is already terminating
+with authority disabled. Matching errors cannot resurrect a facade or owner.
 
 ### A3. Private adapter installation and immutable ownership
 
@@ -946,6 +1045,25 @@ breakEvalOnSigint:true and replacement of the default REPL SIGINT handling; do n
 equate synthetic key-path proof with actual OS/raw-mode behavior. Document native
 synchronous-evaluation interrupt effects without claiming universal cancellation.
 
+RS1 acceptance belongs in this SAME owner-host/lifecycle coverage, not a fifteenth
+suite. Require a genuine native synchronous evaluation with active synthetic
+acquisition authority, one real/supported SIGINT consumed by VM breakOnSigint, and
+evidence that the process handler may be temporarily absent yet the fixed writer
+bridge observes the native interruption. Prove native-error branding/own data code,
+same terminal latch exactly once, immediate host revocation, original graph CLOSED,
+cleanup once and exit 130. No subsequent acquisition-capable prompt, result release,
+draft/ticket/permit, reopened transport, second facade or rearm is permitted.
+
+Separately cover thrown and returned reserved-code native Errors, same-message but
+nonmatching ordinary Error, ordinary syntax/runtime errors, accessor/inherited code,
+non-Error/proxy lookalikes, cross-context Errors and custom-inspection sentinels.
+Verify ordinary-error policy explicitly, with zero bridge getter/custom-inspection
+calls. A synthetic ERR_SCRIPT_EXECUTION_INTERRUPTED only proves classification/
+rendering control flow, NOT native SIGINT attribution or real TTY behavior. Keep
+idle/multiline/pending-await single Ctrl+C, distinct process SIGINT and mandatory
+real PTY proof; no production injection option or new dependency. If original native
+interrupt shape/order differs, stop acceptance as required by A2.1.
+
 RC3 acceptance must prove preview:false: typing object, string and error variables
 without Enter causes no value preview; an object's custom-inspection sentinel is
 never invoked automatically. Completed value/error rendering still uses only the
@@ -1147,6 +1265,11 @@ await, single TTY Ctrl+C during unresolved await, native preview/custom inspecti
 terminal-event reentrancy and pending evaluator continuations after authority
 revocation. These are required C1 cases, not a new suite or a changed security gate.
 
+Include RS1 VM-consumed SIGINT bypass, interruption misclassification, ordinary-error/
+reserved-code-value confusion, prompt resurrection after interrupted evaluation,
+terminal-latch bypass, exit-code confusion and second-cleanup/rearm. Preserve exact
+implementation review/security evidence, no additional suite and no live authority.
+
 If Codex Security is available for the repository/account at that future milestone,
 run it against the exact reviewed implementation commit/PR and retain its findings
 as security evidence. Product availability is not the sole acceptance condition,
@@ -1230,6 +1353,12 @@ review prompts, not a self-issued passing review:
   clean 0 escalates only for cleanup failure, signal codes retained.
 - breakEvalOnSigint:true; default REPL SIGINT listener replaced by fixed host terminal
   handler; idle/multiline/unresolved-await real TTY Ctrl+C distinct from process SIGINT.
+- RS1 supported writer-boundary bridge, default eval unchanged; native-error branding
+  plus own DATA code ERR_SCRIPT_EXECUTION_INTERRUPTED enters the same terminal latch
+  before output/prompt, no message/getter/custom inspection, exit 130/cleanup once.
+- Ordinary nonmatching errors remain native/constant-output; reserved-code thrown or
+  returned native Errors intentionally fail closed. Actual VM-consumed SIGINT proof
+  required, not merely synthetic error injection; no production injection/public hook.
 - preview:false and fixed non-inspecting writer; no pre-Enter object/string/error
   preview, automatic custom inspection or completed-value/error rendering leak.
 - Pending evaluator is no authority owner; post-revocation continuations cannot mint,

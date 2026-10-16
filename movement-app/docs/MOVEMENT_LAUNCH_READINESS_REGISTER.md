@@ -1072,3 +1072,25 @@ No runtime/test/typecheck/migration/provider/network/security-scan action, insta
 or capsule access occurred; only permitted offline native-source/Node probes and
 Git/text validation. No staging, commit, push or execution authority. This is the
 same author's fresh adversarial pass, not independent human approval.
+
+## Qualification lifecycle narrow RS1 writer-boundary correction
+
+At starting HEAD c089d1222d2cd5d009b2233e7024e4f325516926, appended narrow
+[RS1 scope correction](0114j-c1-c2-scope-review.md) and corrected the
+[implementation plan](0114j-qualification-lifecycle-implementation-plan.md).
+Select one fixed private interrupt-aware constant writer: native-error brand plus
+own DATA code ERR_SCRIPT_EXECUTION_INTERRUPTED enters the same host terminal latch
+before native output/prompt, revokes/closes/cleans once and exits 130. No message
+matching or eval wrapper; default native eval and breakEvalOnSigint:true stay.
+Ordinary nonmatching errors retain constant output/native semantics; intentionally
+created thrown/returned native Errors with the reserved code also fail closed.
+
+RC1/RC3 passed design remains frozen, as do C2/B1/five files/five bindings, pins,
+inventories and security-gate structure. RS1 proof/attack cases join existing suites/
+semantic review. Offline native-source and metadata/error-route probes support the
+design, but actual VM-consumed SIGINT and real PTY remain future acceptance proof.
+Renewed critical review is required before separate implementation authorization
+may be requested. Implementation remains unauthorized; current package lifecycle
+null. No runtime/test/typecheck/migration/provider/network/security-scan action,
+installation or capsule access occurred. Failed/prior reviews unchanged. No staging,
+commit, push, activation, package promotion or execution authority granted.

@@ -574,3 +574,132 @@ Implementation remains unauthorized and current lifecycle remains null. The exac
 next milestone is renewed critical review of reconciled C1 scope and plan; separate
 implementation authorization may not yet be requested. The failed review and all
 other prior reviews/policy docs remain unchanged; no staging/commit/push authority.
+
+## Narrow RS1 reconciliation: native interruption through the fixed writer
+
+rs1StartingHead: `c089d1222d2cd5d009b2233e7024e4f325516926`
+
+rs1Outcome: RS1_DESIGN_CORRECTED_RENEWED_CRITICAL_REVIEW_REQUIRED
+
+implementationAuthorized: false
+
+providerAuthorized: false
+
+The [RS1 failed review](0114j-reconciled-c1-renewed-critical-review.md) is immutable
+evidence. This appendix supersedes only the earlier assumption that REPL/process
+SIGINT listeners cover every synchronous VM interruption and the rendering-only
+role of the constant writer. RC1's direct EOF/first-latch design, RC3's disabled
+preview/non-inspecting CONSTANT OUTPUT, and all passed C2/B1 conclusions stay frozen.
+
+### Selected supported bridge and exact policy
+
+Select policy A: a fixed private interrupt-aware constant writer, passed through
+the existing documented native repl.start writer option. It is constructed/captured
+in the HOST before REPL start and closes over trusted built-ins and only the SAME
+private terminal handler. It is neither returned/exported nor placed on globalThis,
+process or the movement facade. No generic shutdown getter, caller-supplied policy,
+setter/reinstall hook or second authority owner. All correction code belongs in the
+already selected owner-host file; no sixth file.
+
+Native repl.start still receives NO eval option and server.eval is not replaced.
+Installed Node v24.13.1 rejects an eval option combined with breakEvalOnSigint:true
+using ERR_INVALID_REPL_EVAL_CONFIG. Its default native evaluator can emit a domain
+error rather than call an external evaluator callback. An eval wrapper, private
+domain patch, custom evaluator/TTY parser or Node-internal monkeypatch is therefore
+not selected. Native parser/context/await/line-editing semantics remain default;
+breakEvalOnSigint:true remains effective for the passed idle/multiline/await key paths.
+
+Capture node:util.types.isNativeError, Object.getOwnPropertyDescriptor and
+Object.hasOwn from trusted startup. The writer matches ONLY this fixed signature:
+
+- value is a native Error according to the captured isNativeError;
+- its OWN code descriptor is a DATA descriptor, with an own value field;
+- descriptor.value is exactly primitive string ERR_SCRIPT_EXECUTION_INTERRUPTED.
+
+Do not read error.message/name/stack, invoke code accessors or prototype getters,
+coerce, serialize, util.inspect or call custom inspectors. isNativeError handles
+cross-context Errors and rejects proxy/non-Error lookalikes before descriptor work.
+This uses the exposed Node programmatic error CODE, not brittle message matching.
+It is not a cryptographic provenance claim: a deliberately created native Error
+with that reserved own code also matches. Throwing OR returning such an Error
+intentionally terminates with 130. The native writer sees both categories, so no
+unsupported distinction between returned Error values and error callbacks is claimed.
+This is an authority-reducing false positive permitted in the trusted-operator
+process, never a way to mint/reuse authority. Fresh review/authorization is required
+after any terminal attempt; no automatic resume.
+
+Ordinary nonmatching syntax/runtime errors are NOT SIGINT: retain native error
+behavior and render only the fixed constant marker. Same-message errors without
+the code, inherited/accessor code, non-Error/proxy records are not matched. Existing
+acquisition-operation failure rules still close their own graphs where required.
+Policy B (terminal on every synchronous evaluation error while authority is live)
+was evaluated and rejected: it would unnecessarily turn an ordinary typo/runtime
+error into a terminal authorized attempt/fresh review requirement. A bounded native
+brand/reserved-data-code rule is available; no need to silently broaden all errors.
+
+### Ordering, cause and feasibility evidence
+
+Embedded native REPL defaultEval reports VM interruption through its error path.
+That path calls self.writer(error) before output.write and before displayPrompt;
+completed values also reach the writer before output/prompt. On a match, the writer
+synchronously invokes the existing private terminal latch with VM_SIGINT_INTERRUPTION,
+mapped to SIGINT-equivalent 130. Latch revocation/disablement first, mark original
+claimed graphs CLOSED, perform existing synchronous cleanup, release no result and
+terminate process before returning to native rendering or another usable prompt.
+Cleanup failure retains 130. A previously latched terminal cause retains reviewed
+first-cause precedence and cannot trigger a second cleanup or restore authority.
+
+Native error handling can prepare a stack before calling the writer; this bridge
+does not replace Node error formatting or claim containment of intentional trusted
+operator Error.prepareStackTrace/Node-internal mutation. The bridge itself reads
+no stack/content or caller hook. No native renderer output/prompt precedes the
+selected writer observation on the inspected original interruption-error route.
+The selected bridge guarantees revocation before native continuation/output/prompt,
+not hard real-time JS cancellation or defense against malicious trusted-host code.
+
+Offline Node v24.13.1 embedded repl/vm/readline/preview source was inspected; eight
+isolated built-in-only children used empty environments and no project imports,
+temporary files, sockets, provider/network or credentials. A probe-only
+--expose-internals constructor supplied Node's ERR_SCRIPT_EXECUTION_INTERRUPTED
+Error to the unmodified native REPL error route; that flag/internal constructor
+is NOT part of production startup. Thrown and returned instances matched, entered
+the stand-in terminal latch once and exited 130 with custom-inspection count zero.
+Ordinary and identical-message errors continued with constant output; accessor-code
+errors caused zero getter calls and did not match; proxy detection caused zero
+descriptor-hook calls. Deliberately forged reserved-data-code native Error matched
+and exited 130 as explicitly selected. The eval-option compatibility probe returned
+ERR_INVALID_REPL_EVAL_CONFIG. An earlier parent harness quoting attempt failed before
+children ran; corrected completed probes support these observations.
+
+Those probes establish the metadata/native-rendering control flow, NOT actual
+VM-consumed SIGINT, native signal attribution, production graph cleanup or real PTY
+proof. Future acceptance MUST exercise original synchronous VM evaluation with live
+synthetic acquisition authority and one real/supported VM-consumed SIGINT, verify
+the actual native-error/own-code shape reaches this writer before any new usable
+prompt, then prove revocation/CLOSED/no result/no mint/no transport reopen/one cleanup/
+exit 130. If native shape or ordering differs, STOP for plan/scope review rather
+than adding message fallback, an undocumented hook or a patch to Node. Ordinary-error
+policy, reserved-code returned values/lookalikes, cross-context Errors and accessor/
+proxy/custom-inspection cases need explicit coverage. Add these obligations to
+existing owner-host/lifecycle suites, not a fifteenth focused suite or production
+injection API. Idle/multiline/pending-await Ctrl+C and distinct process SIGINT tests
+remain mandatory. Real TTY/PTY proof remains future acceptance; no install authorized.
+
+### Preservation and disposition
+
+Exactly five runtime files/five immutable bindings, 21 transitions, C2 native fence,
+B1 ownership/claim/retention, 13 future pin roles (three changed old/nine unchanged,
+authorization self separate), fourteen focused suites, nineteen regression paths
+and three installed TypeScript checks remain unchanged. No source hashes calculated.
+The future security gate retains structure and adds RS1 VM-consumed signal bypass,
+classification/ordinary-error confusion, prompt resurrection, latch/exit-code bypass
+and second-cleanup/rearm cases within existing semantic review, not another suite.
+
+No stop condition is required by the selected supported writer bridge. This is a
+narrow design correction, not implemented enforcement or review approval. Exact
+next milestone: renewed critical review of RS1 bridge/scope/operative plan before
+separate implementation authorization may be requested. Implementation remains
+unauthorized; current lifecycle stays null. Only this scope append, plan correction
+and readiness append change. Failed/prior reviews, policy, runtime/tests/migrations,
+package/evidence, worker/package entry and capsule remain unchanged. No provider,
+network, scanner, dependency, staging, commit, push or live authority is granted.
