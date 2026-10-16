@@ -718,3 +718,31 @@ test('project completion changes only the current package project-source tuple',
  before.targetInputSources.projectId=clone(currentPreparation.targetInputSources.projectId);
  assert.deepEqual(currentPreparation,before);
 });
+
+const lifecycleTargets=require('../../scripts/assessment-worker/qualification-railway-introspection-target.cjs');
+const lifecycleTestScope={environmentKind:'disposable',lifecycle:'active',projectId:'synthetic-project',environmentId:'synthetic-env',serviceId:'synthetic-service',serviceInstanceId:null};
+const lifecycleDenylist={inventoryReviewed:true,projectIds:[],environmentIds:[],serviceIds:[],serviceInstanceIds:[]};
+test('exact active lifecycle is an operator constraint, not independently proven provider identity',()=>{
+ const b=lifecycleTargets.bindTarget({...lifecycleTestScope},{...lifecycleTestScope},lifecycleDenylist),facts=lifecycleTargets.describeTarget(b);
+ assert.equal(facts.lifecycle,'active');assert.equal(facts.constraintCategory,'operator_plan_constraints');
+ assert.equal(facts.independentlyAuthoritative,false);assert.equal(facts.identity_proven,null);
+});
+for(const value of [null,undefined,'','ACTIVE','Active',' active','active ','offline','empty','created','pending','healthy','crashed','no deployment','source settings pending',false,1])
+ test('executable lifecycle domain rejects '+JSON.stringify(value),()=>{
+  const s={...lifecycleTestScope,lifecycle:value};reject(()=>lifecycleTargets.bindTarget(s,s,lifecycleDenylist));
+ });
+test('reviewed offline and pending-source observations do not promote lifecycle',()=>{
+ const q=actualJSON(qualificationPath);
+ assert.equal(q.qualificationReview.confirmedFacts.serviceOffline,true);assert.equal(q.qualificationReview.confirmedFacts.sourceSettingsPending,true);
+ assert.equal(q.eligibility.independentlyReviewed,true);assert.equal(q.eligibility.environmentKind,'disposable');
+ assert.equal(q.eligibility.lifecycle,null);assert.equal(q.eligibility.eligibilityComplete,false);assert.equal(currentPreparation.expectedTarget.lifecycle,null);
+ assert.equal(q.sourceConfiguration.sourceConfigurationApplied,false);assert.equal(q.sourceConfiguration.activeConfigurationVerified,false);
+ const text=actualRead('docs/0114e-qualification-lifecycle-review.md');assert.match(text,/Result: PENDING/);assert.match(text,/- reviewerReference: null/);assert.match(text,/- lifecycleValueConfirmed: null/);
+ assert.equal(Object.hasOwn(currentPreparation.targetInputSources,'lifecycle'),false);
+});
+test('lifecycle review leaves the complete current package and resolved project provenance unchanged',()=>{
+ const old=require('node:child_process').execFileSync('git',['-c','safe.directory='+path.resolve(root,'..'),'show',
+  'd0676136b088b3ca17ad0fff8222ba6f151af7d2:movement-app/'+currentPreparationPath],{env:{},windowsHide:true});
+ assert.deepEqual(fs.readFileSync(path.join(root,currentPreparationPath)),old);
+ assert.deepEqual(currentPreparation.targetInputSources.projectId,{independentlyReviewed:true,source:'docs/0114e-qualification-project-id-review.md#completed-independent-human-review',reviewer:'AT'});
+});

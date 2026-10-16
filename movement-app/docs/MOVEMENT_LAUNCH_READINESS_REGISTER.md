@@ -769,3 +769,20 @@ Source settings remain unapplied; package completion, provider/runtime identity,
 0114D readiness, deployment and all live/manual/executable authority remain false.
 No provider/network/credential/capsule access, runtime or migration change, staging,
 commit or push occurred.
+
+## Qualification lifecycle evidence review
+
+At HEAD d0676136b088b3ca17ad0fff8222ba6f151af7d2 on
+feature/0092-shared-segment-suitability, prepared
+[the pending lifecycle review](0114e-qualification-lifecycle-review.md).
+The contract accepts only exact lifecycle=active as an operator plan constraint on
+the qualification target; it is not a Railway service/deployment status. Null is
+valid only for inert incomplete preparation. There is no separate lifecycle
+provenance tuple, and no reviewed mapping from offline/created/pending status to
+active. Existing qualification evidence explicitly retains lifecycle=null.
+
+Lifecycle promotion is stopped for missing independently reviewed current active
+eligibility meaning/basis and evidence for this exact target. Current package,
+resolved project provenance and every other field remain unchanged. No other
+blocker is resolved, no provider/network access occurred and no runtime, migration,
+source-setting, deployment or authority change was made.
