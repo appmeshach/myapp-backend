@@ -1007,3 +1007,22 @@ acceptance; architectural findings return to plan/scope review. Security approva
 grants no provider/live/package-promotion/activation/deployment authority. No security
 scan was run and no security tooling was installed/configured by this amendment.
 Implementation remains unauthorized; current package lifecycle remains null.
+
+## Qualification lifecycle C1/C2 and security-gate renewed critical review
+
+At starting HEAD 53bf49ca424fef6c5bb03461c55b66b1b8f78a3a, recorded
+[renewed critical review](0114j-c1-c2-security-gate-renewed-critical-review.md).
+Outcome: PLAN_CHANGES_REQUIRED_BEFORE_IMPLEMENTATION_AUTHORIZATION; three blockers
+and two nonblocking notes. Local Node v24.13.1 source/isolated offline probes expose
+deferred REPL exit on EOF during await (RC1), buffered TTY Ctrl+C with the selected
+breakEvalOnSigint:false (RC2), and native TTY preview bypassing the constant writer
+through automatic inspection (RC3). C2 five-file/native-fence design, pin/inventory
+accounting and the future security gate remain coherent; C1 requires scope/plan
+reconciliation and correction, then renewed review. Separate implementation
+authorization may not yet be requested. Implementation remains unauthorized;
+provider/live/package authority is unchanged and current package lifecycle remains
+null. Plan and prior reviews unchanged. No runtime/test/typecheck/migration,
+provider/network or security-scan action occurred; only permitted offline Node
+behavior/source inspection. Capsule unread; no installation, staging, commit, push
+or execution authority granted. This is the same author's fresh adversarial pass,
+not independent human approval.
