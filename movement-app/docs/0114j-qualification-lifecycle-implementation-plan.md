@@ -10,7 +10,7 @@ This document specifies a future patch for plan review. It implements nothing an
 does not complete or promote the current input package. The renewed review closed
 B1 by design, not by implemented enforcement or independent human approval.
 
-## Correction after executable-owner scope review
+## Historical correction after executable-owner scope review
 
 correctionStartingHead: `a70b1824c3fd61ba4e86f06dfd4da5dc1725fdd5`
 
@@ -18,16 +18,40 @@ priorReviewOutcome: PLAN_CHANGES_REQUIRED_BEFORE_IMPLEMENTATION_AUTHORIZATION
 
 scopeReviewOutcome: SCOPE_APPROVED_ADD_SINGLE_OWNER_HOST
 
-R1 is resolved in this plan by the dedicated main-only owner host: future runtime
-scope expands 3 -> 4 files and source pins expand 12 -> 13. R2 is addressed by the
-two-phase validation/final pure-fence model at every sensitive transition below.
+That earlier correction selected a dedicated main-only owner host, expanded the
+then-proposed runtime scope 3 -> 4 and source-pin roles 12 -> 13, and specified a
+two-phase validation/final pure-fence model. The renewed review found C1 console
+lifetime and C2 actual native-dispatch ordering unresolved. This paragraph records
+history; the current operative scope and lifecycle are the C1/C2 correction below.
 The prior failed review and owner scope review remain unchanged historical evidence.
-Renewed plan review is required; implementation authorization is still unavailable.
 
 The earlier version had no verified acquisition launcher, incorrectly rooted its
 guard in arbitrary require.main/children topology, and checked time before blocking
 revalidation without a final fence. Those obsolete operative rules are replaced,
 not treated as a supported fallback. This correction implements no runtime behavior.
+
+## Current correction after approved C1/C2 scope review
+
+c1c2CorrectionStartingHead: `89674362ac952ad991199a774c6084f194479e89`
+
+c1c2ScopeOutcome: C1_C2_SCOPE_APPROVED
+
+implementationAuthorized: false
+
+providerAuthorized: false
+
+separateImplementationAuthorizationMayBeRequested: false
+
+Incorporate [approved C1/C2 scope](0114j-c1-c2-scope-review.md): plain-node genuine
+main with a host-owned native REPL; exactly five future runtime files and five
+immutable canonical bindings; adapter-local post-validation final pure fences for
+all three native request constructions. Keep thirteen source-pin roles, with three
+changed old values, one new host and nine unchanged old values; authorization self
+hash stays separate. Focused suites become fourteen; regression remains nineteen.
+The conceptual twenty-one sensitive transitions and reviewed lifecycle/B1 policy
+are unchanged. Earlier command/four-file assumptions are superseded, not fallback.
+This documentation correction requires renewed critical review before separate
+implementation authorization may be requested. It supplies no implemented proof.
 
 ## Reviewed inputs and preserved policy
 
@@ -36,7 +60,10 @@ Inputs inspected: [corrected 0114I design](0114i-qualification-lifecycle-policy-
 [historical review](0114i-qualification-lifecycle-policy-independent-review.md),
 current/safe 0114E input JSON, 0114E procedure, 0114D wrapper description, reviewed
 0114H design/implementation, readiness register, authorization/wrapper/identity/target
-sources, and directly relevant 0110-0114 tests and their VM loaders.
+and HTTPS adapter sources, worker run.cjs/package.json, and directly relevant
+0110-0114 tests/fixtures for naming and inventories. Reconcile the original plan
+review, owner scope review, corrected-plan renewed review and approved C1/C2 review;
+preserve those reviews and both 0114I policy records unchanged.
 
 Preserve the reviewed active predicate, exact disposable/name/ID binding, reviewed
 complete forbidden inventory, nullable instance expectation, separate source,
@@ -49,22 +76,23 @@ independence. The cross-process trusted-operator limitation remains unchanged.
 
 ## Exact future file scope
 
-Exactly four future production runtime files change. No fifth runtime file is
-permitted without another review; no runtime file is changed by this document.
+Exactly FIVE future production runtime files change. No sixth production runtime
+file is permitted. No runtime file is changed by this document.
 
 | File under scripts/assessment-worker/ | Planned responsibility |
 | --- | --- |
-| qualification-railway-acquisition-owner-host.cjs (NEW) | Dedicated main-only bootstrap; private seal/association; immutable four-module cache/exports bindings; frozen operation facade, never raw owner capability. |
-| qualification-railway-live-authorization.cjs | Strict v3 input/v1 activation intake; sole admission maps; original host association; two-phase validation/final pure fences; private carrier; pre-ticket cancellation; v4 cutover; new host pin, two changed pins and separate self hash. |
+| qualification-railway-acquisition-owner-host.cjs (NEW) | Plain-node main-only bootstrap; private seal/association; five immutable cache/exports bindings; host-owned native REPL, frozen operation facade and terminal revocation/cleanup. |
+| qualification-railway-live-authorization.cjs | Strict v3 input/v1 activation intake; sole admission maps/clocks/fault state; original host association; private adapter-fence installation; pure fences/carrier/shutdown continuation; v4 cutover; new host pin, three changed old pins and separate self hash. |
 | qualification-railway-acquisition-wrapper.cjs | Private redemption/setup handshake; carry original lifecycle obligation; boundary checks, timers, terminal notification and existing resource cleanup. |
 | qualification-railway-target-identity.cjs | Retain private lifecycle check from original target permit; apply it to acquisition-session operations/validators; discard on terminal cleanup. Context-only behavior unchanged. |
+| qualification-railway-https-adapter.cjs | Private original-graph session/context association; all phase-1 validation/hash/preparation before final pure fence and immediate native request construction for requests 1/2/3; fifth immutable binding. |
 
-Explicitly preserve introspection-target.cjs: its exact disposable/active syntax,
-nullable instance and opaque binding need no change. Preserve https-adapter.cjs:
-wrapper dispatch and response checks plus identity-owned validation enforce the
-new lifetime without adding transport operations or token-intake behavior. Native
-request timeout remains 10000 ms; closing the existing execution context cancels
-in-flight transport. No query/document hash changes are planned.
+Explicitly preserve qualification-railway-introspection-target.cjs: its exact
+disposable/active syntax, nullable instance and opaque binding need no change.
+Provider boundary and query/document builders outside the five selected files stay
+unchanged. Adapter source changes only within approved C2 linkage/dispatch ordering;
+query/document bytes, credential ownership and three-request ceiling stay unchanged.
+Native timeout remains 10000 ms; closing execution context cancels in-flight transport.
 
 Also preserve scripts/assessment-worker/run.cjs and package.json. Assessment polling
 is not the acquisition host. No package command, listener or custom CLI is added.
@@ -74,8 +102,11 @@ Planned test files, all under supabase/tests:
 - Add `0114j_lifecycle_authorization.test.cjs`: strict schemas, admission, clocks,
   capacity, carrier failures and cutover matrix below.
 - Add `0114j_executable_owner_host.test.cjs`: genuine child-process main bootstrap,
-  immutable bindings and duplicate/unsupported-host denial. This is the thirteenth
-  focused suite, not a replacement for lifecycle tests or VM coverage.
+  native console lifetime/termination, five immutable bindings and duplicate/
+  unsupported-host denial; includes required real TTY proof.
+- Add `0114j_native_dispatch_fence.test.cjs`: all three real adapter validation/hash
+  paths, final fence/native construction ordering and private association denial.
+  These three new suites plus eleven existing suites make fourteen focused suites.
 - Update `0114d_acquisition_wrapper.test.cjs`, `0114e_acquisition_input_review.test.cjs`
   and `0114h_service_name_compatibility.test.cjs`: current v4/v3 synthetic inputs,
   changed terminal semantics, integration with lifecycle ownership and negative tests.
@@ -98,7 +129,7 @@ Planned fixture files under supabase/tests/fixtures:
   `0114h-reviewed-context.cjs` only for their loader/current-source integration with
   the new guard and synthetic lifecycle input; historical mode stays archived.
 - Add `0114j-module-domain.cjs`: test-only coherent original Module/cache/host-link
-  model and clock/fault-injection support. Genuine host behavior is additionally
+  five-module model and clock/fault-injection support. Genuine host behavior is additionally
   tested in real children; no children-graph security-root emulation or production hook.
 
 Planned docs/template files:
@@ -122,10 +153,11 @@ and the protected capsule. Historical source/evidence digests must not be refres
 
 ## A. Production owner-loading domain
 
-Use the approved scope in [the owner review](0114j-executable-owner-scope-review.md).
+Use the owner architecture as narrowed/corrected by
+[approved C1/C2 scope](0114j-c1-c2-scope-review.md).
 The ONLY supported executable acquisition bootstrap is:
 
-`node --interactive scripts/assessment-worker/qualification-railway-acquisition-owner-host.cjs`
+`node scripts/assessment-worker/qualification-railway-acquisition-owner-host.cjs`
 
 The named host must be the genuine CommonJS main Module on the main Node thread,
 with require.main === module, canonical reviewed realpath and matching original
@@ -134,24 +166,27 @@ callers. No module.children traversal is a security root. Real child-process tes
 must prove this exact startup/console contract on the supported Node version; if it
 fails, stop for review without a substitute launcher, preload or environment override.
 
-Require the documented --interactive startup flag and no custom host arguments;
-plain node HOST is not an enabled acquisition bootstrap under this corrected plan.
+Use plain node HOST with no custom host arguments or alternate console startup flag.
 No package/run.cjs change, injected driver or alternate startup mode is permitted.
 
 Bootstrap sequence:
 
 1. Validate genuine host main/thread/Module/cache/realpath identity. Non-main import
    is inert: frozen availability information only, no bootstrap or credential read.
+   Reject preloaded canonical authorization/wrapper/identity/adapter before linkage;
+   never upgrade an already imported disabled graph.
 2. Create one private nonserializable startup seal and host-validity closure. Expose
    one non-enumerable initialization-only connector for the original graph's
    synchronous initialization, never on globalThis/process.
-3. Require canonical authorization/wrapper/identity. Authorization consumes the host
-   connector, binds original authorization/wrapper/identity Module/exports identities,
+3. Link canonical authorization/wrapper/identity/adapter. Authorization consumes the host
+   connector, binds original authorization/wrapper/identity/adapter Module/exports identities,
    private host association and disabled enablement state. Host supplies seal/guard
    only to authorization's private install closure. Wrapper/identity receive association
-   only through existing private authorization-owned links. Maps stay in authorization.
-4. Complete final exports assignments. Resolve exactly four canonical realpath/cache
-   keys: host, authorization, wrapper and identity. Verify each existing value is its
+   only through existing private authorization-owned links. Install the adapter's
+   fixed private dispatch check and session/context association as specified below,
+   while linkage remains disabled. Maps stay in authorization.
+4. Complete cyclic evaluation and final exports assignments. Resolve exactly five canonical realpath/cache
+   keys: host, authorization, wrapper, identity and HTTPS adapter. Verify each existing value is its
    captured original Module. Redefine each cache property with that original value,
    writable=false/configurable=false. Redefine each final Module.exports property
    non-writable/non-configurable and freeze its exported facade/object. Do not freeze
@@ -161,14 +196,17 @@ Bootstrap sequence:
    failure leaves acquisition disabled permanently in that process, including after
    partial pinning. No retry/reset/reinitialize/installer survives. Restart requires
    fresh review and manual authorization; partial immutable bindings are fail-closed.
+6. Only after enablement create exactly one host-owned native REPL, configure its
+   facade/termination policy before yielding input, and keep it available through
+   its stdin handle. Console-start failure permanently revokes and closes the graph.
 
-The host performs local linkage only: no token read, context opening, listener,
+The host performs local linkage/console startup only: no token read, context opening, listener,
 provider requests or automatic acquisition. Its frozen operation facade routes
 explicit trusted-operator calls through the original graph and all existing gates;
 it exposes no raw seal, maps or generic capability factory. Normal import cannot
 later be publicly upgraded. Host association is necessary, never manual authorization.
 
-A second complete authorization/wrapper/identity graph may create its OWN local
+A second complete authorization/wrapper/identity/adapter graph may create its OWN local
 connectors and Maps, but cannot become executable without the original main-host
 seal/private association. Cache pinning prevents ordinary canonical reload and is
 not the sole authority anchor. Copies at other paths lack the seal. Fixed immutable
@@ -182,7 +220,7 @@ bindings in Node's existing cache are not an added public mutable owner registry
 | Copied authorization or whole owner set | Inert/rejected; no original association, claim or ticket. |
 | Copied host imported as child | Inert; cannot mint seal. |
 | Copied host as main in another process | New process requiring fresh review/manual authorization, not a global replay guarantee. |
-| Replacement wrapper/identity or stale connector | Cannot replace pinned bindings or enable another graph. |
+| Replacement wrapper/identity/adapter or stale connector | Cannot replace pinned bindings or enable another graph; rejected duplicates do not damage the original. |
 | Independent VM/worker/isolated realm | No independent production acquisition bootstrap. |
 | node -e / ESM-main importing CJS | Import-only/inert; cannot bootstrap. |
 | ESM/VM bridge deliberately given original enabled facade | Routes only the same original graph; no new seal/domain. No caller-realm sandbox claim. |
@@ -200,6 +238,131 @@ Trust genuine Node startup, built-ins, reviewed source/filesystem and loader int
 Forging main identity, replacing all loader objects or arbitrary pre-start injection
 is outside the existing trusted-host boundary. No public global registry or durable
 coordination is added.
+
+### A1. Host-owned native console and bounded facade
+
+After successful bootstrap/sealing/enablement, call exactly
+`require('node:repl').start(options)`. The REPL is an interaction surface, not the
+authority owner. Required options are input: process.stdin, output: process.stdout,
+a fixed non-secret prompt, useGlobal: false, ignoreUndefined: true, useColors: false,
+historySize: 0, native evaluation, a fixed non-inspecting writer and fixed empty
+completer. Set terminal: true only when BOTH stdin and stdout are TTYs; otherwise
+terminal: false. Do not call setupHistory, CLI/internal REPL bootstrap helpers or
+implement NODE_REPL_EXTERNAL_MODULE/config/history autoload behavior. Disable native
+`.load` and `.save` before yielding input. No custom protocol/eval engine is added.
+
+Bind the same frozen bounded host operation facade to `server.context.movement`
+as non-writable/non-configurable before yielding input. Native context reset and
+`.clear` re-establish that SAME facade, never bootstrap/enable a second graph.
+Canonical require(host) returns the same frozen facade. Neither context nor facade
+exposes host seal, admission maps, lifecycle carrier, adapter installer, initialization
+connector, raw fence closure or generic capability/owner getter. The REPL's context
+Module is not the genuine host main; host require.main equality remains mandatory.
+
+The writer returns only a constant marker for automatic value/error output; no
+util.inspect, coercion, getter or custom inspector. Intentional display uses bounded
+selected descriptive review fields. Native `_`/`_error` and command/source buffers
+may retain values in memory; historySize=0 disables recall, not all memory retention.
+No history file is opened; discard console references at shutdown. The facade never
+returns credentials. Explicit operator console.log/stdout/environment/module access
+can still reveal data. Arbitrary trusted-operator JavaScript remains inside the
+existing trusted-process boundary; this is not a sandbox. Native lazy built-in
+bindings and explicit require/import remain possible. Malicious mutation of Node
+internals and pre-start injection are outside that boundary. No console operation
+replaces separate reviews/manual authorization.
+
+Support real TTY/native line input and redirected stdin in nonterminal mode. An open
+stdin pipe/readline handle keeps the host available after bootstrap without an
+artificial keepalive timer. Complete JS lines execute in native order, including
+native multiline/await behavior, until `.exit`, EOF, signal or failure. Do not
+promise that a batch pipeline immediately followed by EOF completes an acquisition.
+EOF with incomplete input or a pending asynchronous operation cancels/revokes;
+it never waits for successful acquisition or releases a pending result.
+
+### A2. Console termination and host shutdown
+
+Use one private idempotent terminal handler for console exit, stream errors,
+process SIGINT/SIGTERM and REPL SIGINT. Replace native REPL default double-press/
+clear/resume SIGINT behavior: one delivered interrupt terminates. Set
+breakEvalOnSigint: false, as selected by scope; no expression-interrupt/resume mode.
+Signal JS handlers cannot promise hard real-time cleanup during an event-loop stall.
+
+| Event | Required terminal behavior and exit code |
+| --- | --- |
+| EOF or `.exit` | Revoke, close all claimed graphs/resources, suppress pending result; exit 0 after clean cleanup. |
+| SIGINT | One delivered interrupt terminates with cleanup; exit 130. |
+| SIGTERM | Terminal cleanup; exit 143. |
+| Bootstrap/stream/cleanup failure | Fail closed; nonzero, normally 1 unless signal code applies; no usable console on bootstrap failure. |
+
+Exact authority-reducing order:
+
+1. Latch host revocation.
+2. Disable further acquisition authority.
+3. Close/disable console input.
+4. Invoke authorization-owned fixed private shutdown continuation captured at bootstrap.
+5. Authorization marks each claimed graph CLOSED before resource cleanup, including
+   pre-ticket drafts and issued-ticket graphs; retain UTC marker/high-water rules.
+6. Close carrier/wrapper resources.
+7. Destroy in-flight transport.
+8. Burn outstanding gates/tickets/permits.
+9. Clear owned timers.
+10. Drop private console/session/context associations.
+11. Release NO result.
+12. Terminate the dedicated host process, preventing residual handles/promises from
+    keeping it alive.
+
+Already terminal entries never reopen. Lifecycle validity is not required to reduce
+authority. Cleanup uses the existing synchronous close/stop contract; do not rely
+on asynchronous process exit handlers. On cleanup exception keep revocation latched,
+release no result, never retry/resume, and exit nonzero. Repeated signals are
+idempotent. SIGKILL or trusted explicit process.exit() cannot promise graceful
+cleanup: process death is terminal under existing crash/no-replay semantics.
+
+### A3. Private adapter installation and immutable ownership
+
+Authorization remains sole owner of lifecycle clocks, high-water/fault latch,
+claim/closed/revocation state, deadline and pure lifecycle semantics. Identity owns
+original session/stage association; adapter owns transport context/attempt state.
+Host owns association/enablement, not another admission table.
+
+Add ONE adapter initialization-only private connector within the selected adapter
+file. During original synchronous graph initialization authorization captures/
+consumes it, installs exactly one fixed pure dispatch-check closure over its own
+state and obtains the adapter's original fixed private session/context association
+continuation. Route that continuation through the existing private authorization-to-
+identity setup link; associate acquisition S/C only from the original identity
+permit/session path and original lifecycle obligation. No public transfer record or
+return value contains the carrier/check/associator. No public setter/getter/callback/
+hook, clock injection, environment option, fence object or lifecycle carrier.
+
+Install disabled linkage first. Only the genuine host's later private enablement
+after five-module sealing permits acquisition dispatch. Consume/delete the temporary
+connector and freeze final exports synchronously before completed ordinary require
+returns. Inert imports may finish disabled context-only linkage; they cannot later
+upgrade. No replacement/reinstallation after bootstrap, shutdown reset or hot reload.
+
+Host captures canonical realpaths, exact cache Module identities and final exports
+for host, authorization, wrapper, identity and adapter. Authorization verifies its
+linked adapter is that original host-captured Module/exports, and installation is
+associated with original private host startup, not adapter self-attestation. Finish
+cycles/final exports first; seal all five cache and Module.exports properties
+non-writable/non-configurable, freeze final exports, remove connectors and verify
+all descriptors/identities before enablement. Never freeze full Modules/cache.
+Any preloaded canonical adapter or other executable graph module denies bootstrap.
+
+Copied adapter/full graph lacks original seal/association and cannot obtain the
+original closure or dispatch an original acquisition session. Canonical require
+returns the pinned original; deletion/reassignment fails. Duplicate initialization
+cannot replace/reinstall its closure. Rejection must not close or damage the
+legitimate original graph/session. Shutdown never unpins/resets adapter ownership;
+the retained fixed closure observes permanently revoked state while per-session
+associations are dropped. Test all cyclic import/partial-failure cases in isolation.
+
+Classify acquisition versus context-only provenance privately before dispatch;
+no caller Boolean selects bypass. Acquisition context/session cannot be downgraded
+by direct executeHandoff or omitted transfer. Missing acquisition association fails
+closed. Separate context-only 0113 behavior remains unable to continue into services/
+instance; public adapter imports cannot mint acquisition authority.
 
 ## B. Exact pre-run cleanup carrier
 
@@ -303,13 +466,13 @@ Each row follows phase 1. It is not sufficient that an earlier phase-1 time chec
 | 7 | Invoking fixed private wrapper setup continuation | Claimed original graph |
 | 8 | Target-permit transfer/use; genuine permit still burns before its validation, with final fence after validation before accepting its use | Claimed original graph |
 | 9 | Credential-bearing adapter.openExecutionContext after all host/module/code/lifecycle checks | Claimed original graph |
-| 10 | Request 1 adapter dispatch | Claimed original graph |
+| 10 | Request 1 adapter-local final pure fence AFTER all phase-1 validation/hash/preparation, immediately before native request construction | Claimed original graph |
 | 11 | Accepting response 1/context observation into identity state | Claimed original graph |
-| 12 | Request 2 adapter dispatch | Claimed original graph |
+| 12 | Request 2 adapter-local final pure fence AFTER all phase-1 validation/hash/preparation, immediately before native request construction | Claimed original graph |
 | 13 | Accepting response 2/ProjectServices observation | Claimed original graph |
 | 14 | Issuing human service gate 1 | Claimed original graph |
 | 15 | Accepting human gate 1 submission | Claimed original graph |
-| 16 | Request 3 adapter dispatch | Claimed original graph |
+| 16 | Request 3 adapter-local final pure fence AFTER all phase-1 validation/hash/preparation, immediately before native request construction | Claimed original graph |
 | 17 | Accepting response 3/ServiceInstance observation | Claimed original graph |
 | 18 | Issuing human target gate 2 | Claimed original graph |
 | 19 | Accepting human gate 2 submission | Claimed original graph |
@@ -317,12 +480,55 @@ Each row follows phase 1. It is not sufficient that an earlier phase-1 time chec
 | 21 | Returning success AFTER terminal cleanup succeeds | Validity-only original completed graph |
 
 Also fence human prompt retrieval/other authority publication, not just submissions.
-Identity acquisition validators must not hide blocking phase-1 checks after the
-wrapper's final dispatch fence: perform needed revalidation before dispatch and
-use captured session bindings/pure lifecycle checks on the immediate operation path.
-No transport source change is selected; invoke existing bounded adapter operations
-immediately after the fence. No added file/Git/hash/descriptor work may intervene.
-If this ordering cannot be achieved within the four runtime files, stop for review.
+Wrapper/identity checks before adapter entry are preliminary lifecycle/authority
+checks and phase-1 preparation, NOT the final wire-boundary fence. Actual dispatch
+fences for rows 10/12/16 occur inside the adapter as specified below. This replaces
+three fence realizations while preserving EXACTLY 21 conceptual sensitive
+transitions; it does not create 24. Additional check invocations do not change that
+conceptual model. All burns/acceptances/human gates and result fences remain intact.
+If implementation needs more than the five selected runtime files, stop for review.
+
+### C.1. All-three-request adapter-local native dispatch
+
+Current source paths establish the work that must precede the final native fence:
+
+| Request | Adapter validation path |
+| --- | --- |
+| 1 ProjectTokenContext | Wrapper acquireContext -> bindContextResultTransfer -> executeHandoff -> fixedContextRequest -> contextValidator.buildRequest -> shared post. executeHandoff also consumes reviews.takeAdapterHandoff, checks kind/attestation/transfer/handoff and requireOwner(...).contextTransfer.assertSlot. buildRequest hashes the fixed context document. |
+| 2 ProjectServices | executeProjectServices -> assertServicesAttempt -> requireServicesOwner -> fixedProjectServicesRequest -> exact request/document/variables validation and hash(query + LF) -> dispatch bookkeeping -> shared post. |
+| 3 ServiceInstance | executeServiceInstance -> assertInstanceAttempt -> requireInstanceOwner -> fixedServiceInstanceRequest -> exact validation/hash and describeTarget -> dispatch bookkeeping -> shared post. |
+
+Request 1 uses executeHandoff, not the request-2/3 helpers, and MUST receive the same
+acquisition-owned final fence. Existing post sets cancel/timeout, checks diagnostics
+then creates https.request; it currently serializes at req.end after construction.
+All those preparation operations belong before the new fence. Response-side
+assert...Attempt revalidation is separate, not pre-dispatch freshness proof.
+
+Adapter phase 1 completes ALL request/document hashing, exact request validation,
+owner/session/attempt/stage checks, diagnostics, bookkeeping, bounded body
+serialization, cancellation/timeout setup, fixed plain-data native options/secret
+header and response callback preparation. Resolve original private lifecycle/session
+association and expected operation/stage here. Preserve query/document bytes,
+credential ownership, headers/body semantics, timeout and total ceiling of three;
+no new request/retry/redirect/fallback. Capture trusted native request function and
+prepared plain arguments with no caller getter/hook.
+
+Inside shared post's synchronous try/Promise executor, success is:
+
+ALL adapter-local phase-1 work -> fixed private PURE lifecycle fence -> immediate
+native https.request construction using prepared options/callback.
+
+Between successful fence and native construction: NO hashing, serialization, file
+operation, realpath/stat, dynamic require, await, timer creation, validation,
+diagnostics, caller getter/callback, option creation or policy work. The fixed
+private fence samples trusted UTC/monotonic clocks, updates/observes high-water and
+fault latch under reviewed rules, and validates captured original graph/session/
+deadline/stage/revocation state. It performs no blocking work or cleanup callback.
+Failure creates zero NEW native requests; the outer terminal path marks closed,
+cleans cancel/timer state and invalidates transport normally. Success constructs
+exactly one native request in the same synchronous turn, attaches handlers and
+sends the already serialized body. Freshness is at native construction, not a
+hard real-time wire-delivery guarantee inside Node's networking implementation.
 
 For #20 construct the bounded private descriptive result, never return it yet.
 Mark assertion CLOSED first, perform resource cleanup (which may block), then #21
@@ -499,9 +705,10 @@ expiry is memory cleanup, not permission to reuse the old record.
 Every numbered action below uses section C's phase 1 followed by the specified
 final pure fence; an old time check or timer is never a substitute.
 
-1. Start only the named main host via the exact --interactive command. Complete
-   private linkage and four immutable cache/exports bindings before enablement.
-   Bootstrap performs no claim, token read, context open or provider operation.
+1. Start only the named main host via the exact plain-node command. Complete
+   private five-module linkage/adapter association and five immutable cache/exports
+   bindings before enablement, then explicitly start/configure the native REPL.
+   Bootstrap/console startup performs no claim, token read, context open or request.
 2. Receive original binding, inventory, reviewed code and exact input descriptor.
    Require original host association BEFORE any claim/review-capability publication.
 3. Passively validate full strict package/record schemas, code/HEAD/branch/thirteen
@@ -527,14 +734,17 @@ final pure fence; an old time check or timer is never a substitute.
     adapter.openExecutionContext(originalBinding). Only this existing call may first
     inspect/read the Railway token environment and open the credential-bearing context.
     No real credential is read in implementation validation; fixtures use synthetic data.
-11. Final fence then request 1 Movement0108ProjectTokenContext in original session/
-    context. On response, finish validation then fence before identity observation.
-    Prepare request 2 Movement0111ProjectServices, finish validation, fence and dispatch.
+11. Prepare request 1 Movement0108ProjectTokenContext in original session/context;
+    adapter finishes all phase-1 work, final pure fence, immediate native construction.
+    On response, finish validation then fence before identity observation. Prepare
+    request 2 Movement0111ProjectServices; adapter phase 1, final pure fence, native
+    construction. Wrapper/identity entry checks are preliminary, not final dispatch.
 12. Validate response 2 then fence before ProjectServices observation; exact machine
     name/ID checks remain mandatory. Fence before issuing gate 1 and before accepting
     its validated submission. Earlier lifecycle/transport/human deadline wins.
-13. After gate 1, prepare/validate request 3 Movement0111ServiceInstance, final fence
-    and dispatch in the same C/S. Validate response then fence before instance
+13. After gate 1, prepare request 3 Movement0111ServiceInstance in the same C/S;
+    adapter completes phase 1, final pure fence and immediate native construction.
+    Validate response then fence before instance
     observation; retain exact name/ID/null-instance semantics.
 14. Final fence before issuing gate 2 and before accepting its validated submission.
     Human approval cannot override machine mismatch. No fourth/schema request exists.
@@ -574,14 +784,28 @@ Its future migration is a separate evidence/package review, not this implementat
 ## Pins and inert templates
 
 Future source-pin count is exactly THIRTEEN. Add the new owner-host source hash to
-authorization SOURCE_HASHES/approved identities; update wrapper and target-identity
-pins. Authorization's own source/self hash changes SEPARATELY, outside the thirteen.
-The other ten existing pins, including introspection-target and https-adapter, remain
-unchanged. Do not remove/replace a safety pin or hide host identity as a doc/fixture
+authorization SOURCE_HASHES/approved identities; update wrapper, target-identity
+and HTTPS adapter pins. Authorization's own source/self hash changes SEPARATELY,
+outside the thirteen. Arithmetic: 12 existing roles + 1 new host = 13; THREE changed
+old values + NINE unchanged old values = 12. Four pinned values are new/different
+including host; with authorization self-hash, five runtime-source identities change.
+Authorization self-hash is not a fourteenth source-pin role.
+
+The nine unchanged old pin values are first-context wrapper, provider boundary,
+context review, introspection preflight, project-token context, transport contract,
+introspection target, introspection request and introspection plan. These names map
+to the existing qualification-railway-*.cjs roles in SOURCE_HASHES. Do not
+remove/replace a safety pin or hide host identity as a doc/fixture
 hash. Historical twelve-pin evidence remains immutable twelve-pin evidence.
 Use the existing UTF-8 CRLF-to-LF-only source rule. Compute new values only after the
 future implementation stabilizes, not now. Existing BASELINE_PARENT_HEAD remains
 historical, never substituted for reviewed current HEAD.
+
+Authorization may pin host source while host imports/links authorization: imports
+alone create no digest cycle. Host must not embed authorization's generated self
+hash in a reciprocal digest requirement. The compiled policy digest remains a
+document binding, not another runtime source-pin role. No source hash is calculated
+in this documentation correction; historical twelve-pin evidence stays immutable.
 
 Regenerate the five existing safe templates listed above with thirteen source pins;
 0114E template becomes v3 with null lifecycleReview descriptor. Planning template
@@ -595,8 +819,9 @@ historical hash, actual evidence digest or current package pin is silently refre
 
 Each row is an acceptance obligation, not an implemented test. Use fake native
 transport, zero real credentials, blocked external HTTP/HTTPS/fetch, and captured
-private pools only inside fixtures. Estimate 170-220 new parameterized cases; exact
-count is determined by matrix expansion, not a target to pad tests.
+private pools only inside fixtures. Exact case count follows required matrix
+coverage, including C1/C2 additions; do not preserve an earlier estimate as a cap
+or pad tests to a numeric target.
 
 | Category | Cases and expected evidence |
 | --- | --- |
@@ -605,13 +830,14 @@ count is determined by matrix expansion, not a target to pad tests.
 | Capacity (~8) | 64 claimed, 64 closed, mixed occupancy, 65th rejected; 16384/16385 raw/canonical byte boundaries; reference caps; expiry frees capacity; zero eviction of unexpired closed/claimed entries and indexes. |
 | Timing (~20) | reviewedAt equality; exact expiresAt rejection; near-expiry start; separate UTC/mono advances; forward/backward jumps; invalid readings; delayed/early callbacks; high-water survives empty maps; cleanup then rollback replay; min lifecycle/transport/human/wrapper deadlines and no late result. |
 | Closure (~35) | Cancel pre-ticket, post-ticket/pre-redemption; manual rejection; injected exceptions after insertion, timer/review/ticket creation, redemption/transfer, before handle/context, after context; request 1/2/3 errors; response after expiry; gate 1/2 rejection/timeouts; owner-handled crash; success; explicit revoke; abandoned draft, ticket and active run expiry; close throwing; repeated close and stale submit. |
-| Owner host (~24, genuine children plus fixtures) | Exact documented --interactive startup and require.main === module; canonical main/cache/realpath identities; zero bootstrap credential/network/provider activity; same canonical Module/facade; all four cache and Module.exports descriptors; strict/non-strict delete/reassign failures; original graph continues; copied authorization/full graph/host-child, wrapper/identity replacement and stale connector denial; node -e/ESM-main/VM/worker inertness; early bootstrap failure cannot retry; no public seal/getter/reset/reinitialize/installer. |
+| Owner host (genuine children plus fixtures) | Exact plain-node startup and require.main === module/main-thread/cache/realpath identities; native REPL readiness/lifetime/evaluation/termination; zero bootstrap credential/network activity; same facade through context reset; all five sealed cache/Module.exports bindings; copied/reloaded five-file graph, replacements and stale connectors denied without damaging original; node -e/ESM-main/VM/worker inertness; early failure cannot retry; no public seal/maps/carrier/getter/reset/installer. |
+| Native dispatch (dedicated suite) | Each request's actual adapter validation/hash/preparation before final pure fence and immediate fake native construction; withheld timers, UTC/mono expiry, rollback/invalid samples; duplicate/preload/reinstall/bypass denial and original session preservation, as detailed below. |
 | R2 blocking work (~25) | With timers deliberately withheld, advance UTC/mono during Git before claim, evidence/hash before ticket, host/cache/realpath checks before claim/context, context checks before open, validation before requests 1/2/3, each response validation, gate 1/2 validation and cleanup before return. Rollback/nonfinite/overflow and monotonic expiry reject at final fence. Assert zero next claim/authority/credential/request/observation/human acceptance/result as applicable. |
-| Pins | Exactly thirteen source entries including new host; all twelve old roles retained, only wrapper/identity old values change; authorization self hash separate; future inert identities regenerate; historical twelve-pin artifacts remain byte-identical. |
+| Pins | Exactly thirteen roles including new host; twelve old roles retained, wrapper/identity/adapter values change, nine old values unchanged; authorization self hash separate; no digest cycle; inert identities regenerate only during authorized implementation; historical evidence byte-identical. |
 | Cutover/preservation (~20) | v3 executable/v2 input cannot bypass; 0113 cannot continue; same session/context, successful count exactly 3 and failures <=3; both gates; nullable instance; exact service ID/name; no historical/default/alias fallback; genuine ticket/permit burns on invalid arity/expiry/binding; credential reads only after guards; all global flags false/null; no retry/fallback/resume/fork; no permanent target consumption. |
 
 Keep existing success/negative coverage in the eleven relevant suites; add current
-v4 integration there rather than duplicating all assertions in the new suite.
+v4 integration there rather than duplicating all assertions in the new suites.
 Historical suites test their archived contract; new suites never claim real target
 identity from synthetic success.
 
@@ -621,22 +847,76 @@ substitutions wholly test-local; no production host/token/clock/driver injection
 Bootstrap synthetic tests perform no real credential/provider/network operation.
 Withheld-timer R2 cases are mandatory even if ordinary timeout tests already pass.
 
-Exact focused inventory is THIRTEEN suites (eleven existing, two new), all under
-supabase/tests/:
+### C1 real-child host/console acceptance
 
-1. 0110_railway_first_live_preflight.test.cjs
-2. 0111_railway_target_identity.test.cjs
-3. 0112_context_result_transfer.test.cjs
-4. 0113_first_context_wrapper.test.cjs
-5. 0114a_service_review_authorization_foundation.test.cjs
-6. 0114b_project_services_transport.test.cjs
-7. 0114c_service_instance_transport.test.cjs
-8. 0114d_acquisition_wrapper.test.cjs
-9. 0114e_acquisition_input_review.test.cjs
-10. 0114f_target_metadata_evidence.test.cjs
-11. 0114h_service_name_compatibility.test.cjs
-12. 0114j_lifecycle_authorization.test.cjs (NEW)
-13. 0114j_executable_owner_host.test.cjs (NEW)
+`0114j_executable_owner_host.test.cjs` owns exact plain-node command execution;
+genuine main/thread/cache identity; five sealed bindings; ready console; open pipe
+persistence and later harmless command execution; native multiline/await order;
+EOF, `.exit`, trailing input, incomplete input and pending-await termination;
+process SIGINT/SIGTERM and repeated signal idempotence with specified exit codes.
+Prove bootstrap/link/seal/console-start failures leave no usable console or retry.
+Trap credential reads and native network constructors: startup counts both zero.
+
+Test usable synthetic facade, private seal/maps/carrier/connectors/fence/installer
+absence, `.clear` binding the same facade and no second host domain. Terminate with
+pre-ticket draft, issued ticket, in-flight request, gate 1 and gate 2 waits; prove
+mark-first closure, transport cancellation, no rearm, pending/late result suppression
+and cleanup-failure fail-closed exit. Verify automatic output cannot invoke
+util.inspect/custom inspection or leak sentinel secrets; no history file/autoload,
+`.load`/`.save` disabled. Console import/copy/reload of five-file graphs cannot gain
+another authority; original graph remains usable after rejected duplicate attempts.
+
+REAL TTY/pseudoterminal proof is required, including native line input and single
+Ctrl+C cleanup. A pipe is not TTY proof. No dependency/install is authorized; if the
+future validation environment lacks a PTY facility, stop acceptance and record the
+gap until real TTY proof is available. VM fixtures alone cannot satisfy C1.
+
+### C2 dedicated native-dispatch acceptance
+
+`0114j_native_dispatch_fence.test.cjs` uses the real adapter through isolated test
+loaders, substituted clocks/timers/crypto and fake native request objects only;
+no socket/provider/external network or production injection switch. For EACH of
+requests 1/2/3 require:
+
+- Deliberately withhold lifecycle/transport timer callbacks. Cross UTC expiry during
+  actual adapter validation/hash; zero NEW native requests. Earlier cumulative
+  requests remain 1 before request 2 or 2 before request 3.
+- Independently cross monotonic expiry or UTC rollback, or inject invalid clock
+  readings during phase 1, including diagnostics/options/body preparation; deny
+  construction and preserve fault latching.
+- Trace last hash/validation -> final pure fence -> native construction as next
+  sensitive operation; no getter/hook/hash/validation or other forbidden work between.
+- Valid state constructs exactly one native request; fixed document/header/body/
+  timeout semantics and total <=3 preserved, with both human gates and late-result denial.
+- Copied adapter/full graph cannot obtain original fence/association; public imports
+  cannot mint authority. Rejected duplicates do not damage original adapter/session.
+- Preloaded adapter denies host bootstrap; canonical re-require returns original;
+  closure reinstall/replacement impossible.
+- Request 1 direct executeHandoff/omitted-transfer cannot bypass association/fence;
+  context-only 0113 remains non-continuable into services/instance.
+
+Host suite owns five-binding/preload child proof; lifecycle suite owns admission,
+clock/carrier/terminal integration; dedicated suite owns actual adapter ordering.
+Existing transport/wrapper suites retain earlier burn/response/count coverage with
+current private-linkage fixtures. Test-only 0114j-module-domain.cjs models five
+modules; no sixth production helper.
+
+Exact focused inventory is FOURTEEN suites (eleven existing, three new):
+
+1. `supabase/tests/0110_railway_first_live_preflight.test.cjs`
+2. `supabase/tests/0111_railway_target_identity.test.cjs`
+3. `supabase/tests/0112_context_result_transfer.test.cjs`
+4. `supabase/tests/0113_first_context_wrapper.test.cjs`
+5. `supabase/tests/0114a_service_review_authorization_foundation.test.cjs`
+6. `supabase/tests/0114b_project_services_transport.test.cjs`
+7. `supabase/tests/0114c_service_instance_transport.test.cjs`
+8. `supabase/tests/0114d_acquisition_wrapper.test.cjs`
+9. `supabase/tests/0114e_acquisition_input_review.test.cjs`
+10. `supabase/tests/0114f_target_metadata_evidence.test.cjs`
+11. `supabase/tests/0114h_service_name_compatibility.test.cjs`
+12. `supabase/tests/0114j_lifecycle_authorization.test.cjs` (NEW)
+13. `supabase/tests/0114j_executable_owner_host.test.cjs` (NEW)
+14. `supabase/tests/0114j_native_dispatch_fence.test.cjs` (NEW)
 
 The nineteen-file regression below is unchanged. The new host proof already runs
 in the focused child-process suite; no additional repository-level process suite
@@ -646,23 +926,38 @@ is needed in that established list. Both focused and regression runs are require
 
 After this plan passes review AND separate implementation authorization is supplied:
 
-1. Capture protected-file/migration hashes without capsule access. Add owner-host
-   source and synthetic test scaffolding within the exact four-file runtime scope.
-2. Establish genuine documented main-host bootstrap/private linkage; prove startup.
-3. Pin the four canonical cache/exports bindings and verify descriptors before enablement.
-4. Gate createExecutableAcquisitionDraft with original host association before claim.
-5. Implement schemas, admission maps and private carrier in authorization.
-6. Implement wrapper/identity private setup continuation and original graph cleanup.
-7. Implement phase-1 validation and phase-2 pure-fence helpers/order at all listed points.
-8. Implement closure, absolute expiry, UTC-only marker removal and post-cleanup
-   validity-only result-release fence. Preserve transport/target/run/package bytes.
-9. Migrate current synthetic fixtures/executable tests to input v3/executable v4.
-10. Add host pin, update wrapper/identity pins and separate authorization self hash:
-    exactly thirteen source pins, other ten existing values unchanged.
-11. Regenerate inert templates and implementation evidence without actual package promotion.
-12. Run all thirteen exact focused suites above with node --test --test-concurrency=1,
-    including real child-process host proof and VM/unit R2 tests.
-13. Run the established nineteen-file serialized regression, with separately authorized
+The following is a construction/validation order for a future authorized patch,
+not permission to execute it now. Establish console lifecycle code in step 4, but
+its runtime creation remains strictly AFTER step 10 enablement under section A.
+No intermediate unfinished graph may be used for acquisition.
+
+1. Capture protected-file/migration hashes without capsule access.
+2. Add owner-host source and test-local scaffolding within exactly five runtime files.
+3. Establish exact plain-node genuine-main bootstrap on the main thread.
+4. Establish host-owned native REPL lifecycle, facade and required child/TTY proof.
+5. Establish private five-module linkage with disabled enablement.
+6. Install original private adapter dispatch-check/session-context association.
+7. Finish cyclic evaluation and finalize exports.
+8. Pin/seal all five canonical cache/Module.exports bindings; freeze final exports.
+9. Remove temporary connectors and verify descriptors/identities.
+10. Enable the one original graph only after successful verification; runtime REPL
+    creation/configuration then follows, before yielding input.
+11. Gate createExecutableAcquisitionDraft before claim/capability publication.
+12. Implement strict lifecycle schemas, admission maps and pre-run carrier.
+13. Implement wrapper/identity private setup linkage and cleanup obligation.
+14. Implement all phase-1/final-pure fences, especially adapter-local validation/hash/
+    preparation -> final fence -> native construction for requests 1/2/3.
+15. Implement terminal host cleanup/revocation and specified exit behavior.
+16. Implement expiry/high-water/fault latch, UTC-only marker retention/removal and
+    post-cleanup validity-only result release. Preserve target/run/package bytes,
+    fixed request semantics and reviewed policy.
+17. Migrate synthetic fixtures to input v3/executable v4, preserving archived modes.
+18. Add host pin; change wrapper/identity/adapter pins; nine old values unchanged;
+    authorization self-hash separate. Exactly thirteen roles, no digest cycle.
+19. Regenerate inert templates/implementation evidence without actual package promotion.
+20. Run all fourteen exact focused suites with node --test --test-concurrency=1,
+    including real child/TTY host proof and dedicated native-dispatch ordering tests.
+21. Run the established nineteen-file serialized regression, with separately authorized
     loopback only, using node --test --test-concurrency=1 and this unchanged path list:
 
     - supabase/tests/0099_shared_segment_assessment_job_foundation.test.cjs
@@ -684,15 +979,22 @@ After this plan passes review AND separate implementation authorization is suppl
     - supabase/tests/0113_first_context_wrapper.test.cjs
     - tests/assessmentWorkerProcess.test.cjs
     - tests/migrationNumbering.test.cjs
-14. Use installed local TypeScript only: node node_modules/typescript/bin/tsc --noEmit;
+
+22. Use installed local TypeScript only: node node_modules/typescript/bin/tsc --noEmit;
     the same binary with --project supabase/functions/tsconfig.json; and with --project
     scripts/assessment-worker/tsconfig.json. No npm/npx install or network fallback.
-    Require all focused tests pass, zero failures in full regression with only existing
+23. Validate protected comparisons/diffs and pin accounting. Require all fourteen
+    focused suites pass, real TTY proof complete, zero failures in full regression with only existing
     documented OS skips, all three typechecks pass, git diff --check clean, exactly
     thirteen correct source pins plus separate self hash, protected comparisons clean,
     no migration diff, no current-package promotion, no historical rewrite and no
     capsule/credential/provider/external-network access. Verify legacy/extra-request tests.
-15. Complete independent implementation review before claiming implementation accepted.
+24. After deterministic focused/regression/typecheck validation and protected diff/pin
+    checks pass, complete the dedicated adversarial security acceptance gate below
+    against the exact implementation commit/diff and repository context. Run Codex
+    Security against that commit/PR when available; otherwise use the required
+    adversarial-review fallback. Retain findings and resolve all blocking findings.
+25. Complete independent implementation review before claiming implementation accepted.
     Implementation completion itself still grants no provider/live/package authority.
 
 Validation constraint: the established regression includes loopback HTTP test servers.
@@ -701,6 +1003,76 @@ must explicitly permit loopback-only regression coverage; external/provider netw
 remains forbidden. If its authorization retains absolute zero network, stop at that
 validation boundary and report regression not completed; do not silently skip tests,
 claim acceptance, or infer permission from older milestones.
+
+### Dedicated adversarial implementation-security acceptance gate
+
+This is a FUTURE acceptance requirement, after an implementation exists and after
+all fourteen focused suites, the unchanged nineteen-file regression with separately
+authorized loopback, three installed TypeScript checks and protected diff/pin checks
+pass. It supplements every existing gate and precedes independent implementation
+review/final acceptance. No security review or scanner is executed by this
+documentation amendment, and implementation remains unauthorized.
+
+Review the exact implementation commit and its exact diff against the reviewed
+base, using repository context and the approved plan/invariants. Record commit/base
+identities, PR reference when applicable, review scope/workflow, findings, severity,
+disposition, remediation and any explicitly reviewed residual risk as security
+evidence. Acceptance must refer to the implementation actually reviewed; subsequent
+implementation changes require review of the changed commit/diff and confirmation
+that the security evidence and deterministic validation still apply.
+
+The dedicated semantic adversarial review must cover at least:
+
+1. Owner-host acquisition-authority bypass.
+2. Copied/reloaded/preloaded five-module graph authority.
+3. require.cache / Module.exports immutable-binding bypass.
+4. REPL facade exposure or accidental private-capability leakage.
+5. Native REPL reset/.clear creating another authority path.
+6. REPL output/custom-inspection secret leakage.
+7. Stale ticket/permit/review-capability reuse.
+8. Lifecycle expiry/rollback/high-water bypass.
+9. TOCTOU between validation and each sensitive transition.
+10. Adapter request-1/request-2/request-3 final native-dispatch fence bypass.
+11. Caller-supplied/public lifecycle hook introduction.
+12. Acquisition/context-only downgrade or provenance confusion.
+13. Cancellation/EOF/SIGINT/SIGTERM cleanup leaving reusable authority.
+14. Cleanup failure/result-release race.
+15. Source-pin/self-hash identity bypass or incorrect pin accounting.
+16. Credential/environment exposure.
+17. Retry/fallback/fourth-request introduction.
+18. Package/lifecycle activation or promotion-authorization bypass.
+19. Any path creating executable acquisition authority outside the reviewed original
+    graph.
+
+If Codex Security is available for the repository/account at that future milestone,
+run it against the exact reviewed implementation commit/PR and retain its findings
+as security evidence. Product availability is not the sole acceptance condition,
+and a clean scan does not replace the dedicated semantic adversarial review or
+deterministic tests. If unavailable, the gate still requires dedicated adversarial
+security review using the strongest available Codex/security-review workflow on the
+exact implementation diff and repository context. Record that fallback and its
+findings; unavailability does not waive the gate.
+
+Conventional static/security tooling, including repository CodeQL or dependency
+scanning, may supplement evidence only when already available/authorized. Such
+scans do not replace semantic review or deterministic tests. This documentation
+task installs, enables, configures or purchases no product and authorizes no
+scanner execution, plugin installation or network access.
+
+Acceptance MUST STOP for any unresolved critical/high severity issue, acquisition-
+authority bypass, lifecycle freshness bypass, credential exposure, native-dispatch
+fence bypass, reusable stale capability, duplicate owner-domain path, package/
+promotion authorization bypass, or any security finding contradicting a reviewed
+invariant regardless of severity label. Lower-severity findings must be triaged
+and recorded; accepting residual risk requires explicit review, never silent
+dismissal. Architectural findings return work to plan/scope review; the implementation
+agent must not improvise an architectural change. Resolve blocking findings and
+review the resulting exact implementation before acceptance can proceed.
+
+A clean security scan/review grants NO provider/Railway access, package promotion,
+lifecycle activation, deployment or live qualification authority. Those remain
+separate authorization milestones. It also does not waive independent implementation
+review or any existing validation requirement.
 
 ## Recovery, remaining review items and authority limits
 
@@ -711,26 +1083,100 @@ Rollback must leave executable acquisition disabled, not re-enable unguarded v3.
 No provider configuration rollback/deployment/teardown is part of this patch.
 
 No reviewed-policy change or durable coordination is needed. This plan needs its
-renewed review, particularly named-host linkage/immutable bindings, thirteen-pin
-architecture, carrier initialization and final-pure-fence ordering. No architectural
-choices are deferred to the coding agent; the plan's
+renewed critical review, particularly plain-node native console/termination,
+five-module linkage/immutable bindings, private adapter association and all-three-
+request final native fence, thirteen-role pins and fourteen focused suites.
+No architectural choices are deferred to the coding agent; the plan's
 implementation permission and loopback validation permission remain pending.
 No implementation or test/typecheck validation action is executed
 now; current package remains lifecycle=null, evidence and historical reviews unchanged.
 
-This document authorizes no runtime/test/template implementation, staging, commit,
-push, credential/capsule access, provider/network service, lifecycle activation,
-package completion, 0114D preparation, deployment, configuration, restart or live
-acquisition. Next milestone is review of this implementation plan only.
+Stop and report PLAN_SCOPE_CONFLICT rather than improvise if correction or future
+implementation requires more than five runtime files/five bindings/thirteen source
+roles, package.json or run.cjs edits, a public adapter fence callback, network
+listener/custom service, a schema-version change beyond planned v3/v4 (activation
+v1 unchanged), lifecycle/B1 redesign, durable coordination/database, changed
+regression membership or an architectural choice not resolved by approved C1/C2 scope.
+
+Current real package remains byte-identical v2/incomplete, lifecycleReview/lifecycle
+null and executable flags false. No actual lifecycle activation record is created.
+Safe templates change only during separately authorized implementation, not now.
+
+This documentation change does NOT authorize runtime/test/template implementation,
+tests/typechecks, provider/Railway access, external network or loopback, package
+completion/promotion, lifecycle activation, deployment/restart/configuration,
+0114D preparation, staging/commit/push, credentials/secrets or capsule access.
+Exact next milestone: renewed critical review of this C1/C2-corrected implementation
+plan. Only if that review passes may a separate implementation-authorization
+milestone be requested. implementationAuthorized=false; providerAuthorized=false.
 
 ## Plan review checklist
 
-Answer YES/NO for: exact four-file runtime scope; protected-file list; sole owner
-and supported loader domain; reload/duplicate-instance rejection; private pre-handle
-carrier; atomic claim before capabilities; strict schemas and subject hashing;
-64-entry/16-KiB limits; high-water/monotonic ordering; all terminals; cleanup with
-rollback protection; v3/v4 cutover without bypass; unchanged transport/three requests;
-both human gates/context-only separation; new host pin, two changed pins, thirteen
-total source pins and separate self hash; inert templates; all twenty-one pure
-fences; thirteen focused suites; exact regression inventory/loopback authorization;
-typechecks; independent implementation review; no implementation authority.
+Renewed reviewer must answer YES/NO/NEEDS_CHANGE for each item below; these are
+review prompts, not a self-issued passing review:
+
+- Exact five-file runtime scope and no sixth file; protected run.cjs/package.json,
+  target/provider boundary/document builders and all protected reviews unchanged.
+- Exact plain-node main command; genuine main/thread/cache/realpath identity.
+- Host-owned native node:repl created only after linkage/sealing/verification/enablement.
+- Deterministic redirected-stdin persistence/evaluation and pending-EOF cancellation.
+- Real TTY/pseudoterminal proof mandatory; missing PTY stops acceptance.
+- EOF/.exit/SIGINT/SIGTERM cleanup, specified exit codes, repeated-signal idempotence
+  and fail-closed bootstrap/stream/cleanup failure.
+- Fixed non-inspecting writer; no default inspecting output or custom-inspector leak.
+- No REPL history file/recall, setupHistory/autoload or .load/.save convenience path.
+- Fixed frozen movement facade, reset rebinds same facade; raw seal/maps/carrier/
+  installer/connector/fence/generic owner-capability getters excluded.
+- Arbitrary operator JS stays within trusted process; no sandbox claim.
+- Five immutable cache/Module.exports bindings verified before enablement; adapter
+  included in original host association; no full Module/cache freeze.
+- Preloaded adapter fails closed; disabled graph never upgrades; duplicate rejection
+  preserves original graph; no closure replacement/reinstall or shutdown ownership reset.
+- Request 1 executeHandoff/context builder hash path covered by final adapter fence.
+- Request 2 ProjectServices validation/hash path covered by final adapter fence.
+- Request 3 ServiceInstance validation/hash/describeTarget covered by final adapter fence.
+- All adapter phase-1 work complete before fence, including diagnostics, serialization,
+  options/secret header/callback, cancel/timer and association preparation.
+- Immediate native request construction after successful fixed private pure fence;
+  no hash/validation/getter/hook/other forbidden work between; failure means no NEW request.
+- Exactly 21 conceptual transitions; rows 10/12/16 realized adapter-locally, preliminary
+  wrapper/identity checks not mislabeled as final wire fence.
+- Private pre-handle carrier; atomic claim before capabilities; burn-before-validation;
+  strict schemas/subject hashing and 64-entry/16-KiB limits unchanged.
+- High-water/monotonic ordering, all terminal closure, UTC-only marker removal,
+  rollback protection and #21 post-cleanup validity-only release preserved.
+- Strict v3 input/v4 executable cutover; no acquisition downgrade via context-only path;
+  both human gates, same session/context, exact fixed transport semantics/three requests.
+- Thirteen source-pin roles; host new; THREE changed old values (wrapper, identity,
+  adapter); NINE unchanged old values; authorization self-hash separate.
+- Historical twelve-pin evidence immutable; policy digest separate; no digest cycle.
+- Fourteen exact focused suites, including dedicated native-dispatch suite and real
+  child/TTY host suite; test-local substitutions only, no production injection.
+- Nineteen regression paths unchanged; loopback still requires separate authorization.
+- Three installed TypeScript checks and independent implementation review required
+  in future authorized validation; no install/network fallback.
+- Dedicated adversarial implementation-security acceptance gate after deterministic
+  validation and protected diff/pin checks, before independent review/acceptance.
+- Exact implementation commit/base/diff and repository context reviewed; security
+  evidence identifies the actual reviewed implementation and later changes.
+- Semantic authority/lifecycle/TOCTOU/native-dispatch threats, including all nineteen
+  listed attack categories, covered explicitly.
+- Codex Security used against exact commit/PR when available; unavailable product
+  triggers dedicated strongest-available adversarial review, never waiver or sole proof.
+- Static/CodeQL/dependency scans supplemental only, already available/authorized;
+  no substitute for semantic review or deterministic tests.
+- Unresolved high/critical or invariant-breaking findings block acceptance; listed
+  authority/freshness/credential/dispatch/stale-capability/duplicate-domain/package
+  bypasses block regardless of severity; lower findings triaged and residual risk
+  explicitly reviewed.
+- Architectural security findings return to plan/scope review; no agent improvisation.
+- Security approval grants no provider/live/package-promotion/lifecycle-activation/
+  deployment authority and does not waive independent implementation review.
+- Current package/evidence unchanged, lifecycle null, no real activation record;
+  future templates inert and unmodified now.
+- Implementation remains unauthorized; renewed review required before separate
+  implementation authorization may be requested.
+
+No implementation, tests/typechecks, provider/Railway/external/loopback network,
+package promotion, activation, deployment/restart/configuration, staging/commit/push
+or capsule access is authorized by this plan correction.

@@ -975,3 +975,35 @@ implementation authorization may be requested. Implementation/provider access re
 unauthorized; current package lifecycle remains null. No provider/network, runtime,
 test-file or migration action occurred. No package promotion, capsule access,
 staging, commit, push or execution authority is granted.
+
+## Qualification lifecycle C1/C2 implementation-plan correction
+
+At starting HEAD 89674362ac952ad991199a774c6084f194479e89, corrected
+[the implementation plan](0114j-qualification-lifecycle-implementation-plan.md)
+to the approved C1/C2 scope. Future startup is plain-node genuine main with a
+host-owned native REPL after bootstrap/sealing/enablement, with explicit TTY/redirected
+stdin and terminal cleanup semantics. Future runtime scope is five files and five
+immutable canonical owner bindings, including the HTTPS adapter. All three requests
+finish adapter phase-1 work before an adapter-local final pure fence and immediate
+native request construction. The conceptual twenty-one transitions remain unchanged.
+
+Source-pin roles remain thirteen: host new; wrapper/identity/adapter old values
+changed; nine old values unchanged; authorization self-hash separate. Focused suites
+are fourteen, including dedicated native-dispatch proof; regression remains the same
+nineteen paths. No hashes were calculated. Renewed critical review is required before
+separate implementation authorization may be requested. Implementation remains
+unauthorized; current package lifecycle remains null. No runtime/test/typecheck,
+migration, provider/Railway or external/loopback network action occurred; capsule
+unread. Protected reviews, package/evidence and templates are unchanged. No staging,
+commit, push, package promotion, lifecycle activation or execution authority is granted.
+
+The future acceptance plan also requires a dedicated adversarial security review of
+the exact implementation commit/diff and repository context after deterministic
+validation and protected diff/pin checks, before independent implementation review.
+Use Codex Security against the exact commit/PR when available; otherwise dedicated
+strongest-available adversarial review remains mandatory. Static/dependency scans
+are supplemental only. Unresolved critical/high or invariant-breaking findings block
+acceptance; architectural findings return to plan/scope review. Security approval
+grants no provider/live/package-promotion/activation/deployment authority. No security
+scan was run and no security tooling was installed/configured by this amendment.
+Implementation remains unauthorized; current package lifecycle remains null.
