@@ -849,3 +849,16 @@ review before implementation planning. No implementation, active assertion, targ
 evidence resolution, package completion or 0114D authority is granted. Current
 package remains lifecycle=null. No provider/network action, runtime/test/migration
 change, capsule access, staging, commit or push occurred.
+
+## Qualification lifecycle policy B1 design correction
+
+At HEAD 42a12b2c46008b310f0035be39a84766fb088443, completed the narrow B1 correction in
+[the 0114I lifecycle design](0114i-qualification-lifecycle-policy-design.md).
+The design now specifies one private authorization owner, canonical assertion
+identity, atomic claim at validated draft admission, non-rearmable closure and
+expiry cleanup, with future duplicate/copy/terminal acceptance cases. B1 is addressed
+by design only. The prior review outcome remains unchanged historical evidence;
+renewed independent review is required and implementation planning remains
+unauthorized until it passes. Current package lifecycle remains null. No provider,
+network, runtime, test or migration action occurred; capsule remains unread.
+No staging, commit, push or further authority is granted.

@@ -219,8 +219,9 @@ the wrapper, not by a caller-provided status or public permit extractor. Concurr
 remote changes unknown to all participants remain an explicit epistemic limit;
 expiry limits exposure but does not prove absence of remote change.
 
-Redemption reserves the assertion to its original private run. Private ticket and
-target-permit consumption remains one-use and burns before validation/context open.
+Draft admission claims the assertion for its original private authority graph as
+defined below; redemption continues that same claim into its original run. Private
+ticket and target-permit consumption remains one-use and burns before validation/context open.
 A failed start closes the assertion too. The target is never permanently consumed
 merely by observing identity. Reinstatement is a new operator assertion, new attempt
 reference, fresh independent review, current evidence/inventory assessment, new
@@ -228,13 +229,163 @@ package binding and separate manual authorization. Any teardown obligation or ot
 disqualification must first be resolved under its own authority. A deleted target
 cannot be revived by reusing its label; replacement IDs require new provenance.
 
-The runtime one-shot guarantee is for the original in-process capability graph.
+The runtime one-shot guarantee includes assertion-level admission within the one
+trusted process, in addition to the original in-process capability graph.
 An attemptReference or audit JSON cannot prevent hostile cross-process replay.
 No claim of global cryptographic one-shot enforcement is made. A new process must
 start with fresh operator/reviewer admission and separate explicit authorization;
 the operator checks prior attempt events and does not authorize the same record
 again. No automatic restart/replay is allowed. Stronger cross-process enforcement
 would require separately designed durable coordination, not a hidden ledger here.
+
+## B1 correction: private assertion admission and closure
+
+Correction starting HEAD: `42a12b2c46008b310f0035be39a84766fb088443`.
+This section addresses B1 by design only. The
+[prior review](0114i-qualification-lifecycle-policy-independent-review.md) remains
+unchanged historical evidence about the earlier design. Renewed independent review
+is required; implementation planning remains unauthorized until that review passes.
+
+**Invariant:** Within one trusted process, one canonical activation record may be
+admitted into at most one acquisition authority graph.
+
+### Sole owner and canonical identity
+
+The existing private owner in
+`scripts/assessment-worker/qualification-railway-live-authorization.cjs` is the sole
+admission owner. All executable draft/admission routes in this process must use
+that same trusted owner instance. Reloading/replacing an owner or wrapper cannot
+instantiate a second admission domain in the trusted process; fail closed under
+the existing module-integrity boundary. No public registry, reset, admission getter
+or authority extractor is introduced. The wrapper owns execution cleanup but cannot
+mint, release or reassign an assertion claim.
+
+Define C(R) as the UTF-8 canonical sorted-object JSON serialization of the entire
+strictly parsed, validated activation record R, including its subjectSha256,
+attemptReference, target, review and validity. Preserve exact values; reject duplicate
+keys and malformed/extra fields before canonicalization. Define assertionKey as
+SHA-256(C(R)), recomputed by the owner, never accepted from a caller. This semantic
+admission key is separate from the existing CRLF-normalized tracked-text digest
+which binds the record file to the package descriptor. Neither text hashing nor
+package hashing changes. Whitespace/key-order reserialization of the same record
+cannot evade the admission key.
+
+The owner retains C(R) and the exact subjectSha256/attemptReference with the key.
+On a key match it compares canonical bytes and bindings, not the digest alone.
+Equal key but unequal bytes or bindings is a collision/consistency error: reject,
+never create an alternate entry or treat it as fresh. The existing claim is never
+released by an incoming mismatch. A private reverse index of attemptReference to
+assertionKey rejects conflicting records/subjects using the same reference while
+that marker is retained. The reference is an audit consistency check, not authority.
+
+A path, draft object, package wrapper or caller handle is not an assertion identity.
+An attemptReference supplied outside R must exactly match R or fail. Changing the
+reference inside R changes reviewed content: it is invalid without a new complete
+independent record review and package binding. Relabeling or recomputing a hash does
+not constitute that review. A fresh attempt requires a genuinely new activation
+record, new attemptReference and fresh operator/independent review as already
+required; copying the old review is insufficient. Hashes do not prove human review.
+
+### Minimal private state and atomic claim
+
+The owner maintains one explicit private per-process admission table and its
+reference index. States are unseen (no entry), claimed, and closed. Entries and
+indexes are implementation bookkeeping, never executable capabilities. Only
+original private draft/ticket/permit/session ownership plus all existing review and
+authorization gates can authorize execution.
+
+Choose validated draft admission as the claim point. After passive schema,
+record/package/evidence/code/inventory/validity checks succeed, but before creating
+any context-review capability, publishing the draft or issuing any review/ticket,
+the owner synchronously checks both indexes and changes unseen to claimed. The
+check/insert is one non-reentrant operation: no await, callback, user getter or
+caller hook may intervene. If either index conflicts, creation fails closed. This
+early point also precedes the context handoff created by later package approval;
+waiting until ticket issuance would leave earlier authority ownership ambiguous.
+
+The claim is bound to the original private draft entry, exact canonical record,
+subject and reviewed package snapshot. It remains the same claim through review,
+manual authorization, original ticket redemption, private target permit and original
+run. A second draft cannot attach to it even with identical valid bytes/approvals.
+Thus two draft-creation calls before the first ticket yield at most one admitted
+draft. Draft admission still grants no execution or provider-access authority.
+
+After claim, every operation on a located original graph must verify claimed state
+and original ownership. Closed entries cannot issue or redeem any authority. A
+post-claim exception, including one before draft publication, must close the entry.
+An invalid input rejected before claim creates no authority; it must not cancel a
+different graph merely by naming its digest. Duplicate-creation rejection likewise
+does not terminate the genuine first graph. An explicit cancellation/revocation of
+that graph follows the authenticated local ownership path described next.
+
+### Non-rearmable terminals before and after redemption
+
+The authorization owner has one idempotent private closure operation for the located
+original claim. It marks closed before cleanup can throw and invalidates all future
+issuance/redemption for that graph. Original ticket/permit consumers still burn
+before validation, including when a subsequent closed-state check rejects them.
+
+Before redemption, cancellation uses the original opaque draft (including before
+ticket issuance) through a cancellation-only owner operation, not a digest/path or
+caller-provided registry entry. This may only reduce authority; copies cannot cancel
+the original. It closes any issued ticket as well. Explicit local revocation or
+withdrawal must invoke that owner closure in addition to recording the event and
+withdrawing the package reference; editing/restoring files alone cannot clear state.
+Manual authorization rejection, invalid acknowledgement or validation failure on a
+located original graph is terminal, not an opportunity to fix and resubmit that graph.
+
+The owner privately connects closure to the pinned wrapper through the established
+initialization-only linkage pattern. No public closure getter/installer or arbitrary
+callback registration survives initialization. Redemption/setup must retain a
+private cleanup obligation before anything can throw, including before a run handle
+exists or a credential-bearing context opens. The wrapper reports every terminal
+exit to that same claim owner and performs its existing context/session cleanup;
+the owner never creates another graph to handle an error.
+
+All of the following change claimed to closed: draft cancellation before ticket
+issuance, cancellation after claim but before redemption, post-claim validation or
+setup failure, manual authorization rejection, provider/transport error, human
+rejection at either gate, timeout, owner-handled crash/exception, successful
+completion, explicit revocation and expiry. The previously proposed overall expiry timer must
+also close abandoned pre-ticket drafts and unredeemed tickets. A terminal signal
+repeated on an already closed entry cannot rearm it. Unknown or invalid ownership
+cannot mint a closure capability or execution authority.
+
+A hard process death cannot execute cleanup: volatile state disappears and no resume
+is allowed. This is the unchanged cross-process trust boundary, not a claim that
+an uncatchable crash writes a durable closed marker.
+
+### Retention, cleanup and duplicate behavior
+
+Closed markers retain the assertion key, canonical record/bindings, attempt-reference
+index and expiry; drop draft/run/session/context and other authority references after
+cleanup. Claimed entries have the existing absolute expiry obligation even if no
+caller returns. Markers and reference-index entries remain non-rearmable at least
+through expiresAt. No cancellation, success, file restoration, wrapper replacement
+or garbage collection of the original draft may remove them early.
+
+After expiry, close any still-claimed graph before removing its compact marker and
+reference-index entry. Removal is cleanup, not closed-to-unseen eligibility: every
+admission first rechecks strict expiry. The previously specified prior-UTC check must
+survive per-entry cleanup as a process-local clock high-water value; clock rollback
+fails admission before lookup. Together with monotonic deadlines this prevents a
+cleaned expired record becoming admissible again after a wall-clock rollback.
+Cleanup runs at expiry and on later owner entry if a timer was delayed. A finite
+reviewed capacity bound must fail closed on additional admissions rather than evict
+unexpired markers; its concrete resource limit belongs in the implementation plan.
+There is no permanent unbounded per-record retention or durable state.
+
+Same canonical record at another path, a second package wrapper, or restored old
+bytes encounters the same claimed/closed key. If another package changes subject
+fields, R.subjectSha256 no longer matches and validation rejects it. A new path or
+attemptReference cannot renew the old assertion. Only a new independently reviewed
+record for a fresh attempt can be considered, subject to all unchanged eligibility
+and authorization gates. Identity acquisition does not permanently consume the target.
+
+This table is explicitly private, process-local admission bookkeeping. It does not
+provide global cross-process replay prevention, a database or durable coordination.
+A new process still requires fresh operator/reviewer admission and separate manual
+authorization under the existing trusted-operator workflow.
 
 ## Relationships to other gates
 
@@ -257,7 +408,8 @@ would require separately designed durable coordination, not a hidden ledger here
 ## Future implementation and compatibility
 
 Runtime changes are required for machine-enforced freshness, record/subject validation,
-manifest binding, boundary rechecks, private run deadline and terminal closure. A
+manifest binding, assertion admission/closure ownership, boundary rechecks, private
+run deadline and terminal closure. A
 future separately authorized implementation should place intake/digest/time checks
 in the existing authorization owner and lifetime enforcement in the wrapper, passing
 only privately frozen verified context to the identity/adapter owners as needed.
@@ -307,13 +459,38 @@ Use focused offline VM/fake-transport fixtures; no provider access is needed:
 - Preserve both human gates, three-request ceiling, exact machine matching, nullable
   instance semantics, credential boundary and false global authority defaults. New
   contract rejects legacy inputs; historical conformance tests retain archived context.
+- B1: two draft creations before first ticket issuance admit only the first; attempts
+  after first claim also fail. Verify no context-review capability or second ticket
+  is issued by rejected creation, and the genuine first graph remains unaffected.
+- B1: the same activation record at different paths, with reordered keys/whitespace,
+  restored bytes, or different package wrapper objects retains one admission key.
+  A conflicting subject/package or external attemptReference is rejected. Editing
+  R.attemptReference without new independent review is not a fresh assertion; reuse
+  of a retained reference with another record fails consistency checks.
+- B1: cancellation before ticket issuance and before redemption, manual rejection,
+  failed setup before a run handle, and validation failure after claim all close
+  the assertion. Repeat after provider/transport error, both human rejections,
+  timeout and owner-handled crash. Existing burns/cleanup remain intact.
+- B1: completion then restored package bytes and revocation then recreated draft
+  cannot rearm the assertion. A genuinely fresh independently reviewed activation
+  record/new reference may admit a still-eligible target after prior closure.
+- B1: expiry closes an abandoned draft/ticket/run; delayed cleanup releases marker
+  memory only after expiry. Replaying the expired record after cleanup, including
+  with UTC rollback, fails. Capacity exhaustion never evicts an unexpired marker.
+- B1: equal digest with unequal canonical record bytes or subject/attempt binding
+  fails closed (collision simulation confined to tests). Duplicate/reentrant claim
+  attempts and alternate owner/wrapper loading cannot create a second admission.
 
 No tests are run or changed now: this milestone changes only design documentation
 and the readiness register. Required Git whitespace/status/HEAD checks are performed.
 
 ## Review status, unresolved questions and next milestone
 
-No independent review of this new design is recorded. The thirty-minute bound,
+The prior critical review recorded CHANGES_REQUIRED_BEFORE_IMPLEMENTATION_PLANNING
+for the earlier design and remains unchanged historical evidence. B1 has been
+addressed by design in the private admission/closure section above; renewed
+independent review is still required. Implementation planning remains unauthorized
+until renewed review passes. The thirty-minute bound,
 operator evidence standard and explicit human cross-process admission boundary are
 deliberate proposals requiring independent acceptance, not unresolved definitions
 to be filled at runtime. No core policy alternatives are left for implementers to
@@ -322,7 +499,8 @@ reviewed in an implementation plan after design review. If globally enforced rep
 prevention is required beyond the existing trusted-operator model, stop for a separate
 coordination design; this document does not claim it.
 
-Next recommended milestone: independent review of this design and its checklist.
+Next recommended milestone: renewed independent review of the corrected design,
+specifically the B1 invariant, ownership, terminal coverage and cleanup rules.
 Implementation and any later target eligibility review require separate authorization.
 
 ## Explicit authority limits
