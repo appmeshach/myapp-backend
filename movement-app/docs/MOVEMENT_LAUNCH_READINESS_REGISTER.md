@@ -810,3 +810,24 @@ provider/network action occurred. Runtime, tests, fixtures, templates, reviewed
 design, historical/qualification evidence and all 99 migrations remain unchanged;
 the capsule remains unread. This analysis grants no package-completion, 0114D,
 deployment, live acquisition, staging, commit or push authority.
+
+## Qualification lifecycle policy design
+
+At HEAD 41dc697db847d7698019f85da4725eb5e8f40658 on
+feature/0092-shared-segment-suitability, completed the offline
+[0114I lifecycle policy design](0114i-qualification-lifecycle-policy-design.md).
+Status: DESIGN_COMPLETE_IMPLEMENTATION_NOT_AUTHORIZED. The proposed meaning is a
+short-lived independently reviewed operator eligibility assertion bound to one
+exact package and acquisition attempt, expiring thirty minutes after activation
+review or earlier revocation/terminal exit. It is not provider service status.
+The target may be reused only through a fresh assertion/review and separately
+authorized attempt; it is not permanently consumed by identity acquisition.
+
+This is a new proposed policy, pending independent design review. It does not
+retroactively close the earlier policy/evidence gaps or authorize implementation.
+Future runtime/schema work is required to enforce record binding and expiry; the
+existing v3 contract is not claimed to provide those new checks. Current package
+remains unchanged with lifecycle=null. Inventory, host and whole-package review
+blockers remain, and no active assertion or 0114D authority is granted. No provider
+action/network access occurred. Runtime, tests, templates, evidence and all 99
+migrations remain unchanged; capsule remains unread. No staging, commit or push.
