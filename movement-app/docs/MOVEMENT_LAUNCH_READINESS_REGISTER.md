@@ -947,3 +947,31 @@ may not yet be requested; implementation remains unauthorized. The plan and prio
 reviews are unchanged. Current package lifecycle remains null. No provider/network,
 runtime, test-file or migration change occurred; capsule remains unread. No staging,
 commit, push, package promotion or execution authority is granted.
+
+## Qualification lifecycle C1/C2 narrow scope decision
+
+At HEAD 2905ec01b54ecd300891c82615e6bbf8a26d8f25, recorded
+[C1/C2 scope review](0114j-c1-c2-scope-review.md).
+Outcome: C1_C2_SCOPE_APPROVED, for future plan correction only. Select a host-owned
+Node-native REPL after successful private bootstrap/sealing, launched by plain
+`node scripts/assessment-worker/qualification-railway-acquisition-owner-host.cjs`
+without --interactive. Support TTY and redirected stdin with explicit EOF/.exit/
+SIGINT terminal revocation/cleanup; arbitrary operator JavaScript stays inside the
+existing trusted-process boundary, with no raw seal/carrier/maps exposed.
+
+Select the HTTPS adapter as the fifth changed runtime file and fifth immutable
+canonical Module/cache/exports binding. Authorization privately installs the fixed
+original-graph pure fence; all three requests must finish adapter validation/hash/
+preparation before that fence and immediately construct the native request afterward.
+No public hook or sixth runtime file. The conceptual twenty-one transitions remain;
+dispatch rows 10/12/16 acquire their final realization inside the adapter.
+
+Source-pin roles stay thirteen: one new host, three changed existing pin values
+(wrapper, identity, adapter), nine unchanged old values, authorization self-hash
+separate. Historical twelve-pin evidence stays unchanged. Future focused count is
+fourteen with a dedicated native-dispatch suite; regression remains nineteen.
+Plan correction and renewed critical review are still required before separate
+implementation authorization may be requested. Implementation/provider access remain
+unauthorized; current package lifecycle remains null. No provider/network, runtime,
+test-file or migration action occurred. No package promotion, capsule access,
+staging, commit, push or execution authority is granted.
