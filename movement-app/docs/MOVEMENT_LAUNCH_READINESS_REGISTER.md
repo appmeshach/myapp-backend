@@ -1113,3 +1113,25 @@ lifecycle null. No runtime/test/typecheck/migration/provider/network/loopback or
 security-scan action occurred; only built-in-only offline Node source/behavior
 inspection. Capsule unread; no staging, commit or push authority. This is the same
 author's fresh adversarial review, not independent human approval.
+
+## Qualification lifecycle separate implementation authorization
+
+At starting HEAD 58e4ebc031e9e138232e1ab970e13f122ec1b667, recorded the
+[implementation-authorization review](0114j-implementation-authorization-review.md).
+Outcome: IMPLEMENTATION_AUTHORIZED_FOR_FROZEN_0114J_SCOPE; zero blockers. The frozen
+scope is five production runtime files, five immutable bindings, 21 transitions,
+12 current/13 future source-pin roles, 14 focused suites, 19 unchanged regression
+paths and three TypeScript checks. B1 and C2 remain approved; RC1, RC2, RC3 and RS1
+are resolved in design. Actual VM-consumed SIGINT, real PTY validation, the semantic
+security gate and independent implementation review remain mandatory future gates.
+
+Authorization permits a separate offline implementation task to create the owner-host,
+modify the four approved runtime files, create/modify approved tests, update stabilized
+pins and expressly required inert templates/evidence references, run the exact local
+validation, and prepare security/review evidence. Current v2 package remains incomplete,
+unpromoted and lifecycle null. No Railway/provider/external-network, production,
+deployment, migration push, activation, package promotion, credential/capsule access,
+runtime/request-count expansion, staging, commit or push authority is granted. No
+runtime/test/typecheck/provider/network/loopback/security-scan action occurred in this
+review; capsule unread. This is same-author Codex authorization, not independent
+human approval.
