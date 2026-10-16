@@ -33,9 +33,9 @@
   },
   "targetInputSources": {
     "projectId": {
-      "independentlyReviewed": false,
-      "source": null,
-      "reviewer": null
+      "independentlyReviewed": true,
+      "source": "docs/0114e-qualification-project-id-review.md#completed-independent-human-review",
+      "reviewer": "AT"
     },
     "environmentId": {
       "independentlyReviewed": true,

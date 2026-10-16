@@ -747,3 +747,25 @@ blocker remains unresolved until an independent human explicitly reviews support
 qualification-specific relation/source evidence. This preparation grants no provider
 access and resolves no other 0114E blocker. No Railway/provider/network action,
 runtime change, migration, deployment, restart or authority promotion occurred.
+
+## Completed qualification project-ID provenance review
+
+At recording HEAD edd95f053de4696e381ff88a5474221e1631f85e, recorded AT's completed
+independent qualification-specific project relationship/source review in
+[the project-ID review record](0114e-qualification-project-id-review.md#completed-independent-human-review).
+AT confirmed the exact qualification environment belongs to project
+0fa3268a-396f-4042-a4c0-a92c23fdf486 and the exact movement-qualification service
+belongs to that same context, independently of the historical production identity
+record. Result: NO_MISMATCH. No precise review time was supplied; both timestamp
+fields stay null. The reference is descriptive/local, not an invented external ID.
+
+The existing v2 source schema requires independentlyReviewed/source/reviewer, not a
+timestamp. Only targetInputSources.projectId changes in the current package: true,
+the completed local record reference, and AT. IDs, environment/service/name
+provenance, code/evidence bindings and all other package fields remain unchanged.
+This resolves only project provenance. Lifecycle and serviceInstanceId remain null;
+inventory, execution-host attestation and whole-package review remain incomplete.
+Source settings remain unapplied; package completion, provider/runtime identity,
+0114D readiness, deployment and all live/manual/executable authority remain false.
+No provider/network/credential/capsule access, runtime or migration change, staging,
+commit or push occurred.

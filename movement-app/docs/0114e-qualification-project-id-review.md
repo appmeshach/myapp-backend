@@ -1,10 +1,13 @@
 # Qualification-specific project-ID review worksheet
 
-Status/result: PENDING. This is preparation for independent human review, not a
-completed review or provider observation.
+Status/result: NO_MISMATCH. AT's completed independent human review is recorded
+below. This resolves only qualification-specific project-ID provenance; it is not
+package completion, provider/runtime identity proof or provider observation by this agent.
 
 Preparation HEAD: 02f39592a6868d2a48520006e21b59fed95958a7.
 Branch: feature/0092-shared-segment-suitability.
+
+Completion recording HEAD: edd95f053de4696e381ff88a5474221e1631f85e.
 
 ## Exact relationship to review
 
@@ -22,9 +25,10 @@ project, within one qualification-specific context:
 The exact project/environment membership relation, independent review of its
 source, and service membership in that same context are the review subjects.
 Names alone, matching ID text, historical production review, this worksheet and the
-task prompt are not independent proof of that relation.
+task prompt's ID values are not independent proof of that relation. The completed
+human review below records the supplied independent relationship/source confirmation.
 
-## Existing evidence and its limits
+## Existing evidence and its limits at worksheet preparation
 
 | Source | Supported scope and limitation |
 | --- | --- |
@@ -38,33 +42,42 @@ task prompt are not independent proof of that relation.
 | [Current package](0114e-current-acquisition-input-review.json), expectedTarget and targetInputSources.projectId | Contains the intended IDs/name, but project provenance remains independentlyReviewed=false, source=null, reviewer=null. Presence in the package is not evidence. |
 | [Reviewed design](0114h-railway-service-name-compatibility-design.md) and [implementation review](0114h-railway-service-name-compatibility-implementation.md) | Establish design/implementation conformance, not a new provider observation or independent review of the current acquisition-input package. |
 
-The repository therefore supports a precise comparison worksheet but does not
-already supply the explicit independently reviewed qualification-specific project
-relation needed to promote current project-source provenance. This is an unresolved
-evidence gap, not a finding that the recorded IDs mismatch.
+At preparation, these records supported a precise comparison worksheet but did not
+alone complete qualification-specific project-source review. The subsequent human
+confirmation below resolves that narrow gap without rewriting historical evidence
+or relabelling its review scope.
 
 ## Human completion fields
 
-- reviewerReference: null
-- independentlyReviewed: false
-- reviewedExactSourceRecords: false
-- qualificationEnvironmentBelongsToProjectConfirmed: null
-- qualificationServiceBelongsToSameContextConfirmed: null
-- qualificationProjectSourceIndependentlyReviewed: false
-- sourceEvidenceReference: null
-- reviewReference: null
+- reviewerReference: AT
+- independentlyReviewed: true
+- reviewedExactSourceRecords: true
+- qualificationEnvironmentBelongsToProjectConfirmed: true
+- qualificationServiceBelongsToSameContextConfirmed: true
+- qualificationProjectSourceIndependentlyReviewed: true
+- sourceEvidenceReference: docs/0114e-qualification-project-id-review.md#completed-independent-human-review
+- reviewReference: docs/0114e-qualification-project-id-review.md#completed-independent-human-review
 - reviewedAt: null
 - reviewedAtLocal: null
-- result: PENDING
+- result: NO_MISMATCH
 
-An independent human should inspect the exact source records above, respect their
-recorded scopes, and identify a non-secret source that explicitly supports the
-qualification environment-to-project relation and service membership in that same
-context. Record the human's actual identity, review reference and time only after
-the review occurs. Do not copy AT's earlier identity/time/result into these fields.
-If those source records cannot support the relation without an additional human
-attestation or new provider evidence, leave this worksheet pending and identify that
-missing evidence. This task authorizes no new provider access to obtain it.
+## Completed independent human review
+
+AT independently confirmed that qualification environment
+9410a813-0429-4bc7-bfbb-d54b85e17c8a belongs to Railway project
+0fa3268a-396f-4042-a4c0-a92c23fdf486, and that service
+ef516a68-9bb7-429e-a395-48ef2676593a, named movement-qualification, belongs to
+that same qualification environment/project context. AT independently reviewed the
+qualification-specific project relationship/source and did not rely only on the
+historical production project identity record. The supplied result is NO_MISMATCH.
+
+No precise human-review time or external review identifier was supplied.
+reviewedAt/reviewedAtLocal therefore remain null. The reviewReference above is a
+descriptive local reference to this completed record, not an invented external
+reference. The actual v2 targetInputSources schema requires exactly
+independentlyReviewed/source/reviewer and no timestamp; this allows the current
+project provenance update without inventing a review time or weakening validation.
+The recording HEAD is not presented as the human review time.
 
 ## Current package and excluded scope
 
@@ -72,9 +85,10 @@ This worksheet relates only to targetInputSources.projectId in the current v2
 package. The package's required implementation target remains
 c1fee2b08051df328f4653404acedf6a55cd40ed; this worksheet's preparation HEAD above is
 a separate record and does not silently retarget or review the package's code.
-The package and its evidence digest remain unchanged. Even a later completed
-project review would need an explicitly recorded, reviewed package update; this
-worksheet is not consumed as executable authority.
+Only the package's targetInputSources.projectId is updated: independentlyReviewed
+is true, reviewer is AT and source references this completed local review record.
+expectedTarget, evidenceBinding, code identity and every other package field remain
+unchanged. This worksheet is not consumed as executable authority.
 
 This is not review or completion of lifecycle, serviceInstanceId, forbidden
 inventory, execution-host attestation, whole-package independent review, applied
@@ -95,10 +109,11 @@ serviceInstanceId remain null; source settings remain pending/unapplied.
 
 No provider access or observation occurred while preparing this worksheet. No
 network, credentials, token stores, private keys, shell history or protected capsule
-were accessed. Historical/current evidence, runtime, templates, tests, fixtures,
-reviewed design and migrations are unchanged.
+were accessed. Historical and qualification evidence, runtime, templates, fixtures,
+reviewed design and migrations are unchanged. Focused tests are updated only to
+verify the narrow provenance change and preservation of all other blockers.
 
-This pending worksheet grants no staging, commit, push, Railway/Supabase/GitHub or
+This completed project review grants no staging, commit, push, Railway/Supabase/GitHub or
 provider access, configuration change, deployment, restart, live acquisition,
-package completion or 0114D authority. The project-ID blocker and every other
-current 0114E blocker remain unresolved.
+package completion or 0114D authority. Only the qualification-specific project-ID
+provenance blocker is resolved; every other current 0114E blocker remains unresolved.

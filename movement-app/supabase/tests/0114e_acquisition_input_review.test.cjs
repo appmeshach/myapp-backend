@@ -645,7 +645,7 @@ test('current target values preserve their distinct qualification provenance',()
  assert.equal(q.projectEvidenceReference.scope,'prior_review_of_unchanged_project_identity_only');
  assert.equal(q.projectEvidenceReference.qualificationContextCompared,false);
  assert.equal(q.projectEvidenceReference.operatorSource.independentlyReviewed,false);
- assert.deepEqual(c.targetInputSources.projectId,{independentlyReviewed:false,source:null,reviewer:null});
+ assert.deepEqual(c.targetInputSources.projectId,{independentlyReviewed:true,source:'docs/0114e-qualification-project-id-review.md#completed-independent-human-review',reviewer:'AT'});
  for(const k of ['environmentId','serviceId']){
   assert.equal(q.identifiers[k].independentlyReviewed,true);
   assert.deepEqual(c.targetInputSources[k],{independentlyReviewed:true,source:qualificationPath+'#identifiers.'+k,reviewer:q.identifiers[k].reviewerReference});
@@ -699,4 +699,22 @@ test('current preparation carries only non-secret review data and capsule remain
  assert.doesNotMatch(actualRead(currentPreparationPath),/sb_secret_|-----BEGIN|Bearer\s+|https?:\/\/|eyJ[A-Za-z0-9_-]{16,}/);
  const tracked=require('node:child_process').execFileSync('git',['-c','safe.directory='+path.resolve(root,'..'),'ls-files','--','0102-remote-fixtures.capsule'],{encoding:'utf8',env:{},windowsHide:true});
  assert.equal(tracked,'');
+});
+
+test('completed project review records supplied human confirmation without invented timestamps',()=>{
+ const text=actualRead('docs/0114e-qualification-project-id-review.md');
+ for(const fact of ['reviewerReference: AT','independentlyReviewed: true','reviewedExactSourceRecords: true',
+  'qualificationEnvironmentBelongsToProjectConfirmed: true','qualificationServiceBelongsToSameContextConfirmed: true',
+  'qualificationProjectSourceIndependentlyReviewed: true','result: NO_MISMATCH','reviewedAt: null','reviewedAtLocal: null'])assert.ok(text.includes('- '+fact),fact);
+ for(const key of ['projectId','environmentId','serviceId','serviceName'])assert.ok(text.includes(currentPreparation.expectedTarget[key]));
+ assert.match(text,/did not rely only on the\s+historical production project identity record/);
+ const source=fs.readFileSync(path.join(base,'qualification-railway-live-authorization.cjs'),'utf8');
+ assert.ok(source.includes("exact(e,['independentlyReviewed','source','reviewer'])"));
+});
+test('project completion changes only the current package project-source tuple',()=>{
+ const before=JSON.parse(require('node:child_process').execFileSync('git',['-c','safe.directory='+path.resolve(root,'..'),'show',
+  'edd95f053de4696e381ff88a5474221e1631f85e:movement-app/'+currentPreparationPath],{encoding:'utf8',env:{},windowsHide:true}));
+ assert.deepEqual(before.targetInputSources.projectId,{independentlyReviewed:false,source:null,reviewer:null});
+ before.targetInputSources.projectId=clone(currentPreparation.targetInputSources.projectId);
+ assert.deepEqual(currentPreparation,before);
 });
