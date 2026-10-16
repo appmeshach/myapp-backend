@@ -438,3 +438,139 @@ index diff is empty. HEAD remains the starting HEAD. Final short status contains
 the modified readiness register, this untracked scope artifact and the pre-existing
 untracked capsule only. No implementation, execution, input promotion, target
 eligibility, independent human approval or live authority is granted.
+
+## Narrow C1 reconciliation after RC1/RC2/RC3 renewed review
+
+reconciliationStartingHead: `a67e7db9417ed06f265772431e7826651044406a`
+
+reconciliationOutcome: C1_RECONCILED_RENEWED_CRITICAL_REVIEW_REQUIRED
+
+implementationAuthorized: false
+
+providerAuthorized: false
+
+The [failed renewed review](0114j-c1-c2-security-gate-renewed-critical-review.md)
+found actual Node-native lifetime/output defects in the original C1 assumptions.
+The original decision above is preserved as historical evidence. THIS appended
+section supersedes it only for EOF notification, breakEvalOnSigint/interrupt
+arrangement, automatic preview and N2 request-1 naming. In particular, its earlier
+breakEvalOnSigint:false choice and console-exit-only EOF assumption are historical/
+rejected, not supported operative alternatives. C1 still selects one host-owned
+native REPL with the same plain-node command and trusted-operator boundary.
+
+### RC1: direct input termination and first-latch shutdown
+
+The host owns ONE private idempotent terminal handler with multiple fixed event
+sources. Before REPL creation/input processing register direct process.stdin end
+AND close observation using prependListener, input/output stream errors and process
+SIGINT/SIGTERM. After REPL creation, before yielding input, directly observe REPL
+close (prependListener), REPL exit and REPL SIGINT. Bootstrap/console failures use
+the same terminal latch; absent server/shutdown links must be handled fail-closed.
+Observe/check already-ended or closed stdin after installing listeners so it cannot
+leave a ready console or enablement alive. Known stream errors are failures, not
+clean EOF. No public/caller-supplied terminal callback or generic shutdown export.
+
+The direct input notifications do not depend on native REPL exit, which is deferred
+while top-level await is paused. On the FIRST delivered terminal notification,
+synchronously latch cause and host revocation, disable authority, then close/disable
+input and invoke authorization's fixed shutdown continuation. Mark every claimed
+graph CLOSED before resource cleanup; destroy transport, burn tickets/permits/human
+gates, clear timers, suppress pending/late results, drop private console/session
+associations and terminate the dedicated host. No await, evaluator completion,
+native unpause, timer expiry or async process-exit handler is required for revocation.
+Immediate means within delivery of that notification, not hard real-time interruption
+of a blocked JavaScript event loop.
+
+End then close, later REPL exit, signal-vs-EOF and cleanup-induced events cannot
+re-enter cleanup. First cause wins and no later notification changes it. Clean
+EOF/close/.exit exits 0 only after successful cleanup; first SIGINT uses 130,
+SIGTERM 143, failure 1. Cleanup failure alone escalates clean 0 to 1, preserving an
+already-latched 130/143 or failure 1. No later signal upgrades an EOF cause. There
+is no authority restoration, reset/retry or success publication on cleanup failure.
+
+Pending native evaluation is NOT another authority owner. Its continuation may
+remain ordinary doomed JS in the terminating trusted process, but all original
+authority checks observe permanent revocation. It cannot mint draft/ticket/permit,
+publish an acquisition result, restore enablement, rebind a second movement facade,
+reopen acquisition transport or repeat cleanup. Process exit before evaluator
+completion is acceptable after synchronous revocation/closure. No promise of
+magically cancelling all JS; abrupt process death remains under the existing policy.
+
+### RC2: native interrupt mode and replacement SIGINT listener
+
+Select breakEvalOnSigint:true. Installed Node v24.13.1 source shows that this allows
+the native _ttyWrite Ctrl+C exception to the pending-await key buffer. On the fresh
+host-owned REPL, remove its default SIGINT listeners and install only the fixed
+host terminal SIGINT handler before yielding input. This avoids default double-press,
+clear/resume and prioritized-await interrupt/resume behavior. Native Ctrl+C enters
+terminal revocation at idle, multiline input and unresolved await; process SIGINT
+is independently observed and uses that SAME handler. Clean signal cleanup exits 130.
+No custom TTY parser, evaluator, Node-internal patch or listener service is introduced.
+
+The true option also enables Node's VM interrupt watchdog/break-on-SIGINT and
+temporary raw-mode changes during synchronous evaluation. Native JS evaluation can
+be interrupted; it is not guaranteed that arbitrary JS can always be cancelled or
+that an event-loop stall delivers a host callback in real time. Native await internals
+may create an interrupt race, but the replaced REPL listener terminates the host,
+not resumes acquisition or relies on that race to reject an outstanding promise.
+These are accepted native consequences within the existing trusted-operator model;
+the security guarantee is revocation at the first delivered host terminal source,
+with no subsequent authority/result path. Future acceptance must distinguish real
+TTY key delivery/raw mode from independently delivered process SIGINT.
+
+### RC3: explicitly disable native preview
+
+Select preview:false in addition to the constant non-inspecting writer and empty
+completer. Node's native preview setup returns inactive operations for this choice;
+typing pre-Enter expression/string/error/object values must not preview them or
+invoke custom inspection. Completed values/errors still use the fixed constant
+writer without util.inspect, coercion, getters or custom inspectors. Preserve
+native evaluation/line editing, historySize:0, useGlobal:false, ignoreUndefined:true,
+useColors:false, both-TTY terminal selection, process.stdin/stdout, no setupHistory,
+and disabled .load/.save. No inspector listener/socket or custom engine is added.
+Explicit trusted console.log/util.inspect, require/import and file/environment I/O
+remain within the trusted process; the REPL is not a sandbox.
+
+### Offline evidence, future proof and unchanged boundaries
+
+Read the installed Node v24.13.1 embedded REPL/preview source and ran five isolated
+built-in-only child probes with empty child environments, no project imports, no
+temp files, sockets, credentials or network. Direct stdin EOF during unresolved
+await entered the first-latch handler, revoked and cleaned once, exiting 0. Native
+terminal:true key-path probes at idle, multiline and unresolved await each delivered
+one Ctrl+C to the replacement handler and exited 130, cleanup once. Cleanup-induced/
+recursive terminal notifications were ignored. preview:false probe typed a custom-
+inspection object variable without Enter: inspection calls 0, no sentinel output,
+writer calls 0; after Enter inspection calls stayed 0, writer calls became 1 and
+only the constant rendered value marker appeared. These are local feasibility
+observations, not production implementation, project tests or real PTY acceptance.
+
+Future owner-host suite must cover direct EOF during unresolved await/incomplete
+input, end/close/REPL-exit ordering, already-ended input, event reentrancy and late
+result denial; real idle/multiline/await Ctrl+C separately from process SIGINT;
+and pre-Enter object/string/error/custom-inspection sentinels plus completed fixed
+writer behavior. Real TTY/PTY proof remains mandatory; synthetic terminal:true
+streams do not satisfy it. Acceptance stops if a facility is unavailable; no
+dependency/install is authorized. Future security review includes these cases and
+pending evaluator behavior after revocation without adding a new suite.
+
+N2 correction: actual request 1 starts in wrapper acquireServices, whose first
+phase is context acquisition: identity.contextTransfer.preparePermit ->
+adapter.bindContextResultTransfer -> adapter.executeHandoff -> fixedContextRequest
+-> contextValidator.buildRequest -> adapter post. The earlier acquireContext label
+above is historical phase shorthand, not the current function name. C2's selected
+private all-three-request native fence and context-only downgrade prohibition do
+not change.
+
+Exactly five runtime files, five immutable bindings, 21 conceptual transitions,
+13 source-pin roles (three changed old/nine unchanged, auth self separate), fourteen
+focused suites, nineteen unchanged regression paths and three installed TypeScript
+checks remain frozen. B1, schemas, package/evidence preservation and the dedicated
+future security gate remain unchanged in principle. No sixth file, public hook,
+second authority owner, runtime/package/worker/dependency/provider change or other
+stop condition is required. No source hashes calculated. Only this scope append,
+operative plan correction and readiness append are changed in this milestone.
+Implementation remains unauthorized and current lifecycle remains null. The exact
+next milestone is renewed critical review of reconciled C1 scope and plan; separate
+implementation authorization may not yet be requested. The failed review and all
+other prior reviews/policy docs remain unchanged; no staging/commit/push authority.

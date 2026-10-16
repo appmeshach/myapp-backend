@@ -53,6 +53,20 @@ are unchanged. Earlier command/four-file assumptions are superseded, not fallbac
 This documentation correction requires renewed critical review before separate
 implementation authorization may be requested. It supplies no implemented proof.
 
+### Narrow C1 reconciliation after RC1/RC2/RC3 review
+
+c1ReconciliationStartingHead: `a67e7db9417ed06f265772431e7826651044406a`
+
+The [failed renewed review](0114j-c1-c2-security-gate-renewed-critical-review.md)
+remains immutable evidence. Incorporate the appended C1 reconciliation in the
+[scope artifact](0114j-c1-c2-scope-review.md): direct stdin end/close observation,
+breakEvalOnSigint:true with host terminal SIGINT handling, and preview:false.
+Correct the request-1 wrapper label to acquireServices. These resolve RC1/RC2/RC3
+in the selected design only; renewed critical review and future real-child/TTY
+acceptance are still required. C2, B1, five files/bindings, thirteen source-pin roles,
+fourteen focused suites, nineteen regression paths, three TypeScript checks and
+the future security gate remain unchanged. No implementation authority is supplied.
+
 ## Reviewed inputs and preserved policy
 
 Inputs inspected: [corrected 0114I design](0114i-qualification-lifecycle-policy-design.md),
@@ -246,7 +260,7 @@ After successful bootstrap/sealing/enablement, call exactly
 authority owner. Required options are input: process.stdin, output: process.stdout,
 a fixed non-secret prompt, useGlobal: false, ignoreUndefined: true, useColors: false,
 historySize: 0, native evaluation, a fixed non-inspecting writer and fixed empty
-completer. Set terminal: true only when BOTH stdin and stdout are TTYs; otherwise
+completer, breakEvalOnSigint: true and preview: false. Set terminal: true only when BOTH stdin and stdout are TTYs; otherwise
 terminal: false. Do not call setupHistory, CLI/internal REPL bootstrap helpers or
 implement NODE_REPL_EXTERNAL_MODULE/config/history autoload behavior. Disable native
 `.load` and `.save` before yielding input. No custom protocol/eval engine is added.
@@ -254,17 +268,24 @@ implement NODE_REPL_EXTERNAL_MODULE/config/history autoload behavior. Disable na
 Bind the same frozen bounded host operation facade to `server.context.movement`
 as non-writable/non-configurable before yielding input. Native context reset and
 `.clear` re-establish that SAME facade, never bootstrap/enable a second graph.
+After terminal revocation the reset binding must deny/no-op, never rebind or enable
+another facade/owner. Canonical imports cannot restore the disabled host latch.
 Canonical require(host) returns the same frozen facade. Neither context nor facade
 exposes host seal, admission maps, lifecycle carrier, adapter installer, initialization
 connector, raw fence closure or generic capability/owner getter. The REPL's context
 Module is not the genuine host main; host require.main equality remains mandatory.
 
-The writer returns only a constant marker for automatic value/error output; no
-util.inspect, coercion, getter or custom inspector. Intentional display uses bounded
+preview:false disables native pre-Enter expression/string/error/object previews;
+the empty completer alone is not this protection. Completed evaluation values and
+errors still use the fixed writer, which returns only a constant marker: no
+util.inspect, coercion, getter or custom inspector. Automatic preview must not invoke
+custom inspection. Native evaluation and TTY line editing remain; no inspector
+listener/socket or custom engine is introduced. Intentional display uses bounded
 selected descriptive review fields. Native `_`/`_error` and command/source buffers
 may retain values in memory; historySize=0 disables recall, not all memory retention.
 No history file is opened; discard console references at shutdown. The facade never
-returns credentials. Explicit operator console.log/stdout/environment/module access
+returns credentials. Explicit operator console.log/util.inspect/stdout, require/import,
+direct file I/O and environment/module access
 can still reveal data. Arbitrary trusted-operator JavaScript remains inside the
 existing trusted-process boundary; this is not a sandbox. Native lazy built-in
 bindings and explicit require/import remain possible. Malicious mutation of Node
@@ -277,28 +298,67 @@ artificial keepalive timer. Complete JS lines execute in native order, including
 native multiline/await behavior, until `.exit`, EOF, signal or failure. Do not
 promise that a batch pipeline immediately followed by EOF completes an acquisition.
 EOF with incomplete input or a pending asynchronous operation cancels/revokes;
-it never waits for successful acquisition or releases a pending result.
+it never waits for successful acquisition or releases a pending result. Direct
+stdin end/close observation below bypasses deferred native REPL exit during await.
 
 ### A2. Console termination and host shutdown
 
-Use one private idempotent terminal handler for console exit, stream errors,
-process SIGINT/SIGTERM and REPL SIGINT. Replace native REPL default double-press/
-clear/resume SIGINT behavior: one delivered interrupt terminates. Set
-breakEvalOnSigint: false, as selected by scope; no expression-interrupt/resume mode.
-Signal JS handlers cannot promise hard real-time cleanup during an event-loop stall.
+The host owns exactly ONE private idempotent terminal handler, never exported or
+supplied by a caller. Register direct process.stdin end AND close listeners, input/
+output stream error listeners, and process SIGINT/SIGTERM listeners before native
+REPL creation/input processing can begin. Use direct prependListener observation
+on stdin end/close so native REPL's own listener cannot be the sole notification
+path. After REPL creation, before yielding input, also observe its close directly
+(prependListener) and exit; both call the same handler. Do not wait for exit: native
+REPL queues that event during top-level await. Check already-ended/closed input
+after listener installation; treat readableEnded as EOF and destroyed/closed input
+as terminal closure (or failure if a known error), never announce a ready console
+or continue bootstrap after a terminal latch. Handlers tolerate a not-yet-assigned
+server or shutdown continuation during bootstrap; failures leave enablement disabled.
+
+Select breakEvalOnSigint:true. In Node v24 this permits the native Ctrl+C key path
+through _ttyWrite while top-level await pauses other input. Remove the REPL's
+default SIGINT listeners on this freshly created host-owned server and install only
+the fixed host handler for REPL SIGINT before yielding input. Do not retain the
+default prioritized-await interruption or double-press/clear/resume handler. No
+custom key parser, evaluator, patched Node internal or second handler is added.
+The delivered REPL SIGINT enters terminal revocation synchronously, including during
+unresolved await. An independently delivered process SIGINT uses its own registered
+event source and the SAME terminal handler. These are distinct acceptance cases.
+
+The true option also enables Node's native VM SIGINT watchdog/break-on-interrupt
+behavior and temporary raw-mode changes during synchronous evaluation; Node may
+interrupt that evaluation rather than merely clear a line. Native await internals
+can allocate an interruption race, but replacing the default REPL SIGINT listener
+means the host terminates, rather than relying on that race to reject/resume await.
+These native consequences are acceptable inside the trusted-operator process; no
+claim is made that arbitrary JavaScript always can be synchronously cancelled.
+Signal JS handlers still cannot promise hard real-time cleanup during an event-loop
+stall. Authority protection is synchronous revocation on the first delivered host
+terminal notification, with subsequent owner checks and result release denied.
+
+First terminal source wins: set the private latch/cause and host revocation before
+closing streams/console or invoking cleanup. No await or queued callback precedes
+that latch. Direct EOF handling during unresolved await does not wait for REPL
+unpause, evaluator success or timer expiry. End then close, later REPL close/exit,
+signal-vs-EOF races and cleanup-induced events cannot re-enter cleanup, change cause,
+re-enable authority or repeat shutdown. Ignore later notifications after the first
+latch; no later signal upgrades a clean EOF cause. The only exit-code escalation
+is cleanup failure as specified below.
 
 | Event | Required terminal behavior and exit code |
 | --- | --- |
-| EOF or `.exit` | Revoke, close all claimed graphs/resources, suppress pending result; exit 0 after clean cleanup. |
-| SIGINT | One delivered interrupt terminates with cleanup; exit 130. |
+| Direct stdin end/close, or clean REPL close/exit including `.exit` | First latch revokes, closes all claimed graphs/resources and suppresses pending result; exit 0 only after clean cleanup. A known stream error is failure, not clean EOF. |
+| REPL SIGINT / TTY Ctrl+C or process SIGINT | One delivered interrupt terminates with cleanup; exit 130. |
 | SIGTERM | Terminal cleanup; exit 143. |
 | Bootstrap/stream/cleanup failure | Fail closed; nonzero, normally 1 unless signal code applies; no usable console on bootstrap failure. |
 
 Exact authority-reducing order:
 
-1. Latch host revocation.
+1. Latch first terminal cause and host revocation, with no re-entry.
 2. Disable further acquisition authority.
-3. Close/disable console input.
+3. Close/disable REPL input without waiting for native exit/unpause; the latched
+   handler ignores any induced close/exit/end events.
 4. Invoke authorization-owned fixed private shutdown continuation captured at bootstrap.
 5. Authorization marks each claimed graph CLOSED before resource cleanup, including
    pre-ticket drafts and issued-ticket graphs; retain UTC marker/high-water rules.
@@ -314,9 +374,22 @@ Exact authority-reducing order:
 Already terminal entries never reopen. Lifecycle validity is not required to reduce
 authority. Cleanup uses the existing synchronous close/stop contract; do not rely
 on asynchronous process exit handlers. On cleanup exception keep revocation latched,
-release no result, never retry/resume, and exit nonzero. Repeated signals are
-idempotent. SIGKILL or trusted explicit process.exit() cannot promise graceful
+release no result, never retry/resume, and exit nonzero: escalate a clean cause's
+0 to 1, retain 130/143 for an already-latched signal, and retain failure code 1.
+Later equivalent/error/signal events do not otherwise alter the first cause or code.
+Repeated signals are idempotent. SIGKILL or trusted explicit process.exit() cannot promise graceful
 cleanup: process death is terminal under existing crash/no-replay semantics.
+
+A pending native evaluator is NOT an authority owner. After the latch, every
+original graph observes permanent host revocation, and authorization closes its
+claimed entries before cleanup. Any evaluator continuation that runs is ordinary
+doomed JavaScript in the terminating process: it cannot mint draft/ticket/permit,
+publish an acquisition result, restore enablement, rebind a second movement facade,
+reopen acquisition transport or run cleanup twice. Do not promise generic JavaScript
+cancellation; it is acceptable for the process to exit before evaluator completion
+once revocation/closure occurred synchronously. No pending/late success release is
+permitted, including after a cleanup exception. Explicit malicious trusted-process
+mutation remains outside the existing threat model.
 
 ### A3. Private adapter installation and immutable ownership
 
@@ -494,7 +567,7 @@ Current source paths establish the work that must precede the final native fence
 
 | Request | Adapter validation path |
 | --- | --- |
-| 1 ProjectTokenContext | Wrapper acquireContext -> bindContextResultTransfer -> executeHandoff -> fixedContextRequest -> contextValidator.buildRequest -> shared post. executeHandoff also consumes reviews.takeAdapterHandoff, checks kind/attestation/transfer/handoff and requireOwner(...).contextTransfer.assertSlot. buildRequest hashes the fixed context document. |
+| 1 ProjectTokenContext | Wrapper acquireServices -> identity.contextTransfer.preparePermit -> adapter.bindContextResultTransfer -> adapter.executeHandoff -> fixedContextRequest -> contextValidator.buildRequest -> adapter shared post. executeHandoff also consumes reviews.takeAdapterHandoff, checks kind/attestation/transfer/handoff and requireOwner(...).contextTransfer.assertSlot. buildRequest hashes the fixed context document. acquireServices is the actual function name; context acquisition is its first phase before ProjectServices. |
 | 2 ProjectServices | executeProjectServices -> assertServicesAttempt -> requireServicesOwner -> fixedProjectServicesRequest -> exact request/document/variables validation and hash(query + LF) -> dispatch bookkeeping -> shared post. |
 | 3 ServiceInstance | executeServiceInstance -> assertInstanceAttempt -> requireInstanceOwner -> fixedServiceInstanceRequest -> exact validation/hash and describeTarget -> dispatch bookkeeping -> shared post. |
 
@@ -857,6 +930,29 @@ process SIGINT/SIGTERM and repeated signal idempotence with specified exit codes
 Prove bootstrap/link/seal/console-start failures leave no usable console or retry.
 Trap credential reads and native network constructors: startup counts both zero.
 
+RC1 acceptance must observe direct stdin end/close with an unresolved top-level
+await and a live resource stand-in; prove revocation/closure without REPL exit,
+unpause or evaluator completion. Cover normal EOF, end then close, close then later
+REPL exit, incomplete input + EOF, already-ended/closed input, signal-vs-EOF races,
+cleanup-induced event reentrancy and first-cause exit-code policy. Cleanup occurs
+once; a late pending evaluator cannot publish success or restore acquisition
+authority. Keep open-pipe persistence/later evaluation proof as a separate case.
+
+RC2 acceptance must prove ONE real TTY Ctrl+C at idle, multiline input and unresolved
+top-level await, each reaching the private terminal handler with exit 130 after
+cleanup. Test process SIGINT separately, plus SIGTERM and repeated/racing notifications.
+No second-press requirement, native clear-and-resume or surviving authority. Verify
+breakEvalOnSigint:true and replacement of the default REPL SIGINT handling; do not
+equate synthetic key-path proof with actual OS/raw-mode behavior. Document native
+synchronous-evaluation interrupt effects without claiming universal cancellation.
+
+RC3 acceptance must prove preview:false: typing object, string and error variables
+without Enter causes no value preview; an object's custom-inspection sentinel is
+never invoked automatically. Completed value/error rendering still uses only the
+constant non-inspecting writer, with no custom-inspection call. Explicit trusted
+console.log/util.inspect remains outside the automatic-output guarantee. No inspector
+listener/socket, new dependency or replacement REPL is permitted.
+
 Test usable synthetic facade, private seal/maps/carrier/connectors/fence/installer
 absence, `.clear` binding the same facade and no second host domain. Terminate with
 pre-ticket draft, issued ticket, in-flight request, gate 1 and gate 2 waits; prove
@@ -867,7 +963,9 @@ util.inspect/custom inspection or leak sentinel secrets; no history file/autoloa
 another authority; original graph remains usable after rejected duplicate attempts.
 
 REAL TTY/pseudoterminal proof is required, including native line input and single
-Ctrl+C cleanup. A pipe is not TTY proof. No dependency/install is authorized; if the
+Ctrl+C cleanup in all three cases above. Synthetic terminal:true streams establish
+local Node branches only and are NOT final TTY acceptance. A pipe is not TTY proof.
+No dependency/install is authorized; if the
 future validation environment lacks a PTY facility, stop acceptance and record the
 gap until real TTY proof is available. VM fixtures alone cannot satisfy C1.
 
@@ -1044,6 +1142,11 @@ The dedicated semantic adversarial review must cover at least:
 19. Any path creating executable acquisition authority outside the reviewed original
     graph.
 
+Within those existing threat categories, explicitly review EOF during unresolved
+await, single TTY Ctrl+C during unresolved await, native preview/custom inspection,
+terminal-event reentrancy and pending evaluator continuations after authority
+revocation. These are required C1 cases, not a new suite or a changed security gate.
+
 If Codex Security is available for the repository/account at that future milestone,
 run it against the exact reviewed implementation commit/PR and retain its findings
 as security evidence. Product availability is not the sole acceptance condition,
@@ -1119,11 +1222,18 @@ review prompts, not a self-issued passing review:
   target/provider boundary/document builders and all protected reviews unchanged.
 - Exact plain-node main command; genuine main/thread/cache/realpath identity.
 - Host-owned native node:repl created only after linkage/sealing/verification/enablement.
-- Deterministic redirected-stdin persistence/evaluation and pending-EOF cancellation.
+- Deterministic redirected-stdin persistence/evaluation; direct stdin end/close
+  observation before input processing, independent of deferred REPL exit during await.
 - Real TTY/pseudoterminal proof mandatory; missing PTY stops acceptance.
 - EOF/.exit/SIGINT/SIGTERM cleanup, specified exit codes, repeated-signal idempotence
-  and fail-closed bootstrap/stream/cleanup failure.
-- Fixed non-inspecting writer; no default inspecting output or custom-inspector leak.
+  and fail-closed bootstrap/stream/cleanup failure; first cause wins, reentrancy denied,
+  clean 0 escalates only for cleanup failure, signal codes retained.
+- breakEvalOnSigint:true; default REPL SIGINT listener replaced by fixed host terminal
+  handler; idle/multiline/unresolved-await real TTY Ctrl+C distinct from process SIGINT.
+- preview:false and fixed non-inspecting writer; no pre-Enter object/string/error
+  preview, automatic custom inspection or completed-value/error rendering leak.
+- Pending evaluator is no authority owner; post-revocation continuations cannot mint,
+  reopen, re-enable, rebind another facade, publish a result or repeat cleanup.
 - No REPL history file/recall, setupHistory/autoload or .load/.save convenience path.
 - Fixed frozen movement facade, reset rebinds same facade; raw seal/maps/carrier/
   installer/connector/fence/generic owner-capability getters excluded.
@@ -1160,7 +1270,8 @@ review prompts, not a self-issued passing review:
 - Exact implementation commit/base/diff and repository context reviewed; security
   evidence identifies the actual reviewed implementation and later changes.
 - Semantic authority/lifecycle/TOCTOU/native-dispatch threats, including all nineteen
-  listed attack categories, covered explicitly.
+  listed attack categories, covered explicitly; include corrected EOF/Ctrl+C during
+  await, preview/custom inspection, terminal reentrancy and revoked evaluator behavior.
 - Codex Security used against exact commit/PR when available; unavailable product
   triggers dedicated strongest-available adversarial review, never waiver or sole proof.
 - Static/CodeQL/dependency scans supplemental only, already available/authorized;

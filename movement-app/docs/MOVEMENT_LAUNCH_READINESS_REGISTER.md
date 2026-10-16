@@ -1026,3 +1026,27 @@ provider/network or security-scan action occurred; only permitted offline Node
 behavior/source inspection. Capsule unread; no installation, staging, commit, push
 or execution authority granted. This is the same author's fresh adversarial pass,
 not independent human approval.
+
+## Qualification lifecycle narrow C1 RC1/RC2/RC3 reconciliation
+
+At starting HEAD a67e7db9417ed06f265772431e7826651044406a, appended narrow
+[C1 scope reconciliation](0114j-c1-c2-scope-review.md) and corrected the operative
+[implementation plan](0114j-qualification-lifecycle-implementation-plan.md).
+Direct stdin end/close observation now invokes the single first-latch terminal
+handler independently of deferred REPL exit during unresolved await. Select
+breakEvalOnSigint:true with default REPL SIGINT handling replaced by the fixed host
+terminal handler for single Ctrl+C; process SIGINT remains a separate source.
+Select preview:false to disable automatic pre-Enter inspection; retain constant
+writer and trusted explicit inspection boundary. Request-1 actual function label
+is corrected to acquireServices. Pending evaluators gain no post-revocation authority.
+
+C2, five runtime files/five bindings, B1, 21 transitions, 13 pin roles (three changed
+old/nine unchanged), fourteen focused suites, nineteen regression paths, three
+TypeScript checks and future security gate remain unchanged. Isolated offline
+Node probes support the corrected local branches; real PTY proof remains a future
+acceptance requirement. Renewed critical review is still required before separate
+implementation authorization may be requested. Implementation remains unauthorized;
+current package lifecycle null. Failed/prior reviews remain immutable. No runtime/
+test/typecheck/migration/provider/network/security-scan action, installation or
+capsule access occurred; only permitted built-in-only Node feasibility inspection/
+probes. No staging, commit, push, package promotion, activation or execution authority.
