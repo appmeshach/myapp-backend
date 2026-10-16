@@ -1050,3 +1050,25 @@ current package lifecycle null. Failed/prior reviews remain immutable. No runtim
 test/typecheck/migration/provider/network/security-scan action, installation or
 capsule access occurred; only permitted built-in-only Node feasibility inspection/
 probes. No staging, commit, push, package promotion, activation or execution authority.
+
+## Qualification lifecycle reconciled C1 renewed critical review
+
+At starting HEAD 5ae6caaf9ab121aa2799b97565eba900ba67ffbd, recorded
+[reconciled C1 renewed review](0114j-reconciled-c1-renewed-critical-review.md).
+Outcome: PLAN_CHANGES_REQUIRED_BEFORE_IMPLEMENTATION_AUTHORIZATION; one blocker
+(RS1 synchronous VM SIGINT interruption lacks a guaranteed bridge to host terminal
+revocation) and one nonblocking note (future real PTY proof gap). RC1 direct EOF
+and RC3 disabled preview pass design review; RC2 idle/multiline/pending-await native
+key branches pass local probes but complete signal design remains blocked. Native
+VM temporarily removes process SIGINT listeners during synchronous evaluation;
+the specified signal handlers do not cover every VM interruption/error-rendering path.
+Narrow scope/plan correction and renewed review are required. Separate implementation
+authorization may not yet be requested; implementation remains unauthorized.
+
+C2/B1/pins/inventories/security gate unchanged; plan, scope and prior reviews
+untouched. Provider/live/package authority unchanged; current package lifecycle
+null. Real PTY proof was not supplied and remains mandatory for future acceptance.
+No runtime/test/typecheck/migration/provider/network/security-scan action, install
+or capsule access occurred; only permitted offline native-source/Node probes and
+Git/text validation. No staging, commit, push or execution authority. This is the
+same author's fresh adversarial pass, not independent human approval.
