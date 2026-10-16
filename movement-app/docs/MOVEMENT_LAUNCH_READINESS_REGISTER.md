@@ -831,3 +831,21 @@ remains unchanged with lifecycle=null. Inventory, host and whole-package review
 blockers remain, and no active assertion or 0114D authority is granted. No provider
 action/network access occurred. Runtime, tests, templates, evidence and all 99
 migrations remain unchanged; capsule remains unread. No staging, commit or push.
+
+## Qualification lifecycle policy design review
+
+At HEAD 09c2f7e8cb6592f2595d75228577a570d3dd7c12, recorded the
+[0114I critical design review](0114i-qualification-lifecycle-policy-independent-review.md).
+Outcome: CHANGES_REQUIRED_BEFORE_IMPLEMENTATION_PLANNING. The review identifies
+missing explicit in-process assertion-level admission/closure ownership across
+multiple drafts: one-use tickets alone do not enforce one activation record/one
+attempt. The thirty-minute bound and stated trusted-operator cross-process limit
+are accepted; durable coordination is not required for the present scope.
+
+The reviewer is Codex in a separate critical pass, the same assistant that drafted
+the design; no independent human approval is claimed. Design remains unchanged.
+Required next step is a separately authorized narrow design correction and renewed
+review before implementation planning. No implementation, active assertion, target
+evidence resolution, package completion or 0114D authority is granted. Current
+package remains lifecycle=null. No provider/network action, runtime/test/migration
+change, capsule access, staging, commit or push occurred.
