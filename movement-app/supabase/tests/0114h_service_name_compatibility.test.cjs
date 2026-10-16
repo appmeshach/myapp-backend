@@ -15,14 +15,14 @@ async function success(f){const a=f.authorized(),h=f.wrapper.beginAuthorizedAcqu
  assert.equal(q.review.candidate.expectedServiceId,'synthetic-service');assert.equal(q.review.candidate.observedServiceId,'synthetic-service');
  assert.equal(q.review.candidate.serviceNameExpected,f.driver.serviceName);assert.equal(q.review.candidate.manifestSha256,a.review.manifestSha256);
  const r=f.wrapper.submitTargetReview(h,q.review,targetAck(q));assert.equal(r.providerRequests,3);assert.equal(f.sessions.length,1);assert.equal(f.opens.length,1);
- assert.equal(f.contextRecord(f.opens[0]).closed,true);assert.equal(f.timers.size,0);reject(()=>f.wrapper.beginAuthorizedAcquisition(a.ticket));return r;}
+ assert.equal(f.contextRecord(f.opens[0]).closed,true);assert.equal(f.timers.size,1);reject(()=>f.wrapper.beginAuthorizedAcquisition(a.ticket));return r;}
 for(const name of ['movement-qualification','another-reviewed-service','myapp-backend'])test('explicit reviewed exact name succeeds: '+name,async()=>{
  const f=loadAcquisition({serviceName:name}),r=await success(f);assert.equal(r.reviewedTarget.serviceNameObserved,name);
  assert(f.trace.indexOf('startTargetIdentitySession')<f.trace.indexOf('openExecutionContext'));
 });
 test('separate sessions retain distinct names without global leakage',async()=>{
  const a=loadAcquisition({serviceName:'movement-qualification'}),b=loadAcquisition({serviceName:'second-reviewed-name'});await Promise.all([success(a),success(b)]);
- assert.equal(a.identity.inspectSession(a.sessions[0]).expectations.serviceName,'movement-qualification');assert.equal(b.identity.inspectSession(b.sessions[0]).expectations.serviceName,'second-reviewed-name');
+ reject(()=>a.identity.inspectSession(a.sessions[0]));reject(()=>b.identity.inspectSession(b.sessions[0]));
 });
 const serviceBody=(name,id='synthetic-service',project='synthetic-project')=>({data:{project:{id:project,services:{edges:[{node:{id,name}}],pageInfo:{hasNextPage:false}}}}});
 const badServices={
@@ -67,7 +67,7 @@ test('snapshot is deeply frozen and independent of caller mutation',()=>{
  const r=f.auth.reviewExecutableAcquisitionPackage(d);assert.equal(r.manifest.expectedTarget.serviceName,'myapp-backend');
  for(const o of [r.manifest,r.manifest.expectedTarget,r.manifest.expectedTarget.inputReview,r.manifest.expectedTarget.inputReview.evidenceBinding])assert(Object.isFrozen(o));
  assert.throws(()=>{r.manifest.expectedTarget.serviceName='changed';});assert(!Object.hasOwn(r.manifest.expectedTarget.expectations,'serviceName'));
- assert.equal(r.manifest.version,'movement_railway_identity_acquisition_auth_v3');
+ assert.equal(r.manifest.version,'movement_railway_identity_acquisition_auth_v4');
 });
 for(const phase of ['review','approval','authorize','redemption'])for(const artifact of ['input','evidence'])test('stale '+artifact+' rejected at '+phase,()=>{
  const f=loadAcquisition(),x=draft(f),d=create(f,x);let r,a;
@@ -89,7 +89,7 @@ test('old executable version cannot be substituted into v3 final acknowledgement
 for(const mode of ['copy','plain','serialized','wrongBinding','wrongArity','replay'])test('private permit rejects '+mode+' and burns on located misuse',()=>{
  const driver={fail:'startTargetIdentitySession'},f=loadAcquisition(driver),a=f.authorized();reject(()=>f.wrapper.beginAuthorizedAcquisition(a.ticket));
  const entry=f.records.find(r=>r.key===a.draft).value,permit=f.records.filter(r=>r.value===entry).at(-1).key;driver.fail=null;
- if(mode==='replay'){f.identity.startTargetIdentitySession(a.target,permit);reject(()=>f.identity.startTargetIdentitySession(a.target,permit));}
+ if(mode==='replay'){reject(()=>f.identity.startTargetIdentitySession(a.target,permit));reject(()=>f.identity.startTargetIdentitySession(a.target,permit));}
  else if(mode==='wrongBinding'){reject(()=>f.identity.startTargetIdentitySession(f.binding(),permit));reject(()=>f.identity.startTargetIdentitySession(a.target,permit));}
  else if(mode==='wrongArity'){reject(()=>f.identity.startTargetIdentitySession(a.target,permit,'extra'));reject(()=>f.identity.startTargetIdentitySession(a.target,permit));}
  else reject(()=>f.identity.startTargetIdentitySession(a.target,mode==='plain'?{serviceName:'myapp-backend'}:clone(permit)));

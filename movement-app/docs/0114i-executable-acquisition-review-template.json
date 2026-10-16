@@ -1,0 +1,166 @@
+{
+  "outcome": "PRELIVE_NOT_AUTHORIZED",
+  "reviewed": false,
+  "liveAuthorized": false,
+  "manualLiveAuthorization": false,
+  "manifest": {
+    "version": "movement_railway_identity_acquisition_auth_v4",
+    "operationKind": "target_identity_acquisition",
+    "reviewedHead": null,
+    "reviewedBranch": null,
+    "codeIdentity": {
+      "baselineParentHead": "7c2346ce73d12e571b5ff8506fd8d02be48f44b7",
+      "sourceHashes": {
+        "qualification-railway-acquisition-owner-host.cjs": "17b3a74ac9a421c783876f5255fc02d5bffe2299efb2a53495f07f263a663bea",
+        "qualification-railway-acquisition-wrapper.cjs": "1130c5df6c2ec6142f983beead413db9693e329345afbacc2049f685e62b21b2",
+        "qualification-railway-first-context-wrapper.cjs": "7c3a376d1f7a1b733f3be90a3b7d43fb4aa2fd5256c5638a13e6301a3d78cf94",
+        "qualification-railway-https-adapter.cjs": "aebb9446b82d9785dc60dd298f1302927909ad5839a3641fcb7ebc59107d971e",
+        "qualification-railway-target-identity.cjs": "01304d6d9bc4562fb4a0d7213591c43688770bc7fa440de1887e7bc93a587271",
+        "qualification-railway-target-identity-provider-boundary.cjs": "cf22b4ce9d68b36fa6c325f289661528fcfb6ec8e75d6acad9af5429be53e1df",
+        "qualification-railway-context-review.cjs": "23fb65eef738136b68b3d8ce19a69e51482f9bc075c6a26940e2300108c6dd0f",
+        "qualification-railway-introspection-preflight.cjs": "88fe296bd5bfaa639844436c031dbdc674f29c25fbab3530081317143b3c9d74",
+        "qualification-railway-project-token-context.cjs": "cd862abc5b85b8663fbc1075263c0b5d3c6d05793a31e875db67457f4adb3085",
+        "qualification-railway-transport-contract.cjs": "33101241797b778067e2c44389c22c6b236e0f741e7565feae4cf8607e8b26de",
+        "qualification-railway-introspection-target.cjs": "2c236cc1a077fea457938b4317afd7488de010f725ec0a5463fb52d0ab12d199",
+        "qualification-railway-introspection-request.cjs": "62342054302e6f487708b85372b5f2cac7c1449e69ce3c25b0d142c1d4324ae3",
+        "qualification-railway-introspection-plan.cjs": "dacaf8a4aaecff254760da0c687ccc78b3569b7e5449d1a919ba4170d18fc0e3"
+      },
+      "authorizationBoundarySha256": "a1da1eec17b431009e8b580fe0480884b73d4c05334ec860c19c66c46b53d178",
+      "canonicalSourceRule": "UTF-8; CRLF to LF only; preserve all other bytes and EOF",
+      "reviewedHead": null,
+      "reviewedBranch": null
+    },
+    "expectedTarget": {
+      "projectId": null,
+      "environmentId": null,
+      "serviceId": null,
+      "serviceInstanceId": null,
+      "serviceName": null,
+      "inputReview": null,
+      "lifecycleEligibility": null,
+      "expectations": {
+        "projectName": "thorough-blessing",
+        "environmentName": null,
+        "branch": "feature/0092-shared-segment-suitability",
+        "rootDirectory": "/movement-app",
+        "historicalRegion": "europe-west4-drams3a",
+        "labelsAuthoritative": false
+      },
+      "environmentKind": null,
+      "lifecycle": null
+    },
+    "forbiddenRailwayInventory": {
+      "inventoryReviewed": false,
+      "basis": null,
+      "provenance": null,
+      "projectIds": {
+        "reviewed": false,
+        "completenessAcknowledged": false,
+        "completenessIsOperatorAssertion": true,
+        "ids": null,
+        "labels": []
+      },
+      "environmentIds": {
+        "reviewed": false,
+        "completenessAcknowledged": false,
+        "completenessIsOperatorAssertion": true,
+        "ids": null,
+        "labels": []
+      },
+      "serviceIds": {
+        "reviewed": false,
+        "completenessAcknowledged": false,
+        "completenessIsOperatorAssertion": true,
+        "ids": null,
+        "labels": []
+      },
+      "serviceInstanceIds": {
+        "reviewed": false,
+        "completenessAcknowledged": false,
+        "completenessIsOperatorAssertion": true,
+        "ids": null,
+        "labels": []
+      }
+    },
+    "crossSystemForbidden": {
+      "provider": "Supabase",
+      "identifierKind": "project_ref",
+      "production": "xdfmoggrsucisfybqctb",
+      "inactive": "udlsysezmzutydnifhsq",
+      "consumedHistoricalDisposable": "uzkhnslyrhgucijcuoes",
+      "railwayNamespace": false,
+      "newQualificationAuthorized": false
+    },
+    "orderedOperations": [
+      {
+        "kind": "provider",
+        "operationName": "Movement0108ProjectTokenContext",
+        "querySha256": "d3190e45cbf0ec1242ef090a9a5a437c4043a5e7542b075921744349b8039e28",
+        "maxRequests": 1
+      },
+      {
+        "kind": "provider",
+        "operationName": "Movement0111ProjectServices",
+        "querySha256": "fa6231580d6acec3510c26f4be5972605a3648c4c47f7da73eaa24021b137833",
+        "maxRequests": 1
+      },
+      {
+        "kind": "human_review",
+        "operationName": "HUMAN_SERVICE_REVIEW",
+        "required": true
+      },
+      {
+        "kind": "provider",
+        "operationName": "Movement0111ServiceInstance",
+        "querySha256": "e247e7ec5e98cc71bc399304c37846ede31d7009096da4449f9bc8e88f267493",
+        "maxRequests": 1
+      },
+      {
+        "kind": "human_review",
+        "operationName": "HUMAN_TARGET_REVIEW",
+        "required": true
+      }
+    ],
+    "exactRequestOrderRequired": true,
+    "maxProviderRequests": 3,
+    "retries": 0,
+    "fallbackAllowed": false,
+    "redirectPolicy": "reject",
+    "humanServiceReviewRequired": true,
+    "finalHumanTargetReviewRequired": true,
+    "schemaAuthorized": false,
+    "liveAuthorized": false,
+    "manualLiveAuthorization": false,
+    "transportSupported": true,
+    "authority": {
+      "outcome": "PRELIVE_NOT_AUTHORIZED",
+      "adapterImplemented": true,
+      "transportContractReady": true,
+      "providerContextAttestationReady": true,
+      "providerContextObserved": false,
+      "projectEnvironmentContextProven": false,
+      "serviceContextProven": false,
+      "executionSchemaReady": false,
+      "identity_proven": null,
+      "causality_proven": null,
+      "restart_origin_proven": null,
+      "platformRestart": null,
+      "restartAttribution": {
+        "measurement": null,
+        "limitation": "restart_origin_unattributable"
+      },
+      "manualLiveAuthorizationRequired": true
+    },
+    "executionPolicy": {
+      "humanWaitMs": 300000,
+      "maxProviderRequests": 3,
+      "sameSessionContextLifetime": true,
+      "closeOnEveryTerminalExit": true,
+      "crashResumeSupported": false,
+      "retries": 0,
+      "fallbackAllowed": false,
+      "redirectPolicy": "reject"
+    },
+    "manualLiveAuthorizationRequired": true
+  }
+}

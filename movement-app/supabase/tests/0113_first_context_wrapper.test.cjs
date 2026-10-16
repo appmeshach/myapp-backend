@@ -164,8 +164,8 @@ test('concurrent calls with the same authority dispatch once', async () => {
  const first = f.wrapper.runFirstContext(a.authority), second = f.wrapper.runFirstContext(a.authority);
  await reject(second); assert.deepEqual(clone(await first), completion); assert.equal(f.calls.length, 1); assert.equal(f.counts.close, 1);
 });
-test('twelve pins verify final bytes, original ten unchanged, and unresolved template exactly regenerates', () => {
- const pins = normalAuth.sourceHashes; assert.equal(Object.keys(pins).length, 12);
+test('thirteen pins verify final bytes and unresolved template exactly regenerates', () => {
+ const pins = normalAuth.sourceHashes; assert.equal(Object.keys(pins).length, 13);
  const canonicalHash = p => crypto.createHash('sha256').update(fs.readFileSync(p, 'utf8').replace(/\r\n/g, '\n'), 'utf8').digest('hex');
  for (const [name, expected] of Object.entries(pins)) assert.equal(canonicalHash(path.join(base, name)), expected);
  const template = normalAuth.reviewTemplate(), stored = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../docs/0110-live-review-template.json'), 'utf8'));

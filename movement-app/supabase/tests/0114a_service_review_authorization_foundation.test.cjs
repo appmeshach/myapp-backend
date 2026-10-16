@@ -171,13 +171,13 @@ for (const mode of ['head', 'branch', ...Object.keys(normal.sourceHashes), 'self
   reject(() => f.api.approveAcquisitionPackageReview(r, f.target, acquisitionAck(r)));
  });
 }
-test('pin count stays twelve, historical 0114A identity pin and later transport pins are distinct, templates share regenerated self hash', () => {
- const cp = require('node:child_process'), base = '99e3c23c1a2222c32ed9894b560c6df91ed5cb11';
+test('pin count is thirteen with the new host and three changed old runtime pins', () => {
+ const cp = require('node:child_process'), base = '6b074843e6e3bd2ea853489f2a6e01a3a8b2327e';
  const original = cp.execFileSync('git', ['-c', 'safe.directory=' + path.resolve(__dirname, '../../..'), 'show', base + ':movement-app/docs/0110-live-review-template.json'], { encoding: 'utf8', env: {}, windowsHide: true });
  const pins = JSON.parse(original).manifest.codeIdentity.sourceHashes;
- assert.equal(Object.keys(normal.sourceHashes).length, 12); assert.deepEqual(Object.keys(normal.sourceHashes).sort(), [...Object.keys(pins), 'qualification-railway-acquisition-wrapper.cjs'].sort());
+ assert.equal(Object.keys(normal.sourceHashes).length, 13); assert.deepEqual(Object.keys(normal.sourceHashes).sort(), [...Object.keys(pins), 'qualification-railway-acquisition-owner-host.cjs'].sort());
  for (const key of Object.keys(pins)) {
-  if (['qualification-railway-target-identity.cjs', 'qualification-railway-https-adapter.cjs', 'qualification-railway-target-identity-provider-boundary.cjs'].includes(key)) assert.notEqual(normal.sourceHashes[key], pins[key]);
+  if (['qualification-railway-acquisition-wrapper.cjs', 'qualification-railway-target-identity.cjs', 'qualification-railway-https-adapter.cjs'].includes(key)) assert.notEqual(normal.sourceHashes[key], pins[key]);
   else assert.equal(normal.sourceHashes[key], pins[key]);
  }
  const a = normal.reviewTemplate(), b = normal.acquisitionReviewTemplate();

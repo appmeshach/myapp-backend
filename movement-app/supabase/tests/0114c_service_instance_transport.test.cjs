@@ -287,21 +287,23 @@ test('global authority and acquisition planning stay false/null after candidate'
  const template=auth.acquisitionReviewTemplate();assert.equal(template.outcome,'PRELIVE_NOT_AUTHORIZED');
  for(const key of ['transportSupported','liveAuthorized','manualLiveAuthorization'])assert.equal(template.manifest[key],false);
 });
-test('exactly twelve pins change adapter/boundary only; v3 identity and unchanged query/lifetime functions',()=>{
+test('exactly thirteen pins include host and three changed old runtime sources',()=>{
  const git=args=>cp.execFileSync('git',['-c','safe.directory='+path.resolve(__dirname,'../../..'),...args],{encoding:'utf8',env:{},windowsHide:true});
- const baseline='3d978c44e09750ea8f21d2b47fe220ff717d5714',old=JSON.parse(git(['show',baseline+':movement-app/docs/0110-live-review-template.json']));
- assert.equal(Object.keys(auth.sourceHashes).length,12);
+ const baseline='6b074843e6e3bd2ea853489f2a6e01a3a8b2327e',old=JSON.parse(git(['show',baseline+':movement-app/docs/0110-live-review-template.json']));
+ assert.equal(Object.keys(auth.sourceHashes).length,13);
  for(const [file,sha] of Object.entries(auth.sourceHashes)){
   assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(base,file),'utf8').replace(/\r\n/g,'\n')).digest('hex'),sha);
-  if(['qualification-railway-target-identity.cjs','qualification-railway-https-adapter.cjs','qualification-railway-target-identity-provider-boundary.cjs'].includes(file))assert.notEqual(sha,old.manifest.codeIdentity.sourceHashes[file]);
-  else if(file==='qualification-railway-acquisition-wrapper.cjs')assert.equal(old.manifest.codeIdentity.sourceHashes[file],undefined);
+  if(['qualification-railway-acquisition-wrapper.cjs','qualification-railway-target-identity.cjs','qualification-railway-https-adapter.cjs'].includes(file))assert.notEqual(sha,old.manifest.codeIdentity.sourceHashes[file]);
+  else if(file==='qualification-railway-acquisition-owner-host.cjs')assert.equal(old.manifest.codeIdentity.sourceHashes[file],undefined);
   else assert.equal(sha,old.manifest.codeIdentity.sourceHashes[file]);
  }
  const before=git(['show',baseline+':movement-app/scripts/assessment-worker/qualification-railway-https-adapter.cjs']).replace(/\r\n/g,'\n');
  const after=fs.readFileSync(path.join(base,'qualification-railway-https-adapter.cjs'),'utf8').replace(/\r\n/g,'\n');
  for(const name of ['requireServicesOwner','fixedProjectServicesRequest','assertServicesAttempt','bindProjectServicesTransfer','executeProjectServices','cancelProjectServicesTransfer','consumeProjectServicesReceipt']){
   const pattern=new RegExp('(?:async )?function '+name+'\\([\\s\\S]*?\n}');
-  assert.ok(before.match(pattern),name);assert.equal(after.match(pattern)?.[0],before.match(pattern)[0],name);
+  assert.ok(before.match(pattern),name);const current=after.match(pattern)?.[0],prior=before.match(pattern)[0];
+  if(name==='executeProjectServices')assert.equal(current.replace(',e.request.operationName', ''),prior,name);
+  else assert.equal(current,prior,name);
  }
  for(const [file,t] of [['0110-live-review-template.json',auth.reviewTemplate()],['0114a-acquisition-review-template.json',auth.acquisitionReviewTemplate()]]){
   assert.deepEqual(JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../docs',file),'utf8')),t);

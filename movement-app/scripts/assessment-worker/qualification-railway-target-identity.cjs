@@ -71,7 +71,7 @@ const serviceReviews = new WeakMap();
 const inventories = new WeakMap(), candidateReviews = new WeakMap(), targetHandoffs = new WeakMap();
 const contextPermits = new WeakMap(), contextSlots = new WeakMap(), slotRecords = new WeakMap(), contextAcceptances = new WeakMap();
 const CATEGORIES = ['projectIds', 'environmentIds', 'serviceIds', 'serviceInstanceIds'];
-function record(session) { const r = sessions.get(session); if (!r) fail(); return r; }
+function record(session) { const r = sessions.get(session); if (!r) fail();if(r.acquisition)r.acquisition.lifecycleCarrier.check(); return r; }
 function startTargetIdentitySession(...args) {
  // A located genuine permit burns even when arity/binding is wrong.
  let acquisition = null;
@@ -79,8 +79,11 @@ function startTargetIdentitySession(...args) {
  catch { fail(); }
  if (args.length !== 1 && args.length !== 2 || args.length === 2 && !acquisition) fail(); let target;
  try { target = targets.describeTarget(args[0]); } catch { fail(); }
- if (acquisition) for (const k of ['projectId','environmentId','serviceId','serviceInstanceId','environmentKind','lifecycle'])
-  if (acquisition.expectedTarget[k] !== target[k]) fail();
+ if (acquisition) {
+  if(typeof acquisition.lifecycleCarrier?.check!=='function')fail();acquisition.lifecycleCarrier.check();
+  for (const k of ['projectId','environmentId','serviceId','serviceInstanceId','environmentKind','lifecycle'])
+   if (acquisition.expectedTarget[k] !== target[k]) fail();
+ }
  const session = Object.freeze({});
  sessions.set(session, { binding: args[0], target, acquisition, stage: 'context_expected', revision: 0, executionContext: null,
   contextFacts: null, serviceFacts: null, serviceObservation: null, serviceReviewIssued: false, serviceApproval: null, instanceFacts: null, activeHandoff: null, activeInvocation: null, candidate: null, contextTransferLock: null });

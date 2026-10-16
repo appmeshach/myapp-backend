@@ -4,7 +4,7 @@ const {loadAcquisition,clone,inventory,serviceAck,targetAck}=require('./fixtures
 const base=path.resolve(__dirname,'../../scripts/assessment-worker'),normal=require(path.join(base,'qualification-railway-live-authorization.cjs')),wrapper=require(path.join(base,'qualification-railway-acquisition-wrapper.cjs'));
 const reject=fn=>assert.throws(fn,/unavailable/);
 const flush=async()=>{for(let i=0;i<80;i++)await Promise.resolve();};
-function closed(f){assert.equal(f.opens.length,1);assert.equal(f.contextRecord(f.opens[0]).closed,true);assert.equal(f.contextRecord(f.opens[0]).secret,null);assert.equal(f.timers.size,0);}
+function closed(f){assert.equal(f.opens.length,1);assert.equal(f.contextRecord(f.opens[0]).closed,true);assert.equal(f.contextRecord(f.opens[0]).secret,null);assert.equal(f.timers.size,1);}
 async function service(f){const a=f.authorized(),h=f.wrapper.beginAuthorizedAcquisition(a.ticket),p=await f.pending(h,'service_review');return{a,h,p};}
 async function target(f){const x=await service(f);f.wrapper.submitServiceReview(x.h,x.p.review,serviceAck(x.p));x.p=await f.pending(x.h,'candidate');return x;}
 test.beforeEach(t=>{let calls=0;for(const[o,k]of[[require('node:https'),'request'],[require('node:http'),'request'],[global,'fetch']])t.mock.method(o,k,()=>{calls++;throw Error('REAL NETWORK FORBIDDEN');});t.after(()=>assert.equal(calls,0));});
@@ -12,7 +12,7 @@ test('exact success uses one S/C, three provider operations, two manual gates an
  const f=loadAcquisition(),x=await service(f);
  assert.equal(f.calls.length,2);assert.equal(f.identity.inspectSession(f.sessions[0]).stage,'service_review');
  assert.equal(f.contextRecord(f.opens[0]).closed,false);assert.equal(f.trace.includes('approveObservedServiceCandidate'),false);
- assert.equal(f.timers.size,1);assert.equal([...f.timers.values()][0].ms,300000);
+ assert.equal(f.timers.size,2);assert([...f.timers.values()].some(v=>v.ms===300000));
  f.wrapper.submitServiceReview(x.h,x.p.review,serviceAck(x.p));const p=await f.pending(x.h,'candidate');
  assert.equal(f.calls.length,3);assert.equal(f.trace.includes('approveTargetCandidate'),false);
  const result=f.wrapper.submitTargetReview(x.h,p.review,targetAck(p));closed(f);
@@ -63,9 +63,10 @@ for(const mode of ['copiedReview','serializedReview','wrongTarget','inventory','
 test('manual=false cannot authorize; exact final acknowledgement creates one ticket and no direct execution',()=>{
  const f=loadAcquisition(),a=f.reviewed();
  reject(()=>f.auth.authorizeAcquisition(a.draft,a.target,a.approved.finalAcknowledgementTemplate));
- reject(()=>f.auth.authorizeAcquisition(a.draft,f.binding(),{...a.approved.finalAcknowledgementTemplate,manualLiveAuthorization:true}));
- const ticket=f.auth.authorizeAcquisition(a.draft,a.target,{...a.approved.finalAcknowledgementTemplate,manualLiveAuthorization:true});
  reject(()=>f.auth.authorizeAcquisition(a.draft,a.target,{...a.approved.finalAcknowledgementTemplate,manualLiveAuthorization:true}));
+ const b=f.reviewed();reject(()=>f.auth.authorizeAcquisition(b.draft,f.binding(),{...b.approved.finalAcknowledgementTemplate,manualLiveAuthorization:true}));
+ const c=f.reviewed(),ticket=f.auth.authorizeAcquisition(c.draft,c.target,{...c.approved.finalAcknowledgementTemplate,manualLiveAuthorization:true});
+ reject(()=>f.auth.authorizeAcquisition(c.draft,c.target,{...c.approved.finalAcknowledgementTemplate,manualLiveAuthorization:true}));
  assert.ok(Object.isFrozen(ticket));assert.deepEqual(Object.keys(ticket),[]);assert.equal(JSON.stringify(ticket),'{}');
  assert.equal(f.auth.consumeAcquisitionTicket,undefined);assert.equal(f.auth.takeAcquisitionExecutionAuthority,undefined);
  reject(()=>f.wrapper.beginAuthorizedAcquisition(clone(ticket)));
@@ -110,7 +111,7 @@ for(const stage of ['service_review','candidate']){
   const f=loadAcquisition(),x=stage==='service_review'?await service(f):await target(f),y=stage==='service_review'?await service(f):await target(f);
   reject(()=>stage==='service_review'?f.wrapper.submitServiceReview(x.h,y.p.review,serviceAck(y.p)):f.wrapper.submitTargetReview(x.h,y.p.review,targetAck(y.p)));
   for(const c of f.opens)assert.equal(f.contextRecord(c).closed,true);
-  reject(()=>f.wrapper.takePendingHumanReview(x.h));reject(()=>f.wrapper.takePendingHumanReview(y.h));assert.equal(f.timers.size,0);
+  reject(()=>f.wrapper.takePendingHumanReview(x.h));reject(()=>f.wrapper.takePendingHumanReview(y.h));assert.equal(f.timers.size,1);
  });
 }
 for(const operation of ['Movement0108ProjectTokenContext','Movement0111ProjectServices','Movement0111ServiceInstance'])for(const mode of ['error','redirect','cancel']){
@@ -167,13 +168,13 @@ test('global state stays false/null after exact synthetic completion and safe te
  for(const [file,t]of[['0110-live-review-template.json',normal.reviewTemplate()],['0114a-acquisition-review-template.json',v1]])
   assert.deepEqual(JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../docs',file),'utf8')),t);
 });
-test('twelve pins; approved v3 runtime changes and self/template hashes bind final bytes',()=>{
+test('thirteen pins; owner host plus approved v4 runtime changes bind final bytes',()=>{
  const old=JSON.parse(cp.execFileSync('git',['-c','safe.directory='+path.resolve(__dirname,'../../..'),'show','7f1582bb3eaf244394e91da24909473fc38569fc:movement-app/docs/0110-live-review-template.json'],{encoding:'utf8',env:{},windowsHide:true}));
- assert.equal(Object.keys(normal.sourceHashes).length,12);
+ assert.equal(Object.keys(normal.sourceHashes).length,13);
  for(const[file,sha]of Object.entries(normal.sourceHashes)){
   assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(base,file),'utf8').replace(/\r\n/g,'\n')).digest('hex'),sha);
-  if(file==='qualification-railway-acquisition-wrapper.cjs')assert.equal(old.manifest.codeIdentity.sourceHashes[file],undefined);
-  else if(['qualification-railway-target-identity.cjs','qualification-railway-https-adapter.cjs'].includes(file))assert.notEqual(old.manifest.codeIdentity.sourceHashes[file],sha);
+  if(file==='qualification-railway-acquisition-owner-host.cjs')assert.equal(old.manifest.codeIdentity.sourceHashes[file],undefined);
+  else if(['qualification-railway-acquisition-wrapper.cjs','qualification-railway-target-identity.cjs','qualification-railway-https-adapter.cjs'].includes(file))assert.notEqual(old.manifest.codeIdentity.sourceHashes[file],sha);
   else assert.equal(old.manifest.codeIdentity.sourceHashes[file],sha);
  }
  assert.notEqual(normal.reviewTemplate().manifest.codeIdentity.authorizationBoundarySha256,old.manifest.codeIdentity.authorizationBoundarySha256);
@@ -225,7 +226,7 @@ test('normal authorization exports retain only reviewed public APIs',()=>{
  assert.deepEqual(Object.keys(normal),[
   'state','baselineParentHead','sourceHashes','verifyCodeIdentity',
   'createExecutableAcquisitionDraft','reviewExecutableAcquisitionPackage','approveExecutableAcquisitionPackageReview',
-  'authorizeAcquisition','executableAcquisitionReviewTemplate','createAcquisitionDraft','reviewAcquisitionPackage',
+  'authorizeAcquisition','cancelExecutableAcquisitionDraft','executableAcquisitionReviewTemplate','createAcquisitionDraft','reviewAcquisitionPackage',
   'approveAcquisitionPackageReview','acquisitionReviewTemplate','createDraft','reviewArtifact','reviewPackage',
   'authorizeFirstLiveContext','consumeLiveTicketForContext','takeContextExecutionAuthority','takeFirstContextExecutionAuthority','reviewTemplate']);
  assert.ok(Object.isFrozen(normal));assert.equal(normal.consumeAcquisitionTicket,undefined);

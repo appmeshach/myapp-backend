@@ -6,7 +6,7 @@ const exported = Object.assign(Object.create(null), { beginAuthorizedAcquisition
 module.exports = exported;
 Object.defineProperty(exported, '_connectAcquisitionRedemption', { configurable: true, value(...args) {
  if (args.length !== 1 || redeemTicket || typeof args[0] !== 'function') throw Error('Railway acquisition unavailable');
- redeemTicket = args[0]; Reflect.deleteProperty(exported, '_connectAcquisitionRedemption'); Object.freeze(exported);
+ redeemTicket = args[0]; Reflect.deleteProperty(exported, '_connectAcquisitionRedemption'); Object.freeze(exported);return setupAcquisition;
 } });
 const authorization = require('./qualification-railway-live-authorization.cjs');
 const identity = require('./qualification-railway-target-identity.cjs');
@@ -24,7 +24,8 @@ function globals() {
  if (identity.state.targetIdentityObserved !== false) fail();
 }
 function current(e, stage) {
- if (e.terminal || runs.get(e.handle) !== e || identity.inspectSession(e.session).stage !== stage) fail();
+ if (e.terminal || runs.get(e.handle) !== e) fail();e.lifecycleCarrier.check();
+ if(identity.inspectSession(e.session).stage !== stage) fail();
  globals();
 }
 function burnGate(e) {
@@ -39,9 +40,9 @@ function burnGate(e) {
  }
  e.review = null;
 }
-function terminate(e) {
+function terminate(e,reason='run_closed',closeCarrier=true) {
  if (e.terminal) return;
- e.terminal = true; runs.delete(e.handle); burnGate(e); issuedResults.delete(e.handle);
+ e.terminal = true;if(closeCarrier)e.lifecycleCarrier.close(reason); runs.delete(e.handle); burnGate(e); issuedResults.delete(e.handle);
  const c = e.executionContext; e.executionContext = null;
  try { if (c) adapter.closeExecutionContext(c); }
  finally { e.session = null; e.target = null; e.inventoryReview = null; e.contextHandoff = null; e.acquisitionTargetPermit = null; }
@@ -87,22 +88,26 @@ async function acquireInstance(e) {
   current(e,'candidate'); gate(e,'candidate',identity.reviewTargetCandidate(e.session));
  } catch { try { terminate(e); } catch {} }
 }
-function beginAuthorizedAcquisition(...args) {
+function setupAcquisition(extracted) {
  let e;
  try {
-  if (!redeemTicket) fail();
-  const extracted = redeemTicket(...args);
-  if (args.length !== 1 || extracted.operationKind !== 'target_identity_acquisition' ||
+  if (extracted.operationKind !== 'target_identity_acquisition' || typeof extracted.lifecycleCarrier?.check!=='function' ||
+   typeof extracted.lifecycleCarrier?.attachRun!=='function' || typeof extracted.adapterAssociate!=='function' ||
    extracted.executionPolicy.humanWaitMs !== HUMAN_WAIT_MS || extracted.executionPolicy.maxProviderRequests !== 3) fail();
-  globals();
+  extracted.lifecycleCarrier.check();globals();
   const handle = Object.freeze({});
   e = { handle, target: extracted.privateTarget, acquisitionTargetPermit:extracted.acquisitionTargetPermit, contextHandoff: extracted.contextHandoff, inventoryReview: extracted.inventoryReview,
    session: null, executionContext: null, terminal: false, phase: 'context_expected', review: null, timer: null, deadline: null,
-   promptTaken: false, providerRequests: 0 };
+   promptTaken: false, providerRequests: 0,lifecycleCarrier:extracted.lifecycleCarrier };
+  e.lifecycleCarrier.attachRun(()=>terminate(e,'owner_close',false));
   e.session = identity.startTargetIdentitySession(e.target,e.acquisitionTargetPermit); e.acquisitionTargetPermit = null;
-  e.executionContext = adapter.openExecutionContext(e.target);
+  const adapterAssociation=extracted.adapterAssociate(e.session,e.lifecycleCarrier);
+  e.executionContext = adapter.openExecutionContext(e.target,adapterAssociation);
   runs.set(handle,e); void acquireServices(e); return handle;
  } catch { if (e) { try { terminate(e); } catch {} } fail(); }
+}
+function beginAuthorizedAcquisition(...args) {
+ if(!redeemTicket)fail();return redeemTicket(...args);
 }
 function locate(handle) { const e = runs.get(handle); if (!e || e.terminal) fail(); return e; }
 function takePendingHumanReview(...args) {
@@ -138,9 +143,9 @@ function submitTargetReview(...args) {
   const reviewed = identity.takeReviewedTargetFor0110(handoff,e.target);
   const result = freeze({ outcome: 'TARGET_IDENTITY_REVIEWED', stage: 'reviewed', reviewedTarget: reviewed.reviewedCandidate,
    providerRequests: 3, manualLiveAuthorizationConsumed: true, liveAuthorized: false });
-  // No target/qualification handoff escapes. Result issuance is private and one-use.
-  terminate(e); issuedResults.set(e.handle,result);
-  const issued = issuedResults.get(e.handle); issuedResults.delete(e.handle); return issued;
+  // Close first, synchronously clean resources, then perform the validity-only
+  // release fence. No target/qualification handoff escapes.
+  const carrier=e.lifecycleCarrier;carrier.complete();carrier.release();return result;
  } catch { if (owned && owned !== e) { try { terminate(owned); } catch {} } try { terminate(e); } catch {} fail(); }
 }
 function cancelAcquisition(...args) {

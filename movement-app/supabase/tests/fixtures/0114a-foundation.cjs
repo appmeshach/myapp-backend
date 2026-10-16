@@ -32,7 +32,14 @@ function acquisitionFixture() {
  const source = fs.readFileSync(file, 'utf8'), code = { reviewedHead: 'a'.repeat(40), reviewedBranch: 'feature/0092-shared-segment-suitability' };
  const drift = { ...code, files: new Map() };
  const sandbox = { module: { exports: {} }, Buffer, __dirname: path.dirname(file), __filename: file, require(name) {
-  if (name === 'node:fs') return { existsSync: fs.existsSync, readFileSync: (p, enc) => drift.files.has(p) ? drift.files.get(p) : fs.readFileSync(p, enc) };
+  if (name === 'node:fs') return {
+   existsSync: fs.existsSync, realpathSync: p => path.resolve(p),
+   readFileSync: (p, enc) => drift.files.has(p) ? drift.files.get(p) : fs.readFileSync(p, enc),
+   openSync: p => ({ data: Buffer.from(drift.files.has(p) ? drift.files.get(p) : fs.readFileSync(p)), offset: 0 }),
+   fstatSync: () => ({ isFile: () => true }),
+   readSync: (h, buffer, offset, length) => { const count=Math.min(length,h.data.length-h.offset);if(count>0)h.data.copy(buffer,offset,h.offset,h.offset+count);h.offset+=count;return count; },
+   closeSync: () => {}
+  };
   if (name === 'node:child_process') return { execFileSync(command, args, options) {
    assert.equal(command, 'git'); assert.deepEqual(Object.keys(options.env), []); assert.equal(options.shell, false);
    const action = args.slice(2).join(' ');
@@ -41,7 +48,7 @@ function acquisitionFixture() {
    assert.fail('Unexpected subprocess');
   } };
   if (name.startsWith('./')) return require(path.resolve(path.dirname(file), name));
-  assert.ok(['node:path', 'node:crypto'].includes(name)); return require(name);
+  assert.ok(['node:path', 'node:crypto', 'node:perf_hooks'].includes(name)); return require(name);
  } };
  require('./0114d-authorization-loader.cjs').loadAuthorizationSandbox(source, sandbox, file);
  const api = sandbox.module.exports, target = binding(), draft = api.createAcquisitionDraft(target, empty(), code);

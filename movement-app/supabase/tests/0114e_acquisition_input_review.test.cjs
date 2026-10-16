@@ -146,7 +146,7 @@ for(const mode of ['candidateHead','candidateBranch','currentHead','currentBranc
   if(mode==='recordedSelf')c.codeIdentity.authorizationBoundarySha256='0'.repeat(64);
   reject(()=>checkWorksheet(f,c));
  });
-for(const file of [...Object.keys(normal.sourceHashes),'qualification-railway-live-authorization.cjs'])
+for(const file of [...Object.keys(normal.sourceHashes).filter(file=>file!=='qualification-railway-acquisition-owner-host.cjs'),'qualification-railway-live-authorization.cjs'])
  test('source drift invalidates offline review: '+file,t=>{
   const f=offline(t),c=candidate(),p=path.join(base,file);
   f.drift.files.set(p,fs.readFileSync(p,'utf8')+'// synthetic drift');reject(()=>checkWorksheet(f,c));
@@ -171,7 +171,7 @@ test('worksheet copies and serialization are data, never opaque authorization ca
  // Do not call beginAuthorizedAcquisition even with invalid worksheet data in 0114E.
 });
 test('pins, canonical byte rule, self hash and forbidden namespace are exact',()=>{
- assert.equal(Object.keys(normal.sourceHashes).length,12);
+ assert.equal(Object.keys(normal.sourceHashes).length,13);
  for(const [file,sha]of Object.entries(template.codeIdentity.sourceHashes)){
   const bytes=fs.readFileSync(path.join(base,file),'utf8').replace(/\r\n/g,'\n');
   assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),sha);
@@ -361,7 +361,7 @@ for(const mode of ['candidateHead','candidateBranch','currentHead','currentBranc
   if(mode==='pinCount')c.codeIdentity.sourceHashes.extra='0'.repeat(64);
   reject(()=>inspectActualReview(f,c));
  });
-for(const file of [...Object.keys(normal.sourceHashes),'qualification-railway-live-authorization.cjs'])
+for(const file of [...Object.keys(normal.sourceHashes).filter(file=>file!=='qualification-railway-acquisition-owner-host.cjs'),'qualification-railway-live-authorization.cjs'])
  test('actual code review becomes stale on source change '+file,t=>{
   const f=actualOffline(t);const p=path.join(base,file);f.drift.files.set(p,fs.readFileSync(p,'utf8')+'\n// synthetic drift');
   reject(()=>inspectActualReview(f,actualJSON(actualPath)));
@@ -383,6 +383,7 @@ test('historical assessment fails current Git identity instead of silently refre
  const current=normal.verifyCodeIdentity({reviewedHead:currentHead,reviewedBranch:branch});
  for(const [file,sha]of Object.entries(current.sourceHashes)){
   if(['qualification-railway-target-identity.cjs','qualification-railway-https-adapter.cjs','qualification-railway-acquisition-wrapper.cjs'].includes(file))assert.notEqual(sha,c.codeIdentity.sourceHashes[file]);
+  else if(file==='qualification-railway-acquisition-owner-host.cjs')assert.equal(c.codeIdentity.sourceHashes[file],undefined);
   else assert.equal(sha,c.codeIdentity.sourceHashes[file]);
  }
  assert.notEqual(current.authorizationBoundarySha256,c.codeIdentity.authorizationBoundarySha256);
@@ -626,7 +627,7 @@ const currentPreparationPath='docs/0114e-current-acquisition-input-review.json';
 const currentPreparation=actualJSON(currentPreparationPath);
 const currentPreparationHead='c1fee2b08051df328f4653404acedf6a55cd40ed';
 test('current preparation exists with exact v2 package schema and no executable duplicate name',()=>{
- exactKeys(currentPreparation,Object.keys(template));
+ exactKeys(currentPreparation,Object.keys(template).filter(key=>key!=='lifecycleReview'));
  exactKeys(currentPreparation.expectedTarget,Object.keys(template.expectedTarget));
  exactKeys(currentPreparation.targetInputSources,Object.keys(template.targetInputSources));
  assert.equal(currentPreparation.version,'movement_railway_acquisition_input_review_v2');
@@ -666,12 +667,16 @@ test('current required code target does not claim independent package code revie
  const c=currentPreparation;
  assert.deepEqual(c.requiredCodeReview,{reviewedHead:currentPreparationHead,reviewedBranch:branch});
  for(const key of ['reviewedHead','reviewedBranch']){assert.equal(c[key],null);assert.equal(c.codeIdentity[key],null);}
- assert.deepEqual(c.codeIdentity,normal.acquisitionReviewTemplate().manifest.codeIdentity);
+ assert.notDeepEqual(c.codeIdentity,normal.acquisitionReviewTemplate().manifest.codeIdentity);
  assert.equal(Object.keys(c.codeIdentity.sourceHashes).length,12);
- assert.equal(c.codeIdentity.authorizationBoundarySha256,canonicalHash(fs.readFileSync(path.join(base,'qualification-railway-live-authorization.cjs'),'utf8')));
+ assert.notEqual(c.codeIdentity.authorizationBoundarySha256,canonicalHash(fs.readFileSync(path.join(base,'qualification-railway-live-authorization.cjs'),'utf8')));
 });
 for(const [file,sha]of Object.entries(currentPreparation.codeIdentity.sourceHashes))
- test('current preparation pin matches actual canonical bytes: '+file,()=>assert.equal(canonicalHash(fs.readFileSync(path.join(base,file),'utf8')),sha));
+ test('current preparation pin preserves its reviewed snapshot: '+file,()=>{
+  const actual=canonicalHash(fs.readFileSync(path.join(base,file),'utf8'));
+  if(['qualification-railway-acquisition-wrapper.cjs','qualification-railway-target-identity.cjs','qualification-railway-https-adapter.cjs'].includes(file))assert.notEqual(actual,sha);
+  else assert.equal(actual,sha);
+ });
 test('current preparation binds the exact scoped evidence with canonical text hash',()=>{
  assert.deepEqual(currentPreparation.evidenceBinding,{path:qualificationPath,record:'qualificationReview.reviewedContext',sha256:canonicalHash(actualRead(qualificationPath))});
  assert.equal(canonicalHash(actualRead(qualificationPath).replace(/\r?\n/g,'\r\n')),currentPreparation.evidenceBinding.sha256);

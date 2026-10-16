@@ -1155,3 +1155,198 @@ null; provider/live/package/deployment authority remains absent. This review its
 performed no network, runtime/test change, test/typecheck, PTY/signal proof or security
 review. Capsule unread; no staging, commit or push. Implementation may resume only
 after this documentation-authority artifact is checkpointed.
+
+## Qualification lifecycle frozen implementation acceptance attempt
+
+At HEAD `6b074843e6e3bd2ea853489f2a6e01a3a8b2327e`, constructed the frozen
+five-runtime-file 0114J implementation and recorded the
+[implementation report](0114j-frozen-implementation-report.md). The exact 14 focused
+suites, unchanged 19-path serialized regression and three installed TypeScript checks
+passed with zero failures. Pin accounting passed: three changed old runtime roles,
+nine unchanged old roles, one new owner-host role and a separate authorization self
+hash. Protected current 0114E package/evidence, package/run files and migrations have
+no tracked diff; the index remained empty.
+
+Outcome: `IMPLEMENTATION_CONSTRUCTED_ACCEPTANCE_BLOCKED`. Blocking result:
+`REAL_PTY_ACCEPTANCE_UNAVAILABLE`. The available hidden Windows PTY and console-event
+bridge did not deliver a supported Ctrl+C to genuine synchronous native evaluation;
+an idle PTY injection also failed to produce the required host-owned exit 130 proof.
+No contrary VM Error shape was observed because the signal was not delivered.
+
+Per the frozen order, the semantic security gate and independent implementation
+review were not run. Implementation acceptance, provider/live/package/deployment
+authority and activation remain false. The current package remains v2, incomplete,
+unpromoted and lifecycle-null. No Railway/provider/Supabase project API, production,
+deployment, migration, credential/capsule access, staging, commit or push occurred.
+
+## Qualification lifecycle Git-for-Windows WinPTY acceptance retry
+
+At unchanged HEAD `6b074843e6e3bd2ea853489f2a6e01a3a8b2327e`, retried the
+mandatory native signal acceptance with installed Git Bash
+`C:\Program Files\Git\bin\bash.exe`, WinPTY
+`C:\Program Files\Git\usr\bin\winpty.exe` and Node v24.13.1. Stdin, stdout and
+stderr were TTYs. One Ctrl+C terminated each fresh exact owner host at idle, during
+multiline input and during unresolved top-level await, with exit 130 and without a
+second press or resumed Node prompt. The scheduled process-SIGINT path separately
+terminated with exit 130.
+
+The actual RS1 case used an active original-graph synthetic lifecycle ticket and
+genuine synchronous native `for(;;){}` evaluation. One WinPTY Ctrl+C reached the
+fixed writer terminal branch and exit 130. The branch's captured predicates establish
+native Error branding, own data `code` and exact primitive
+`ERR_SCRIPT_EXECUTION_INTERRUPTED`. No result or usable prompt followed. The post-
+shutdown exit audit reported `CLOSED=true DRAFT_BURNED=true`, proving no ticket/draft
+continuation, transport reopen or authority rearm. The first failed hidden-PTY result
+remains historical evidence; the supported Git-for-Windows retry result is
+`PASS_GIT_FOR_WINDOWS_WINPTY`.
+
+Outcome: `IMPLEMENTATION_CONSTRUCTED_SECURITY_REVIEW_PENDING`. Deterministic gates
+and source identities remain unchanged because this retry changed no runtime or test
+bytes. The semantic security gate is now eligible. Independent implementation review
+had not occurred at that checkpoint. Provider/live/package/deployment authority and
+activation remain false; the current v2 package remains incomplete, unpromoted and
+lifecycle-null.
+
+## Qualification lifecycle semantic implementation-security gate
+
+Against unchanged HEAD `6b074843e6e3bd2ea853489f2a6e01a3a8b2327e` and the exact
+five-runtime-file diff, completed the frozen offline adversarial-review fallback.
+Codex Security was not installed/available and installation was outside authority.
+Outcome: `SEMANTIC_SECURITY_GATE_PASS_NO_BLOCKING_FINDINGS`; zero critical, high,
+medium or low findings remain open.
+
+The review covered owner/copy/preload/reload/cache bypass, facade/private leakage,
+reset, output/custom inspection, stale capability reuse, clock/expiry/rollback,
+transition TOCTOU, all three adapter-local final fences, public-hook introduction,
+context downgrade, terminal cleanup/races, pin/self identity, credentials, request
+expansion, package activation and authority outside the original graph. RS1 native
+interruption classification, prompt suppression, terminal-latch/exit-code behavior
+and rearm denial passed with the WinPTY evidence. Approved process-local admission,
+trusted-operator and native pre-writer limitations remain unchanged design bounds.
+
+Outcome advances to
+`IMPLEMENTATION_CONSTRUCTED_SECURITY_GATE_PASS_INDEPENDENT_REVIEW_PENDING`.
+At that checkpoint, independent implementation review had not occurred and remained
+the exact next gate. No provider/live/package/deployment authority or activation is
+granted.
+
+## Qualification lifecycle post-remediation documentation checkpoint
+
+At unchanged HEAD `6b074843e6e3bd2ea853489f2a6e01a3a8b2327e`, the first genuinely
+independent implementation review blocked acceptance on
+`B1_FUTURE_REVIEWED_AT_ACCEPTED` (HIGH),
+`B2_ATTEMPT_REFERENCE_BOUND_NOT_ENFORCED` (MEDIUM), and
+`B3_MISSING_CLOSED_MARKER_OWNER_SWEEP_TIMER` (MEDIUM). Remediation was separately
+reviewed and authorized. The three fixes are now implemented without widening the
+five-file production boundary: B1 enforces trusted review time and the final
+synchronous admission fence, B2 enforces the attempt-reference 1..128 bound while
+general references remain 1..256, and B3 adds the one private nearest-expiry
+closed-marker owner sweep with generation-guarded stale-callback denial, UTC-only
+deletion, fault latching, retained high-water, matching reverse-index cleanup and
+idempotent closure.
+
+The authorization self hash moved from
+`5a3d3c0d0ab393e5e34c3c39dc9c02ef35a3a8f54578f4cd356614119cabdec8` to
+`a1da1eec17b431009e8b580fe0480884b73d4c05334ec860c19c66c46b53d178`.
+Exactly 13 runtime source roles remain; independent verification returned
+`roleCount = 13`, `bad = []`, with all 13 role hashes unchanged and no digest cycle.
+The protected current historical v2/12-pin package and evidence remain unchanged.
+
+All post-remediation deterministic gates passed: the exact 14 focused suites reported
+1,528 total, 1,528 passed, 0 failed and 0 skipped; the exact 19 regression paths
+reported 1,117 total, 1,114 passed, 0 failed and three documented OS skips; and the
+three TypeScript scopes (root, Supabase functions and assessment worker) passed 3/3.
+`git diff --check` passed. The protected package/evidence, `package.json`, `run.cjs`
+and migrations remain unchanged.
+
+The full post-remediation PTY replay passed with Git Bash
+`C:\Program Files\Git\bin\bash.exe`, WinPTY
+`C:\Program Files\Git\usr\bin\winpty.exe`, and Node v24.13.1. It used the exact
+sealed main host, original module graph, synthetic reviewed lifecycle bytes and
+process-local read-only file shims, with no provider credentials or network. Idle,
+multiline, unresolved top-level await, scheduled process `SIGINT`, and synchronous
+native `for(;;){}` cases each exited 130. Runtime instrumentation established a
+native-branded Error with an own DATA `code` descriptor equal to
+`ERR_SCRIPT_EXECUTION_INTERRUPTED`. The audit recorded a closed graph with
+`host_shutdown`, one shutdown, one exit, no result, no transport request, no resumed
+`movement>` prompt, no authority rearm and no transport reopen.
+
+The post-remediation WinPTY replay closed these previously open evidence gaps:
+
+- `EVID_PTY_ACTIVE_GRAPH_TRANSCRIPT_MISSING`: `CLOSED`
+- `EVID_PTY_ACTIVE_LIFECYCLE_REPLAY_NOT_RECONSTRUCTED`: `CLOSED`
+- `EVID_VM_NATIVE_DESCRIPTOR_NOT_RUNTIME_INSTRUMENTED`: `CLOSED`
+
+Their earlier open state remains preserved in the historical entries above. After
+every preceding gate passed, the semantic security rerun returned
+`SEMANTIC_SECURITY_GATE_PASS_NO_BLOCKING_FINDINGS`, with zero CRITICAL, HIGH or MEDIUM
+findings.
+
+Current outcome:
+`REMEDIATION_IMPLEMENTATION_ACCEPTED_INDEPENDENT_REVIEW_PENDING`. B1/B2/B3 remediation,
+deterministic validation, PTY/VM acceptance and semantic security have passed. Final
+independent implementation acceptance is not claimed. A fresh genuinely independent
+implementation review against the post-remediation bytes is the exact next milestone.
+No provider, Railway, live, package, deployment, production, migration, credential,
+staging, commit or push authority is granted, and the overall 0114J milestone remains
+open.
+
+## Qualification lifecycle final post-remediation independent review
+
+At unchanged HEAD `6b074843e6e3bd2ea853489f2a6e01a3a8b2327e`, a genuinely
+independent reviewer inspected the post-remediation implementation, source identity,
+deterministic evidence, PTY/VM evidence, security boundaries and documentation. The
+reviewer did not author the original implementation, B1/B2/B3 remediation or prior
+documentation checkpoint, and modified no files. The index remained empty and the
+protected capsule remained unread, unhashed, unmodified and unstaged.
+
+Outcome: `INDEPENDENT_IMPLEMENTATION_REVIEW_PASS`.
+
+The first review's blockers are independently verified closed:
+
+- `B1_FUTURE_REVIEWED_AT_ACCEPTED`: `CLOSED`
+- `B2_ATTEMPT_REFERENCE_BOUND_NOT_ENFORCED`: `CLOSED`
+- `B3_MISSING_CLOSED_MARKER_OWNER_SWEEP_TIMER`: `CLOSED`
+
+B1 passed its equality, future-time rejection, final-resample, single monotonic
+deadline and high-water/rollback checks. B2 passed the 128/129 boundaries while
+preserving general 1..256 references and reverse-index semantics. B3 passed the
+single private nearest-expiry timer, rescheduling, callback, clock-fault, retention,
+capacity, reverse-index, idempotence, coexistence and no-rearm checks.
+
+The five immutable bindings, owner host, RC1, RC2, RC3, RS1 and C2 passed. The frozen
+21-transition model remains intact: rows 10/12/16 are adapter-local final native
+dispatch fences, row 21 is validity-only release after cleanup, and transition 9's
+credential read remains valid by frozen design.
+
+The authorization self hash is
+`a1da1eec17b431009e8b580fe0480884b73d4c05334ec860c19c66c46b53d178`.
+All 13 role hashes are valid, the digest topology is acyclic, the five inert templates
+are correct and the protected historical v2/12-pin state is preserved. The exact
+focused result is 1,528/1,528 across 14 suites with no failure or skip. The exact
+19-path regression result is 1,114/1,117 with no failure and three documented OS
+skips. All three TypeScript scopes passed, and `git diff --check` passed.
+
+The reviewer found the Git-for-Windows WinPTY, Git Bash, Node v24.13.1 and exact
+sealed-host evidence sufficient. Active-lifecycle replay passed. Native Error branding,
+the own DATA `code` descriptor, exact `ERR_SCRIPT_EXECUTION_INTERRUPTED`, active graph,
+CLOSED graph before process cleanup, single cleanup, suppressed result/prompt, absent
+transport reopen and authority rearm, and exit 130 are supported. The three prior PTY
+evidence gaps remain `CLOSED`.
+
+Independent security review covered the original frozen categories and remediation-
+specific B1/B2/B3 threats. Findings: CRITICAL 0, HIGH 0, MEDIUM 0, LOW 0. Authority
+and invariant blockers: none.
+
+The progression is preserved: original construction; initial PTY blocker and its
+Git-for-Windows resolution; first independent review blocked on B1/B2/B3; separate
+remediation review and authorization; remediation implementation and validation;
+PTY/VM evidence-gap closure; semantic-security PASS; and final post-remediation
+independent PASS.
+
+Current 0114J status: `INDEPENDENT_IMPLEMENTATION_REVIEW_PASS`, equivalently
+`0114J IMPLEMENTATION ACCEPTED BY INDEPENDENT REVIEW`. This grants no provider,
+Railway, live, package-promotion, deployment, production, migration or credential
+authority. The implementation remains uncommitted WIP; staging, commit and push have
+not occurred. The exact next milestone is a separately authorized repository-
+integration decision.

@@ -17,7 +17,7 @@ function binding(value = scope) {
 }
 function isolated() {
  const drift = { head: SYNTHETIC_HEAD, branch: 'feature/0092-shared-segment-suitability', files: new Map(), calls: [] };
- const fakeFs = { existsSync: fs.existsSync, readFileSync: (name, encoding) => drift.files.has(name) ? drift.files.get(name) : fs.readFileSync(name, encoding) };
+ const fakeFs = { existsSync: fs.existsSync,realpathSync:fs.realpathSync,statSync:fs.statSync, readFileSync: (name, encoding) => drift.files.has(name) ? drift.files.get(name) : fs.readFileSync(name, encoding) };
  const fakeCp = { execFileSync(command, args, options) {
   assert.equal(command, 'git'); assert.deepEqual(Object.keys(options.env), []);
   assert.equal(options.shell, false); assert.equal(options.windowsHide, true);
@@ -32,7 +32,7 @@ function isolated() {
    if (name === 'node:fs') return fakeFs;
    if (name === 'node:child_process') return fakeCp;
    if (name.startsWith('./')) return require(path.resolve(path.dirname(file), name));
-   assert.ok(['node:path', 'node:crypto'].includes(name)); return require(name);
+   assert.ok(['node:path', 'node:crypto','node:perf_hooks'].includes(name)); return require(name);
   } };
  require('./fixtures/0114d-authorization-loader.cjs').loadAuthorizationSandbox(source, sandbox, file);
  return { api: sandbox.module.exports, drift };
@@ -89,7 +89,7 @@ test('immutable manifest fixes operation, endpoint, query, transport limits, sou
  assert.equal(m.redirectPolicy, 'reject'); assert.equal(m.retries, 0); assert.equal(m.timeoutMs, 10000);
  assert.equal(m.maxBodyBytes, 1048576); assert.equal(m.maxHeaderBytes, 16384); assert.equal(m.acceptedStatus, 200);
  assert.equal(m.reviewedHead, SYNTHETIC_HEAD); assert.equal(m.baselineParentHead, normal.baselineParentHead);
- assert.equal(Object.keys(m.codeIdentity.sourceHashes).length, 12);
+ assert.equal(Object.keys(m.codeIdentity.sourceHashes).length, 13);
  assert.match(m.codeIdentity.authorizationBoundarySha256, /^[a-f0-9]{64}$/);
  assert.ok(Object.isFrozen(m)); assert.ok(Object.isFrozen(m.targetReview.requiredForFirstContext));
  assert.throws(() => { m.retries = 1; }, TypeError);

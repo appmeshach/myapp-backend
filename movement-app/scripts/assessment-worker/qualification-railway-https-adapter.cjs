@@ -2,6 +2,7 @@
 // Production path exists, but import reads no environment and sends no request.
 // No transport/token/body/session injection; tests load separate VM instances.
 const https = require('node:https');
+const nativeRequest = https.request.bind(https);
 const crypto = require('node:crypto');
 const { TextDecoder, debuglog } = require('node:util');
 const contract = require('./qualification-railway-transport-contract.cjs').contract;
@@ -22,6 +23,8 @@ const contexts = new WeakMap(), results = new WeakMap();
 const transferBindings = new WeakMap(), contextTransfers = new WeakMap();
 const servicesBindings = new WeakMap(), servicesTransfers = new WeakMap(), servicesResults = new WeakMap(), servicesReceipts = new WeakMap();
 const instanceBindings = new WeakMap(), instanceTransfers = new WeakMap(), instanceResults = new WeakMap(), instanceReceipts = new WeakMap();
+const lifecycleAssociations = new WeakMap();
+let dispatchFence = null;
 const fail = () => { throw Error('Railway private HTTPS evidence unavailable'); };
 const hash = v => crypto.createHash('sha256').update(v).digest('hex');
 function requireQuietDiagnostics() {
@@ -53,8 +56,9 @@ function invalidate(record) {
  if (record.cancel) { const cancel = record.cancel; record.cancel = null; cancel(); }
 }
 function openExecutionContext(...args) {
- if (args.length !== 1) fail();
- const binding = args[0];
+ if (args.length !== 1 && args.length !== 2) fail();
+ const binding = args[0], association=args[1], lifecycle=association===undefined?null:lifecycleAssociations.get(association);
+ if(args.length===2&&!lifecycle)fail();if(lifecycle)dispatchFence(lifecycle.carrier,'open_context');
  try { targets.describeTarget(binding); } catch { fail(); }
  // The only production credential read; never invoked against real env in tests.
  let secret;
@@ -65,7 +69,7 @@ function openExecutionContext(...args) {
   if (typeof secret !== 'string' || secret.length === 0) fail();
  } catch { fail(); }
  const handle = Object.freeze({});
- contexts.set(handle, { binding, secret, closed: false, attested: false, busy: false, cancel: null, results: new Set(),
+ contexts.set(handle, { binding, secret, lifecycle, closed: false, attested: false, busy: false, cancel: null, results: new Set(),
   transferBindings: new Set(), transfers: new Set(), transferBinding: null, identityAttestation: null, servicesAttempt: null,
   servicesBindings: new Set(), servicesTransfers: new Set(), servicesResults: new Set(), servicesReceipts: new Set(),
   instanceAttempt: null, instanceBindings: new Set(), instanceTransfers: new Set(), instanceResults: new Set(), instanceReceipts: new Set() });
@@ -75,7 +79,7 @@ function closeExecutionContext(...args) {
  if (args.length !== 1) fail();
  const record = contexts.get(args[0]); if (!record) fail(); invalidate(record);
 }
-function post(record, request) {
+function post(record, request, operationName) {
  return new Promise((resolve, reject) => {
   let req, response, timer, settled = false;
   const stop = () => {
@@ -84,15 +88,16 @@ function post(record, request) {
    try { req?.destroy(); } catch {}
    reject(Error('Railway private HTTPS evidence unavailable'));
   };
-  record.cancel = stop;
-  timer = setTimeout(stop, safety.timeoutMs);
   try {
    requireQuietDiagnostics();
+   const body=JSON.stringify(request);
+   if(Buffer.byteLength(body,'utf8')>safety.maxBodyBytes)fail();
    // All options are fixed internally. agent:false avoids global-agent/proxy intake.
-   req = https.request({ protocol: 'https:', hostname: 'backboard.railway.com', port: 443,
+   const options={ protocol: 'https:', hostname: 'backboard.railway.com', port: 443,
     path: '/graphql/v2', method: 'POST', agent: false, rejectUnauthorized: true,
     maxHeaderSize: safety.maxHeaderBytes,
-    headers: { 'Content-Type': contract.contentType, 'Project-Access-Token': record.secret } }, res => {
+    headers: { 'Content-Type': contract.contentType, 'Project-Access-Token': record.secret } };
+   const onResponse=res => {
     response = res;
     if (settled) { try { res.destroy(); } catch {} return; }
     try {
@@ -128,9 +133,13 @@ function post(record, request) {
      settled = true; clearTimeout(timer); record.cancel = null; resolve(body);
     });
     } catch { stop(); }
-   });
+   };
+   record.cancel = stop;
+   timer = setTimeout(stop, safety.timeoutMs);
+   if(record.lifecycle)dispatchFence(record.lifecycle.carrier,operationName);
+   req = nativeRequest(options,onResponse);
    req.on('error', stop);
-   req.end(JSON.stringify(request));
+   req.end(body);
   } catch { stop(); }
  });
 }
@@ -147,7 +156,7 @@ async function executeHandoff(...args) {
    if (!e || e.handoff !== handoff || invocation.kind !== 'context' || !fixedContextRequest(invocation.request)) fail();
    requireOwner(e.owner).contextTransfer.assertSlot(e.slot);
   }
-  const body = await post(record, invocation.request);
+  const body = await post(record, invocation.request,invocation.request.operationName);
   if (record.closed) fail();
   const result = Object.freeze({});
   results.set(result, { executionContext, binding: record.binding, handoff, invocation,
@@ -326,7 +335,7 @@ async function executeProjectServices(...args) {
  try {
   if (args.length !== 1 || e.phase !== 'bound') fail(); assertServicesAttempt(e);
   e.phase = 'dispatching'; servicesTransfers.set(args[0], e); e.record.servicesTransfers.add(args[0]);
-  const body = await post(e.record, e.request); assertServicesAttempt(e);
+  const body = await post(e.record, e.request,e.request.operationName); assertServicesAttempt(e);
   e.phase = 'responded'; const result = Object.freeze({});
   servicesResults.set(result, { entry: e, kind: 'project_services', session: e.session, binding: e.binding,
    executionContext: e.executionContext, invocation: e.invocation, request: e.request,
@@ -428,7 +437,7 @@ async function executeServiceInstance(...args) {
  try {
   if (args.length !== 1 || e.phase !== 'bound') fail(); assertInstanceAttempt(e);
   e.phase = 'dispatching'; instanceTransfers.set(args[0], e); e.record.instanceTransfers.add(args[0]);
-  const body = await post(e.record, e.request); assertInstanceAttempt(e);
+  const body = await post(e.record, e.request,e.request.operationName); assertInstanceAttempt(e);
   e.phase = 'responded'; const result = Object.freeze({});
   instanceResults.set(result, { entry: e, kind: 'service_instance', session: e.session, binding: e.binding,
    executionContext: e.executionContext, invocation: e.invocation, request: e.request,
@@ -479,9 +488,18 @@ function consumeIdentityProviderObservation(...args) {
  if (servicesReceipts.has(args[0])) return consumeProjectServicesReceipt(...args);
  return consumeContextResultTransfer(...args); // Preserve context arity/burn semantics.
 }
-module.exports = Object.freeze(Object.assign(Object.create(null), { status, safety, openExecutionContext, closeExecutionContext,
+const exported = Object.assign(Object.create(null), { status, safety, openExecutionContext, closeExecutionContext,
  bindProjectServicesTransfer, executeProjectServices, prepareProjectServicesResult, cancelProjectServicesTransfer,
  bindServiceInstanceTransfer, executeServiceInstance, prepareServiceInstanceResult, cancelServiceInstanceTransfer,
- executeHandoff, consumeContextResult, consumeSchemaResult, bindContextResultTransfer, prepareContextResultTransfer, consumeContextResultTransfer }));
+ executeHandoff, consumeContextResult, consumeSchemaResult, bindContextResultTransfer, prepareContextResultTransfer, consumeContextResultTransfer });
+module.exports=exported;
+Object.defineProperty(exported,'_connectLifecycleDispatch',{configurable:true,value(...args){
+ if(args.length!==1||dispatchFence||typeof args[0]!=='function')fail();dispatchFence=args[0];
+ const associate=(...values)=>{if(values.length!==2||typeof values[1]?.check!=='function')fail();values[1].check();const token=Object.freeze({});lifecycleAssociations.set(token,{session:values[0],carrier:values[1]});return token;};
+ Reflect.deleteProperty(exported,'_connectLifecycleDispatch');Object.freeze(exported);return associate;
+}});
 const linkConsumer = Reflect.get(require('./qualification-railway-target-identity-provider-boundary.cjs'), '_connectProjectServicesConsumer');
 if (typeof linkConsumer !== 'function') fail(); linkConsumer(consumeIdentityProviderObservation);
+// Complete the initialization-only lifecycle connection during either side of
+// the authorization/adapter cycle. A completed ordinary import exposes no slot.
+require('./qualification-railway-target-identity.cjs');

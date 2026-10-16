@@ -1,0 +1,61 @@
+{
+  "version": "movement_railway_qualification_lifecycle_review_v1",
+  "policy": {
+    "path": "docs/0114i-qualification-lifecycle-policy-design.md",
+    "sha256": "29a51ba9633c9b734e833b38b754e3d5000f9c76661a277f19093f22d5be12e5"
+  },
+  "attemptReference": null,
+  "subjectSha256": null,
+  "target": {
+    "projectId": null,
+    "environmentId": null,
+    "serviceId": null,
+    "serviceName": null,
+    "serviceInstanceId": null,
+    "environmentKind": null
+  },
+  "operator": {
+    "reference": null,
+    "assertedAt": null,
+    "allocationEvidence": [],
+    "acknowledgements": {
+      "hasAllocationAuthority": false,
+      "targetCreated": false,
+      "currentlyAllocated": false,
+      "reservedForAttempt": false,
+      "notProduction": false,
+      "notRetired": false,
+      "notDecommissioned": false,
+      "notKnownDeleted": false,
+      "noIncompatibleUse": false,
+      "noUnresolvedTeardown": false,
+      "notConsumedUnderApplicablePolicy": false,
+      "noKnownRelevantChange": false
+    }
+  },
+  "evidence": {
+    "identity": [],
+    "disposable": [],
+    "inventory": [],
+    "observations": [],
+    "newProviderObservationOccurred": false
+  },
+  "review": {
+    "reviewerReference": null,
+    "independentlyReviewed": false,
+    "result": null,
+    "reviewedAt": null,
+    "evidenceReference": null,
+    "acceptance": {
+      "factsAccepted": false,
+      "identityBindingAccepted": false,
+      "inventoryAccepted": false,
+      "policyMappingAccepted": false
+    }
+  },
+  "validity": {
+    "expiresAt": null,
+    "value": null,
+    "scope": "one_package_one_attempt"
+  }
+}

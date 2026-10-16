@@ -76,6 +76,7 @@ function loadWrapper(options = {}) {
     if (name === 'node:child_process') return fakeCp;
     if (name === 'node:https') return https;
     if (name === 'node:util') return { TextDecoder: require('node:util').TextDecoder, debuglog: () => ({ enabled: false }) };
+    if (name === './qualification-railway-acquisition-owner-host.cjs') return Object.freeze({outcome:'PRELIVE_NOT_AUTHORIZED',executableOwnerAvailable:false});
     if (name.startsWith('./')) return key === names.wrapper ? facade(name.slice(2)) : load(name.slice(2));
     if (!['node:path', 'node:crypto', 'node:perf_hooks'].includes(name)) throw Error('Unexpected builtin: ' + name);
     return require(name);
