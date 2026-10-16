@@ -1135,3 +1135,23 @@ runtime/request-count expansion, staging, commit or push authority is granted. N
 runtime/test/typecheck/provider/network/loopback/security-scan action occurred in this
 review; capsule unread. This is same-author Codex authorization, not independent
 human approval.
+
+## Qualification lifecycle ENV1 documentation-network reconciliation
+
+At starting HEAD d9f103fc83144e7a1ce03d25ea94fbacff2e603d, recorded the
+[ENV1 documentation-network review](0114j-env1-documentation-network-authority-review.md).
+Outcome: DOCUMENTATION_NETWORK_EXCEPTION_APPROVED_FOR_FROZEN_0114J_IMPLEMENTATION;
+zero blockers. After this artifact is checkpointed, the frozen implementation may
+use unauthenticated read-only HTTPS GET/HEAD solely for the exact Expo SDK 57 tree at
+`docs.expo.dev/versions/v57.0.0/`, Supabase `changelog.md`, relevant linked public
+`supabase.com/changelog/` pages and relevant public `supabase.com/docs/` pages.
+
+No authenticated request, provider/project API, Railway, Dashboard/MCP endpoint,
+credential, arbitrary browsing, package/executable download or mutation is authorized.
+Redirects outside the approved documentation paths fail closed. B1/RC1/RC2/RC3/RS1/
+C2, five files/bindings, 21 transitions, three requests, 12/13 pins, 14 focused,
+19 regression and three TypeScript checks remain unchanged. Current lifecycle is
+null; provider/live/package/deployment authority remains absent. This review itself
+performed no network, runtime/test change, test/typecheck, PTY/signal proof or security
+review. Capsule unread; no staging, commit or push. Implementation may resume only
+after this documentation-authority artifact is checkpointed.
