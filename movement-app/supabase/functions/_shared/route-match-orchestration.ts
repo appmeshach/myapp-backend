@@ -3,7 +3,9 @@ import { readBounded } from './face-orchestration.ts';
 import type {
   RecordedRouteMatchEvidence,
   RouteBackend,
+  RouteMatchPublicationPayload,
 } from './route-contracts.ts';
+import { routeMatchContextIdentity, sameRouteMatchValue } from './route-contracts.ts';
 
 import {
   calculateTrustedRouteMatchGeometry,
@@ -285,6 +287,7 @@ async function member(
 
 export function createRouteMatchHandler(
   backend: RouteBackend,
+  calculateGeometry = calculateTrustedRouteMatchGeometry,
 ) {
   return async (
     request: Request,
@@ -427,8 +430,19 @@ export function createRouteMatchHandler(
 
       signal.throwIfAborted();
 
+      const identity = routeMatchContextIdentity(context, body.availabilityId as string);
+      if (availabilityRequest) {
+        const current = await backend.getCurrentRequesterAvailabilityRouteMatch(
+          memberId, body.movementNeedId, body.availabilityId as string, signal);
+        if (!current || !sameRouteMatchValue(current.identity, identity)) throw new Denied(503, 'route_match_unavailable');
+        if (current.state === 'reuse_existing') {
+          if (!validEvidence(current.evidence)) throw new Denied(503, 'route_match_unavailable');
+          return ready(current.evidence, current.payload.requesterOriginDistanceToRouteMeters);
+        }
+      }
+
       const geometry =
-        calculateTrustedRouteMatchGeometry(
+        calculateGeometry(
           {
             requesterOrigin:
               context.requesterOrigin,
@@ -446,10 +460,7 @@ export function createRouteMatchHandler(
       const calculatedAt =
         new Date().toISOString();
 
-      const recorded =
-        await backend
-          .recordTrustedRouteMatchEvidence(
-            {
+      const payload: RouteMatchPublicationPayload = Object.freeze({
               movementNeedId:
                 context.movementNeedId,
 
@@ -484,12 +495,10 @@ export function createRouteMatchHandler(
                   .positionAlongRouteMeters,
 
               requesterOriginClosestRoute:
-                geometry.requesterOrigin
-                  .closestRoutePoint,
+                Object.freeze({ ...geometry.requesterOrigin.closestRoutePoint }),
 
               requesterDestinationClosestRoute:
-                geometry.requesterDestination
-                  .closestRoutePoint,
+                Object.freeze({ ...geometry.requesterDestination.closestRoutePoint }),
 
               calculatedAt,
 
@@ -498,10 +507,32 @@ export function createRouteMatchHandler(
                * from its trusted dependencies.
                */
               expiresAt: null,
-            },
-            signal,
-          )
-          .catch(() => null);
+      });
+      let recorded: RecordedRouteMatchEvidence | null;
+      if (availabilityRequest) {
+        let current = await backend.publishRequesterAvailabilityRouteMatch(
+          memberId, body.movementNeedId, body.availabilityId as string, identity, payload, signal,
+        ).catch(() => null);
+        const matches = (exactTimestamp: boolean) => {
+          if (!current || current.state !== 'reuse_existing' || !sameRouteMatchValue(current.identity, identity)
+            || !validEvidence(current.evidence)) return false;
+          if (exactTimestamp) return sameRouteMatchValue(current.payload, payload);
+          const { calculatedAt: _a, ...a } = current.payload;
+          const { calculatedAt: _b, ...b } = payload;
+          return sameRouteMatchValue(a, b);
+        };
+        if (!matches(false)) {
+          // One bounded read, using the same frozen timestamp and facts. No retry write.
+          signal.throwIfAborted();
+          current = await backend.getCurrentRequesterAvailabilityRouteMatch(
+            memberId, body.movementNeedId, body.availabilityId as string, signal, payload,
+          ).catch(() => null);
+          if (!matches(true)) throw new Denied(503, 'route_match_unavailable');
+        }
+        recorded = current?.state === 'reuse_existing' ? current.evidence : null;
+      } else {
+        recorded = await backend.recordTrustedRouteMatchEvidence(payload, signal).catch(() => null);
+      }
 
       if (
         !recorded
@@ -521,34 +552,19 @@ export function createRouteMatchHandler(
        * The destination geometry remains private
        * evidence for later shared-segment logic.
        */
-      return response(
-        200,
-        {
-          state: 'ready',
-
-          routeMatchEvidenceId:
-            recorded
-              .routeMatchEvidenceId,
-
-          routeMatchEvidenceVersion:
-            recorded
-              .routeMatchEvidenceVersion,
-
-          routeMatchEvidenceStatus:
-            recorded
-              .routeMatchEvidenceStatus,
-
-          routeMatchEvidenceExpiresAt:
-            recorded
-              .routeMatchEvidenceExpiresAt,
-
-          straightLineDistanceFromRouteMeters:
-            geometry.requesterOrigin
-              .distanceToRouteMeters,
-        },
-      );
+      return ready(recorded, geometry.requesterOrigin.distanceToRouteMeters);
     } catch (error) {
       return failure(error);
     }
   };
+}
+
+function ready(evidence: RecordedRouteMatchEvidence, distance: number): Response {
+  return response(200, {
+    state: 'ready', routeMatchEvidenceId: evidence.routeMatchEvidenceId,
+    routeMatchEvidenceVersion: evidence.routeMatchEvidenceVersion,
+    routeMatchEvidenceStatus: evidence.routeMatchEvidenceStatus,
+    routeMatchEvidenceExpiresAt: evidence.routeMatchEvidenceExpiresAt,
+    straightLineDistanceFromRouteMeters: distance,
+  });
 }

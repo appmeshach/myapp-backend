@@ -391,6 +391,79 @@ test(
 );
 
 test(
+  'a repeated route corridor projects onto its first traversal even when a later traversal exists',
+  () => {
+    const result = calculateTrustedRouteMatchGeometry({
+      requesterOrigin: { latitude: 0, longitude: 0.08 },
+      requesterDestination: { latitude: 0, longitude: 0.02 },
+      routeShape: {
+        type: 'LineString',
+        coordinates: [[0, 0], [0.1, 0], [0, 0]],
+      },
+    });
+
+    assert.equal(result.requesterOrigin.distanceToRouteMeters, 0);
+    assert.equal(result.requesterDestination.distanceToRouteMeters, 0);
+    assert.ok(
+      result.requesterOrigin.positionAlongRouteMeters
+      > result.requesterDestination.positionAlongRouteMeters,
+      'first-traversal projections look reverse despite a later forward traversal',
+    );
+    // The geometry producer reports objective nearest projections, not whether
+    // the route offers a unique, practical joining sequence.
+  },
+);
+
+test(
+  'self-intersection reports a single projection without indicating the other crossing traversal',
+  () => {
+    const result = calculateTrustedRouteMatchGeometry({
+      requesterOrigin: { latitude: 0, longitude: 0 },
+      requesterDestination: { latitude: 0, longitude: 0.05 },
+      routeShape: {
+        type: 'LineString',
+        coordinates: [
+          [-0.05, -0.05], [0.05, 0.05],
+          [-0.05, 0.05], [0.05, -0.05],
+        ],
+      },
+    });
+
+    assert.equal(result.requesterOrigin.distanceToRouteMeters, 0);
+    assert.ok(result.requesterOrigin.positionAlongRouteMeters >= 0);
+    assert.ok(
+      result.requesterOrigin.positionAlongRouteMeters
+      <= result.calculatedRouteShapeLengthMeters,
+    );
+    // A coordinate at the intersection has multiple legitimate along-route
+    // positions. The current result intentionally exposes only one.
+  },
+);
+
+test(
+  'endpoints close to a route do not prove an accessible joining point',
+  () => {
+    const result = calculateTrustedRouteMatchGeometry({
+      requesterOrigin: { latitude: 0.0001, longitude: 0.02 },
+      requesterDestination: { latitude: -0.0001, longitude: 0.08 },
+      routeShape: {
+        type: 'LineString',
+        coordinates: [[0, 0], [0.1, 0]],
+      },
+    });
+
+    assert.ok(result.requesterOrigin.distanceToRouteMeters < 20);
+    assert.ok(result.requesterDestination.distanceToRouteMeters < 20);
+    assert.ok(
+      result.requesterOrigin.positionAlongRouteMeters
+      < result.requesterDestination.positionAlongRouteMeters,
+    );
+    // These facts cannot establish legal road crossings, stopping access,
+    // or mutually agreed pickup and drop-off points.
+  },
+);
+
+test(
   'invalid requester coordinates fail closed',
   () => {
     assert.throws(

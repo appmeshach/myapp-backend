@@ -561,6 +561,44 @@ function matchPointToRoute(
   };
 }
 
+/**
+ * Return each constituent segment's point projection with cumulative positions
+ * computed from unrounded segment lengths. Advisory use only; not admission.
+ * Reuses the same geodesic projection as the trusted evidence producer.
+ */
+export function calculateTrustedRoutePointSegmentProjections(
+  point: TrustedRouteCoordinate,
+  routeShape: TrustedRouteMatchLineString,
+): { distanceToRouteMeters: number; positionAlongRouteMeters: number }[] {
+  const trustedPoint = trustedCoordinate(point);
+  const coordinates = routeCoordinates(routeShape);
+  const projections: { distanceToRouteMeters: number; positionAlongRouteMeters: number }[] = [];
+  let cumulativeMeters = 0;
+  for (let index = 0; index < coordinates.length - 1; index += 1) {
+    const start = coordinates[index];
+    const end = coordinates[index + 1];
+    const segmentLength = distanceMeters(start, end);
+    if (!Number.isFinite(segmentLength) || segmentLength < 0) {
+      throw new Error('Trusted route-match geometry unavailable');
+    }
+    if (segmentLength > 0) {
+      const match = closestPointOnSegment(trustedPoint, start, end);
+      projections.push({
+        distanceToRouteMeters: Math.max(0, Math.round(match.distanceToPointMeters)),
+        positionAlongRouteMeters: Math.round(
+          cumulativeMeters + match.distanceFromSegmentStartMeters,
+        ),
+      });
+    }
+    cumulativeMeters += segmentLength;
+  }
+  if (!Number.isSafeInteger(Math.round(cumulativeMeters))
+    || cumulativeMeters <= 0 || projections.length === 0) {
+    throw new Error('Trusted route-match route shape length must be positive');
+  }
+  return projections;
+}
+
 export function calculateTrustedRouteMatchGeometry(
   input: {
     requesterOrigin:

@@ -1,0 +1,14 @@
+query Movement0111ServiceInstance(
+  $serviceId: String!,
+  $environmentId: String!
+) {
+  serviceInstance(
+    serviceId: $serviceId,
+    environmentId: $environmentId
+  ) {
+    id
+    serviceName
+    rootDirectory
+    region
+  }
+}

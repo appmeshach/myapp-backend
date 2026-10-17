@@ -9,6 +9,7 @@ import type {
   RouteGenerationContext,
   RouteProviderQuotaResult,
   TrustedMatchingContext,
+  CurrentRequesterRouteMatch,
 } from './route-contracts.ts';
 
 declare const Deno: {
@@ -48,6 +49,8 @@ const RPC_PRICING_CLASSIFICATION_CONTEXT =
   'get_pricing_classification_context_for_server';
 
 const ALLOWED_RPCS = new Set([
+  'get_current_requester_availability_route_match_for_server',
+  'publish_requester_availability_route_match_for_server',
   RPC_ROUTE_CONTEXT,
   RPC_ROUTE_CLAIM,
   RPC_ROUTE_QUOTA,
@@ -293,6 +296,55 @@ function trustedLineString(
     type: 'LineString',
     coordinates,
   };
+}
+
+function currentRequesterRouteMatch(value: unknown, member: string, need: string, availability: string): CurrentRequesterRouteMatch | null {
+  const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+  const keys = (v: Record<string, unknown>, expected: string[]) =>
+    Object.keys(v).length === expected.length && expected.every(k => Object.hasOwn(v, k));
+  if (!UUID.test(member) || !UUID.test(need) || !UUID.test(availability) || !object(value) || !object(value.identity)) return null;
+  const i = value.identity;
+  const ids = ['movementNeedId','requestingMemberId','availabilityId','requesterOriginLocationReferenceId',
+    'requesterDestinationLocationReferenceId','offeringMovementIntentId','offeringMemberId','routeEvidenceId'];
+  if (!keys(i, [...ids,'offeringIntentVersion','routeEvidenceVersion'])
+    || ids.some(k => typeof i[k] !== 'string' || !UUID.test(i[k] as string))
+    || i.movementNeedId !== need || i.requestingMemberId !== member || i.availabilityId !== availability
+    || positiveSafeInteger(i.offeringIntentVersion) === null || positiveSafeInteger(i.routeEvidenceVersion) === null) return null;
+  if (value.state === 'not_found') return keys(value, ['state','identity']) ? value as CurrentRequesterRouteMatch : null;
+  if (value.state !== 'reuse_existing' || !keys(value,['state','identity','evidence','payload'])
+    || !object(value.evidence) || !object(value.payload)) return null;
+  const e = value.evidence, p = value.payload;
+  const metrics = ['requesterOriginDistanceToRouteMeters','requesterDestinationDistanceToRouteMeters',
+    'calculatedRouteShapeLengthMeters','requesterOriginPositionAlongRouteMeters','requesterDestinationPositionAlongRouteMeters'];
+  const coordinates = ['requesterOriginClosestRoute','requesterDestinationClosestRoute'];
+  if (!keys(e,['routeMatchEvidenceId','routeMatchEvidenceVersion','routeMatchEvidenceStatus','routeMatchEvidenceExpiresAt'])
+    || typeof e.routeMatchEvidenceId !== 'string' || !UUID.test(e.routeMatchEvidenceId)
+    || positiveSafeInteger(e.routeMatchEvidenceVersion) === null || e.routeMatchEvidenceStatus !== 'current'
+    || !keys(p,['movementNeedId','offeringMovementIntentId','expectedRouteEvidenceId','expectedRouteEvidenceVersion',
+      ...metrics,...coordinates,'calculatedAt','expiresAt'])
+    || p.movementNeedId !== i.movementNeedId || p.offeringMovementIntentId !== i.offeringMovementIntentId
+    || p.expectedRouteEvidenceId !== i.routeEvidenceId || p.expectedRouteEvidenceVersion !== i.routeEvidenceVersion
+    || metrics.some(k => nonNegativeSafeInteger(p[k]) === null)
+    || !(Number(p.calculatedRouteShapeLengthMeters) > 0)
+    || Number(p.requesterOriginPositionAlongRouteMeters) > Number(p.calculatedRouteShapeLengthMeters)
+    || Number(p.requesterDestinationPositionAlongRouteMeters) > Number(p.calculatedRouteShapeLengthMeters)
+    || p.expiresAt !== null) return null;
+  for (const k of coordinates) {
+    const v = p[k];
+    if (!object(v) || !keys(v,['latitude','longitude']) || finiteCoordinate(v.latitude,-90,90) === null
+      || finiteCoordinate(v.longitude,-180,180) === null) return null;
+  }
+  let calculatedAt = nullableIso(p.calculatedAt);
+  const expiry = nullableIso(e.routeMatchEvidenceExpiresAt);
+  // PostgreSQL timestamps have microseconds. Preserve any sub-millisecond part
+  // for exact recovery; Date alone would collapse a different canonical time.
+  const fraction = typeof p.calculatedAt === 'string'
+    ? (p.calculatedAt.match(/\.(\d{1,6})/)?.[1] ?? '').padEnd(6, '0').slice(3)
+    : '';
+  if (calculatedAt && /[1-9]/.test(fraction)) calculatedAt = calculatedAt.replace(/Z$/, fraction + 'Z');
+  if (!calculatedAt || Date.parse(calculatedAt) > Date.now() || expiry === undefined
+    || (expiry !== null && Date.parse(expiry) <= Date.now())) return null;
+  return { ...value, evidence: { ...e, routeMatchEvidenceExpiresAt: expiry }, payload: { ...p, calculatedAt } } as CurrentRequesterRouteMatch;
 }
 
 export function runtimeRouteBackend():
@@ -1632,6 +1684,24 @@ export function createRouteBackend(
       };
     },
 
+
+    async getCurrentRequesterAvailabilityRouteMatch(member, need, availability, signal, expectedPayload) {
+      if (![member, need, availability].every(id => UUID.test(id))) throw new Error('Unavailable');
+      const body = await rpc('get_current_requester_availability_route_match_for_server', {
+        p_verified_member_id: member, p_movement_need_id: need, p_availability_id: availability,
+        ...(expectedPayload ? { p_expected_payload: expectedPayload } : {}),
+      }, signal);
+      return currentRequesterRouteMatch(body, member, need, availability);
+    },
+
+    async publishRequesterAvailabilityRouteMatch(member, need, availability, identity, payload, signal) {
+      if (![member, need, availability].every(id => UUID.test(id))) throw new Error('Unavailable');
+      const body = await rpc('publish_requester_availability_route_match_for_server', {
+        p_verified_member_id: member, p_movement_need_id: need, p_availability_id: availability,
+        p_expected_identity: identity, p_payload: payload,
+      }, signal);
+      return currentRequesterRouteMatch(body, member, need, availability);
+    },
 
     async recordTrustedRouteMatchEvidence(
       input,

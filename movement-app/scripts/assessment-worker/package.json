@@ -1,0 +1,10 @@
+{
+  "name": "movement-assessment-worker",
+  "version": "1.0.0",
+  "private": true,
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "start": "node run.cjs",
+    "qualify": "node qualify.cjs --offline"
+  }
+}

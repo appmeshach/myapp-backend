@@ -1,0 +1,243 @@
+{
+  "version": "movement_railway_qualification_target_evidence_v1",
+  "outcome": "PRELIVE_NOT_AUTHORIZED",
+  "reviewed": false,
+  "evidenceReviewComplete": false,
+  "inputReviewComplete": false,
+  "readyFor0114DPreparation": false,
+  "deploymentAuthorized": false,
+  "liveAuthorized": false,
+  "manualLiveAuthorization": false,
+  "providerObservationOccurred": false,
+  "targetIdentityProven": false,
+  "executableAcquisitionPrepared": false,
+  "recordingContext": {
+    "head": "4f8d8b043f1876e1f4ff3bfa66ef85aa7ffed4e0",
+    "branch": "feature/0092-shared-segment-suitability"
+  },
+  "expectedContext": {
+    "projectName": "thorough-blessing",
+    "environmentName": "qualification",
+    "serviceName": "movement-qualification",
+    "branch": null,
+    "rootDirectory": null
+  },
+  "identifiers": {
+    "projectId": {
+      "field": "projectId",
+      "value": "0fa3268a-396f-4042-a4c0-a92c23fdf486",
+      "provider": "Railway",
+      "sourceKind": "operator_visible_provider_metadata",
+      "sourceSurface": "identifier_field",
+      "sourceParameterName": null,
+      "sourceReference": "Operator reports Project Settings explicitly displayed Project ID",
+      "sourceClassification": "operator_supplied_provider_metadata",
+      "acquiredByReference": null,
+      "acquiredAt": null,
+      "acquisitionReference": "Repository acquisition record 13120f715ea70913eb791f0fb8bc224f2c67a15c",
+      "independentlyReviewed": true,
+      "reviewerReference": "AT",
+      "reviewedAt": "2026-10-15T14:01:00.000Z",
+      "reviewReference": "AT independently compared exact ID and intended context in Railway provider dashboard. No mismatch",
+      "labelContext": {
+        "projectName": "thorough-blessing",
+        "environmentName": "production",
+        "serviceName": "myapp-backend",
+        "branch": "feature/0092-shared-segment-suitability",
+        "rootDirectory": "/movement-app"
+      },
+      "contextCompared": true,
+      "authoritativeForInputReview": true,
+      "acquisitionDate": "2026-10-14",
+      "acquisitionTimeKnown": false,
+      "historicalAcquisitionCommit": "13120f715ea70913eb791f0fb8bc224f2c67a15c",
+      "reviewerDistinctFromAcquirer": true
+    },
+    "environmentId": {
+      "field": "environmentId",
+      "value": "9410a813-0429-4bc7-bfbb-d54b85e17c8a",
+      "provider": "Railway",
+      "sourceKind": "operator_visible_provider_metadata",
+      "sourceSurface": "identifier_query_parameter",
+      "sourceParameterName": "environmentId",
+      "sourceReference": "Operator-supplied named environmentId parameter with qualification selected in project thorough-blessing",
+      "sourceClassification": "operator_supplied_provider_metadata",
+      "acquiredByReference": null,
+      "acquiredAt": null,
+      "acquisitionReference": "Operator-supplied qualification target creation report",
+      "independentlyReviewed": true,
+      "reviewerReference": "AT",
+      "reviewedAt": "2026-10-15T18:11:49.000Z",
+      "reviewReference": "AT independently inspected Railway and compared the exact qualification environment ID and intended context. No mismatch",
+      "labelContext": {
+        "projectName": "thorough-blessing",
+        "environmentName": "qualification",
+        "serviceName": "movement-qualification",
+        "branch": null,
+        "rootDirectory": null
+      },
+      "contextCompared": true,
+      "authoritativeForInputReview": true
+    },
+    "serviceId": {
+      "field": "serviceId",
+      "value": "ef516a68-9bb7-429e-a395-48ef2676593a",
+      "provider": "Railway",
+      "sourceKind": "operator_visible_provider_metadata",
+      "sourceSurface": "identifier_url_path_segment",
+      "sourceParameterName": null,
+      "sourceReference": "Operator-supplied typed service path segment with movement-qualification selected",
+      "sourceClassification": "operator_supplied_provider_metadata",
+      "acquiredByReference": null,
+      "acquiredAt": null,
+      "acquisitionReference": "Operator-supplied qualification target creation report",
+      "independentlyReviewed": true,
+      "reviewerReference": "AT",
+      "reviewedAt": "2026-10-15T18:11:49.000Z",
+      "reviewReference": "AT independently inspected Railway and compared the exact movement-qualification service ID and intended context. No mismatch",
+      "labelContext": {
+        "projectName": "thorough-blessing",
+        "environmentName": "qualification",
+        "serviceName": "movement-qualification",
+        "branch": null,
+        "rootDirectory": null
+      },
+      "contextCompared": true,
+      "authoritativeForInputReview": true
+    },
+    "serviceInstanceId": {
+      "field": "serviceInstanceId",
+      "value": null,
+      "provider": "Railway",
+      "sourceKind": null,
+      "sourceSurface": null,
+      "sourceParameterName": null,
+      "sourceReference": null,
+      "sourceClassification": "unknown",
+      "acquiredByReference": null,
+      "acquiredAt": null,
+      "acquisitionReference": null,
+      "independentlyReviewed": false,
+      "reviewerReference": null,
+      "reviewedAt": null,
+      "reviewReference": null,
+      "labelContext": {
+        "projectName": "thorough-blessing",
+        "environmentName": "qualification",
+        "serviceName": "movement-qualification",
+        "branch": null,
+        "rootDirectory": null
+      },
+      "contextCompared": false,
+      "authoritativeForInputReview": false
+    }
+  },
+  "projectEvidenceReference": {
+    "path": "docs/0114f-operator-acquired-target-metadata.json",
+    "record": "identifiers.projectId",
+    "commit": "72ba10ec5a058d234749d177cc4d70ad07761faa",
+    "sha256": "ca09216e4be779a71e2ddb5a014d266d4d3fb2078c6e23a19acfeac2987af15b",
+    "scope": "prior_review_of_unchanged_project_identity_only",
+    "qualificationContextCompared": false,
+    "operatorSource": {
+      "sourceSurface": "identifier_url_path_segment",
+      "sourceParameterName": null,
+      "sourceReference": "Operator-supplied typed project path segment for thorough-blessing with qualification selected",
+      "independentlyReviewed": false
+    }
+  },
+  "priorAssessment": {
+    "path": "docs/0114e-actual-acquisition-input-review.json",
+    "snapshotCommit": "4f8d8b043f1876e1f4ff3bfa66ef85aa7ffed4e0",
+    "sha256": "16f6887ac201c42e28b7e76e1b797cc330a01179a9bf049161896994466f37e8",
+    "historicalOnly": true,
+    "currentForQualification": false,
+    "requiresNew0114EReview": true
+  },
+  "operatorObservations": {
+    "sourceClassification": "operator_acquired_not_independently_reviewed",
+    "independentlyReviewed": false,
+    "creation": {
+      "environmentCreated": true,
+      "createdForQualification": true,
+      "separateFromProduction": true,
+      "creationMethod": "Empty Environment",
+      "productionDuplicated": false,
+      "productionVariablesCopied": false,
+      "onlyNewEmptyService": true
+    },
+    "service": {
+      "created": true,
+      "initialGeneratedName": "athletic-serenity",
+      "name": "movement-qualification",
+      "renameApplied": true,
+      "status": "offline",
+      "variablesAdded": false,
+      "deploymentAuthorized": false
+    },
+    "productionSafety": {
+      "autoDeployManuallyDisabled": true,
+      "disabledBeforeQualificationSetup": true,
+      "productionRestarted": false,
+      "previousCrashedQualificationDeploymentRestarted": false,
+      "serviceHealth": null,
+      "previousRemoteWritesOccurred": null,
+      "logMessage": "Remote qualification unavailable; ENVIRONMENT TEARDOWN REQUIRED if remote writes began",
+      "logMessageIsConditional": true
+    }
+  },
+  "sourceConfiguration": {
+    "status": "pending_not_applied",
+    "sourceConfigurationApplied": false,
+    "applyingWouldRedeploy": true,
+    "pendingIntended": {
+      "repo": "appmeshach/myapp-backend",
+      "branch": "feature/0092-shared-segment-suitability",
+      "rootDirectory": "/movement-app"
+    },
+    "activeConfigurationVerified": false,
+    "appliedConfiguration": {
+      "repo": null,
+      "branch": null,
+      "rootDirectory": null
+    }
+  },
+  "eligibility": {
+    "environmentKindIntent": "disposable",
+    "intentSource": "operator_report",
+    "independentlyReviewed": true,
+    "eligibilityComplete": false,
+    "environmentKind": "disposable",
+    "lifecycle": null,
+    "reviewerReference": "AT",
+    "reviewedAt": "2026-10-15T18:11:49.000Z",
+    "reviewReference": "AT independently confirmed qualification is separate from production and movement-qualification belongs to the intended disposable qualification target"
+  },
+  "qualificationReview": {
+    "recordingContext": {
+      "head": "e5e2481781b0861853ab4e5b7eb19a2fe62d1d0b",
+      "branch": "feature/0092-shared-segment-suitability"
+    },
+    "reviewerReference": "AT",
+    "reviewedAt": "2026-10-15T18:11:49.000Z",
+    "reviewerIndependentlyInspectedProvider": true,
+    "reviewerDistinctFromAcquirer": true,
+    "result": "NO_MISMATCH",
+    "reviewReference": "AT independently inspected Railway and compared exact project environment and service IDs with the qualification context. No mismatch",
+    "reviewedContext": {
+      "projectName": "thorough-blessing",
+      "projectId": "0fa3268a-396f-4042-a4c0-a92c23fdf486",
+      "environmentName": "qualification",
+      "environmentId": "9410a813-0429-4bc7-bfbb-d54b85e17c8a",
+      "serviceName": "movement-qualification",
+      "serviceId": "ef516a68-9bb7-429e-a395-48ef2676593a"
+    },
+    "confirmedFacts": {
+      "separateFromProduction": true,
+      "serviceBelongsToEnvironment": true,
+      "intendedDisposableQualificationTarget": true,
+      "serviceOffline": true,
+      "sourceSettingsPending": true
+    }
+  }
+}

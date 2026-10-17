@@ -39,6 +39,7 @@ import {
   type CreateRequesterMovementInterestInput,
 } from '../services/requesterMovementInterestService';
 import type { RequesterMovementInterestWriteResult } from '../types/movement';
+import { prepareRequesterGeographicSupport, type GeographicSupport } from '../services/requesterGeographicSupportService';
 
 import {
   calculateRouteMatch,
@@ -218,6 +219,10 @@ const [selectedAvailabilityId, setSelectedAvailabilityId] =
   const interestInFlight = useRef(false);
   const interestRequests = useRef<Record<string, CreateRequesterMovementInterestInput>>({});
   const routeCheckVersion = useRef(0);
+  const routeCheckInFlight = useRef<string | null>(null);
+  const geographicFlight = useRef<{ key: string; controller: AbortController } | null>(null);
+  const [geographicResult, setGeographicResult] = useState<{ key: string; state: GeographicSupport } | null>(null);
+  const [geographicLoading, setGeographicLoading] = useState(false);
   const mounted = useRef(true);
   const [activeMovements, setActiveMovements] = useState<ActiveMovementContinuation[]>([]);
   const [activeMovementsLoading, setActiveMovementsLoading] = useState(false);
@@ -243,10 +248,12 @@ const [selectedAvailabilityId, setSelectedAvailabilityId] =
 
   useEffect(() => {
     mounted.current = true;
-    return () => { mounted.current = false; routeCheckVersion.current += 1; };
+    return () => { mounted.current = false; routeCheckVersion.current += 1; geographicFlight.current?.controller.abort(); geographicFlight.current = null; };
   }, []);
 
   function invalidateExplicitMovementDeclaration() {
+    clearGeographicSupport();
+    routeCheckInFlight.current = null;
     if (!explicitMovementNeedId) {
       return;
     }
@@ -257,6 +264,36 @@ const [selectedAvailabilityId, setSelectedAvailabilityId] =
     setRouteMatchSelection(null);
     setInterestError('');
     routeCheckVersion.current += 1;
+  }
+
+  function clearGeographicSupport() {
+    geographicFlight.current?.controller.abort();
+    geographicFlight.current = null;
+    setGeographicResult(null);
+    setGeographicLoading(false);
+  }
+
+  async function checkGeographicSupport(movementNeedId: string, availabilityId: string) {
+    const key = `${movementNeedId}:${availabilityId}`;
+    if (geographicFlight.current?.key === key) return;
+    geographicFlight.current?.controller.abort();
+    const flight = { key, controller: new AbortController() };
+    geographicFlight.current = flight;
+    setGeographicResult({ key, state: 'pending' });
+    setGeographicLoading(true);
+    try {
+      const value = await prepareRequesterGeographicSupport({ movementNeedId, availabilityId }, flight.controller.signal);
+      if (!mounted.current || geographicFlight.current !== flight || flight.controller.signal.aborted) return;
+      setGeographicResult({ key, state: value.geographicSupport });
+    } catch {
+      if (!mounted.current || geographicFlight.current !== flight || flight.controller.signal.aborted) return;
+      setGeographicResult({ key, state: 'unavailable' });
+    } finally {
+      if (mounted.current && geographicFlight.current === flight) {
+        geographicFlight.current = null;
+        setGeographicLoading(false);
+      }
+    }
   }
 
   const interestKey = explicitMovementNeedId && selectedAvailabilityId
@@ -489,8 +526,9 @@ useEffect(() => {
     async function checkOfferedMovement(
     availabilityId: string,
   ) {
-    if (busy || interestInFlight.current) return;
+    if (busy || interestInFlight.current || routeCheckInFlight.current === availabilityId) return;
     const version = ++routeCheckVersion.current;
+    clearGeographicSupport();
     setMessage('');
     setInterestError('');
     setRequesterRouteMatch(null);
@@ -507,6 +545,7 @@ useEffect(() => {
       return;
     }
 
+    routeCheckInFlight.current = availabilityId;
     setBusy(true);
 
     try {
@@ -533,6 +572,7 @@ useEffect(() => {
       setMessage(
         `Your origin is approximately ${distanceKm} km from this movement's route.`,
       );
+      void checkGeographicSupport(explicitMovementNeedId, availabilityId);
     } catch (error) {
       if (!mounted.current || version !== routeCheckVersion.current) return;
       setRequesterRouteMatch(null);
@@ -543,7 +583,7 @@ useEffect(() => {
           : 'route_match_unavailable',
       );
     } finally {
-      if (mounted.current && version === routeCheckVersion.current) setBusy(false);
+      if (mounted.current && version === routeCheckVersion.current) { routeCheckInFlight.current = null; setBusy(false); }
     }
   }
 
@@ -1042,6 +1082,15 @@ useEffect(() => {
                   <Text style={styles.help}>
                     This is an objective route fact, not an automatic acceptance or rejection.
                   </Text>
+                  {geographicResult?.key === `${explicitMovementNeedId}:${movement.availabilityId}` && (
+                    <Text style={styles.help}>
+                      {{ geometric_corridor_support: 'Reference routes show continuous geometric support.',
+                        overlap_observed: 'Some geometric overlap was observed.',
+                        inconclusive: 'This reference-route comparison is inconclusive. Other routes remain unassessed.',
+                        pending: 'Checking the selected reference routes…',
+                        unavailable: 'Reference-route comparison is unavailable.' }[geographicResult.state]}
+                    </Text>
+                  )}
                 </>
               )}
           </Pressable>
@@ -1049,6 +1098,14 @@ useEffect(() => {
 
         {(hasCurrentReadyRouteMatch || !!currentInterest) && (
           <View style={styles.section}>
+            {hasCurrentReadyRouteMatch && geographicResult?.key === interestKey
+              && ['pending', 'unavailable'].includes(geographicResult.state) && (
+              <Pressable accessibilityRole="button" disabled={geographicLoading}
+                onPress={() => { if (explicitMovementNeedId && selectedAvailabilityId) void checkGeographicSupport(explicitMovementNeedId, selectedAvailabilityId); }}
+                style={styles.button}>
+                <Text style={styles.buttonText}>Refresh reference-route comparison</Text>
+              </Pressable>
+            )}
             <Text style={styles.help}>
               Interest lets the person offering this movement know you may want to join. It does not reserve a place.
             </Text>

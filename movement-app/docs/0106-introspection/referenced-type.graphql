@@ -1,0 +1,8 @@
+query Movement0106ReferencedType($name: String!) {
+ __type(name: $name) {
+  kind name
+  fields(includeDeprecated: true) { name args(includeDeprecated: true) { name defaultValue type { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name } } } } } } } } } type { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name } } } } } } } } }
+  inputFields(includeDeprecated: true) { name defaultValue type { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name } } } } } } } } }
+  enumValues(includeDeprecated: true) { name }
+ }
+}

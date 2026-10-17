@@ -1,0 +1,16 @@
+query Movement0111ProjectServices($id: String!) {
+  project(id: $id) {
+    id
+    services {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+      pageInfo {
+        hasNextPage
+      }
+    }
+  }
+}

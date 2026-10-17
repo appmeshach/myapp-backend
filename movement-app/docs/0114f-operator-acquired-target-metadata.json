@@ -1,0 +1,179 @@
+{
+  "version": "movement_railway_target_metadata_evidence_v1",
+  "outcome": "PRELIVE_NOT_AUTHORIZED",
+  "reviewed": true,
+  "evidenceReviewComplete": true,
+  "liveAuthorized": false,
+  "manualLiveAuthorization": false,
+  "providerObservationOccurred": false,
+  "targetIdentityProven": false,
+  "executableAcquisitionPrepared": false,
+  "recordingContext": {
+    "head": "cf8cdefe11fb5408d67c8f3c6574c0f5933d912c",
+    "branch": "feature/0092-shared-segment-suitability"
+  },
+  "expectedContext": {
+    "projectName": "thorough-blessing",
+    "environmentName": "production",
+    "serviceName": "myapp-backend",
+    "branch": "feature/0092-shared-segment-suitability",
+    "rootDirectory": "/movement-app"
+  },
+  "identifiers": {
+    "projectId": {
+      "field": "projectId",
+      "value": "0fa3268a-396f-4042-a4c0-a92c23fdf486",
+      "provider": "Railway",
+      "sourceKind": "operator_visible_provider_metadata",
+      "sourceSurface": "identifier_field",
+      "sourceParameterName": null,
+      "sourceReference": "Operator reports Project Settings explicitly displayed Project ID",
+      "sourceClassification": "operator_supplied_provider_metadata",
+      "acquiredByReference": null,
+      "acquiredAt": null,
+      "acquisitionReference": "Repository acquisition record 13120f715ea70913eb791f0fb8bc224f2c67a15c",
+      "independentlyReviewed": true,
+      "reviewerReference": "AT",
+      "reviewedAt": "2026-10-15T14:01:00.000Z",
+      "reviewReference": "AT independently compared exact ID and intended context in Railway provider dashboard. No mismatch",
+      "labelContext": {
+        "projectName": "thorough-blessing",
+        "environmentName": "production",
+        "serviceName": "myapp-backend",
+        "branch": "feature/0092-shared-segment-suitability",
+        "rootDirectory": "/movement-app"
+      },
+      "contextCompared": true,
+      "authoritativeForInputReview": true,
+      "acquisitionDate": "2026-10-14",
+      "acquisitionTimeKnown": false,
+      "historicalAcquisitionCommit": "13120f715ea70913eb791f0fb8bc224f2c67a15c",
+      "reviewerDistinctFromAcquirer": true
+    },
+    "environmentId": {
+      "field": "environmentId",
+      "value": "69b93a87-a91b-4c14-8656-6b0ca3135cee",
+      "provider": "Railway",
+      "sourceKind": "operator_visible_provider_metadata",
+      "sourceSurface": "identifier_query_parameter",
+      "sourceParameterName": "environmentId",
+      "sourceReference": "Named environmentId parameter with production selected in project thorough-blessing",
+      "sourceClassification": "operator_supplied_provider_metadata",
+      "acquiredByReference": null,
+      "acquiredAt": null,
+      "acquisitionReference": "Repository acquisition record 13120f715ea70913eb791f0fb8bc224f2c67a15c",
+      "independentlyReviewed": true,
+      "reviewerReference": "AT",
+      "reviewedAt": "2026-10-15T14:01:00.000Z",
+      "reviewReference": "AT independently compared exact ID and intended context in Railway provider dashboard. No mismatch",
+      "labelContext": {
+        "projectName": "thorough-blessing",
+        "environmentName": "production",
+        "serviceName": "myapp-backend",
+        "branch": "feature/0092-shared-segment-suitability",
+        "rootDirectory": "/movement-app"
+      },
+      "contextCompared": true,
+      "authoritativeForInputReview": true,
+      "acquisitionDate": "2026-10-14",
+      "acquisitionTimeKnown": false,
+      "historicalAcquisitionCommit": "13120f715ea70913eb791f0fb8bc224f2c67a15c",
+      "reviewerDistinctFromAcquirer": true
+    },
+    "serviceId": {
+      "field": "serviceId",
+      "value": "b053fe9d-716b-49f4-ac24-324c221d054d",
+      "provider": "Railway",
+      "sourceKind": "operator_visible_provider_metadata",
+      "sourceSurface": "identifier_url_path_segment",
+      "sourceParameterName": null,
+      "sourceReference": "Typed service path segment with myapp-backend visibly selected",
+      "sourceClassification": "operator_supplied_provider_metadata",
+      "acquiredByReference": null,
+      "acquiredAt": null,
+      "acquisitionReference": "Repository acquisition record 13120f715ea70913eb791f0fb8bc224f2c67a15c",
+      "independentlyReviewed": true,
+      "reviewerReference": "AT",
+      "reviewedAt": "2026-10-15T14:01:00.000Z",
+      "reviewReference": "AT independently compared exact ID and intended context in Railway provider dashboard. No mismatch",
+      "labelContext": {
+        "projectName": "thorough-blessing",
+        "environmentName": "production",
+        "serviceName": "myapp-backend",
+        "branch": "feature/0092-shared-segment-suitability",
+        "rootDirectory": "/movement-app"
+      },
+      "contextCompared": true,
+      "authoritativeForInputReview": true,
+      "acquisitionDate": "2026-10-14",
+      "acquisitionTimeKnown": false,
+      "historicalAcquisitionCommit": "13120f715ea70913eb791f0fb8bc224f2c67a15c",
+      "reviewerDistinctFromAcquirer": true
+    },
+    "serviceInstanceId": {
+      "field": "serviceInstanceId",
+      "value": null,
+      "provider": "Railway",
+      "sourceKind": null,
+      "sourceSurface": null,
+      "sourceParameterName": null,
+      "sourceReference": null,
+      "sourceClassification": "unknown",
+      "acquiredByReference": null,
+      "acquiredAt": null,
+      "acquisitionReference": null,
+      "independentlyReviewed": false,
+      "reviewerReference": null,
+      "reviewedAt": null,
+      "reviewReference": null,
+      "labelContext": {
+        "projectName": "thorough-blessing",
+        "environmentName": "production",
+        "serviceName": "myapp-backend",
+        "branch": "feature/0092-shared-segment-suitability",
+        "rootDirectory": "/movement-app"
+      },
+      "contextCompared": false,
+      "authoritativeForInputReview": false
+    }
+  },
+  "requiredFields": [
+    "projectId",
+    "environmentId",
+    "serviceId"
+  ],
+  "optionalUntilProviderObservation": [
+    "serviceInstanceId"
+  ],
+  "samePersonReviewPermitted": false,
+  "codeIdentity": {
+    "baselineParentHead": "7c2346ce73d12e571b5ff8506fd8d02be48f44b7",
+    "sourceHashes": {
+      "qualification-railway-acquisition-wrapper.cjs": "0dc8a07daace32d4984f3edf73301e4143cd2cb2de6232d5880bec33485b103e",
+      "qualification-railway-first-context-wrapper.cjs": "7c3a376d1f7a1b733f3be90a3b7d43fb4aa2fd5256c5638a13e6301a3d78cf94",
+      "qualification-railway-https-adapter.cjs": "6c25068a45e7ffe98f9db8bd1efe20e0bebad5140f740ea20725785af6361d6b",
+      "qualification-railway-target-identity.cjs": "1dce76ecf7657f40d6ad98a7347eecff868772c5812eeadf025165c80ebfcb47",
+      "qualification-railway-target-identity-provider-boundary.cjs": "cf22b4ce9d68b36fa6c325f289661528fcfb6ec8e75d6acad9af5429be53e1df",
+      "qualification-railway-context-review.cjs": "23fb65eef738136b68b3d8ce19a69e51482f9bc075c6a26940e2300108c6dd0f",
+      "qualification-railway-introspection-preflight.cjs": "88fe296bd5bfaa639844436c031dbdc674f29c25fbab3530081317143b3c9d74",
+      "qualification-railway-project-token-context.cjs": "cd862abc5b85b8663fbc1075263c0b5d3c6d05793a31e875db67457f4adb3085",
+      "qualification-railway-transport-contract.cjs": "33101241797b778067e2c44389c22c6b236e0f741e7565feae4cf8607e8b26de",
+      "qualification-railway-introspection-target.cjs": "2c236cc1a077fea457938b4317afd7488de010f725ec0a5463fb52d0ab12d199",
+      "qualification-railway-introspection-request.cjs": "62342054302e6f487708b85372b5f2cac7c1449e69ce3c25b0d142c1d4324ae3",
+      "qualification-railway-introspection-plan.cjs": "dacaf8a4aaecff254760da0c687ccc78b3569b7e5449d1a919ba4170d18fc0e3"
+    },
+    "authorizationBoundarySha256": "601a71a287a07c439bd4b3a136a64773ca709ee8d3b86414b4e2cedb2a6f3bd4",
+    "canonicalSourceRule": "UTF-8; CRLF to LF only; preserve all other bytes and EOF",
+    "reviewedHead": null,
+    "reviewedBranch": null
+  },
+  "crossSystemForbidden": {
+    "provider": "Supabase",
+    "identifierKind": "project_ref",
+    "production": "xdfmoggrsucisfybqctb",
+    "inactive": "udlsysezmzutydnifhsq",
+    "consumedHistoricalDisposable": "uzkhnslyrhgucijcuoes",
+    "railwayNamespace": false,
+    "newQualificationAuthorized": false
+  }
+}

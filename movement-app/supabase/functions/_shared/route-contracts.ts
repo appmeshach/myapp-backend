@@ -100,6 +100,48 @@ export interface RecordedRouteMatchEvidence {
   routeMatchEvidenceExpiresAt: string | null;
 }
 
+export interface RouteMatchPublicationPayload {
+  movementNeedId: string;
+  offeringMovementIntentId: string;
+  expectedRouteEvidenceId: string;
+  expectedRouteEvidenceVersion: number;
+  requesterOriginDistanceToRouteMeters: number;
+  requesterDestinationDistanceToRouteMeters: number;
+  calculatedRouteShapeLengthMeters: number;
+  requesterOriginPositionAlongRouteMeters: number;
+  requesterDestinationPositionAlongRouteMeters: number;
+  requesterOriginClosestRoute: TrustedRouteCoordinate;
+  requesterDestinationClosestRoute: TrustedRouteCoordinate;
+  calculatedAt: string;
+  expiresAt: null;
+}
+
+export type RouteMatchContextIdentity = ReturnType<typeof routeMatchContextIdentity>;
+export function routeMatchContextIdentity(c: TrustedMatchingContext, availabilityId: string) {
+  return {
+    movementNeedId: c.movementNeedId, requestingMemberId: c.requestingMemberId, availabilityId,
+    requesterOriginLocationReferenceId: c.requesterOriginLocationReferenceId,
+    requesterDestinationLocationReferenceId: c.requesterDestinationLocationReferenceId,
+    offeringMovementIntentId: c.offeringMovementIntentId, offeringMemberId: c.offeringMemberId,
+    offeringIntentVersion: c.offeringIntentVersion,
+    routeEvidenceId: c.routeEvidenceId, routeEvidenceVersion: c.routeEvidenceVersion,
+  };
+}
+
+export type CurrentRequesterRouteMatch =
+  | { state: 'not_found'; identity: RouteMatchContextIdentity }
+  | { state: 'reuse_existing'; identity: RouteMatchContextIdentity;
+      evidence: RecordedRouteMatchEvidence; payload: RouteMatchPublicationPayload };
+
+// Compare canonical structures without depending on JSON object key order.
+export function sameRouteMatchValue(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (!a || !b || typeof a !== 'object' || typeof b !== 'object') return false;
+  const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
+  return Object.keys(x).length === Object.keys(y).length
+    && Object.keys(x).every(k => Object.hasOwn(y, k) && sameRouteMatchValue(x[k], y[k]));
+}
+
 export interface PricingClassificationContext {
   routeMatchEvidenceId: string;
   routeMatchEvidenceVersion: number;
@@ -206,6 +248,16 @@ export interface RouteBackend {
     availabilityId: string,
     signal: AbortSignal,
   ): Promise<TrustedMatchingContext | null>;
+
+  getCurrentRequesterAvailabilityRouteMatch(
+    verifiedMemberId: string, movementNeedId: string, availabilityId: string, signal: AbortSignal,
+    expectedPayload?: RouteMatchPublicationPayload,
+  ): Promise<CurrentRequesterRouteMatch | null>;
+
+  publishRequesterAvailabilityRouteMatch(
+    verifiedMemberId: string, movementNeedId: string, availabilityId: string,
+    identity: RouteMatchContextIdentity, payload: RouteMatchPublicationPayload, signal: AbortSignal,
+  ): Promise<CurrentRequesterRouteMatch | null>;
 
   getPricingClassificationContext(
     routeMatchEvidenceId: string,

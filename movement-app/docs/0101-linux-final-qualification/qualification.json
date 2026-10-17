@@ -1,0 +1,1159 @@
+{
+  "schemaVersion": "movement_worker_host_qualification_v1",
+  "timestamp": "2026-10-12T13:56:56.461Z",
+  "gitCommit": null,
+  "gitDirty": true,
+  "workerSourceSha256": "5316734c92ae254c2689f1197e2e0e4f8363c8143990c5f47fc8d217596832fe",
+  "mode": "offline",
+  "host": {
+    "provider": "local",
+    "machine": "linux-1cpu-512MiB",
+    "region": "local",
+    "monthlyFixedCost": null,
+    "currency": "unspecified"
+  },
+  "environment": {
+    "nodeVersion": "v24.13.1",
+    "platform": "linux",
+    "arch": "x64",
+    "cpuModel": "Intel(R) Core(TM) i5-7200U CPU   2.50GHz",
+    "logicalCpus": 4,
+    "totalMemoryBytes": 4042543104,
+    "availableMemoryBytes": 1685716992,
+    "memoryLimitBytes": 536870912,
+    "signalDelivery": "posix_signal"
+  },
+  "algorithm": {
+    "version": "shared_segment_geographic_assessment_v1",
+    "parameterFingerprint": "1625aa38ea035ad2c26a8c13a3a4df37714fc32624089fa3894f57c2ddda29d5",
+    "geometrySha256": "d48f53b5f7e2e226ed9a1c23d9dd1884e6a6350539e8e58b794061103db54043",
+    "contractsSha256": "9ad2c9a1675a4caeb4a6d658bcb8b24fcaecc6ae1b101effea906b8e216eda95"
+  },
+  "worker": {
+    "nodeMajor": 24,
+    "concurrency": 1,
+    "pollMs": 1000,
+    "leaseMs": 60000,
+    "timeoutMs": 15000,
+    "heapMb": 192,
+    "ioMs": 5000,
+    "reserveMs": 10000,
+    "shutdownMs": 6000
+  },
+  "cases": [
+    {
+      "name": "small",
+      "originalPoints": [
+        2,
+        2
+      ],
+      "expectedHash": "c417020529025bcf828b41513b4df8825385baccca43a23b3bd65a73e4ec155b",
+      "samples": [
+        {
+          "observation": "first-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "complete",
+          "geographicResult": "geometric_corridor_support",
+          "reason": null,
+          "workUnits": 3289,
+          "resampledPoints": [
+            61,
+            61
+          ],
+          "resultHash": "c417020529025bcf828b41513b4df8825385baccca43a23b3bd65a73e4ec155b",
+          "metrics": {
+            "wallMs": 1251.284583,
+            "computeMs": 26.502316999999948,
+            "cpuMs": 30.604,
+            "peakRssBytes": 76943360
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "complete",
+          "geographicResult": "geometric_corridor_support",
+          "reason": null,
+          "workUnits": 3289,
+          "resampledPoints": [
+            61,
+            61
+          ],
+          "resultHash": "c417020529025bcf828b41513b4df8825385baccca43a23b3bd65a73e4ec155b",
+          "metrics": {
+            "wallMs": 892.3131550000003,
+            "computeMs": 86.74205800000004,
+            "cpuMs": 86.566,
+            "peakRssBytes": 79990784
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "complete",
+          "geographicResult": "geometric_corridor_support",
+          "reason": null,
+          "workUnits": 3289,
+          "resampledPoints": [
+            61,
+            61
+          ],
+          "resultHash": "c417020529025bcf828b41513b4df8825385baccca43a23b3bd65a73e4ec155b",
+          "metrics": {
+            "wallMs": 702.1253710000001,
+            "computeMs": 89.67777999999998,
+            "cpuMs": 83.504,
+            "peakRssBytes": 78225408
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "complete",
+          "geographicResult": "geometric_corridor_support",
+          "reason": null,
+          "workUnits": 3289,
+          "resampledPoints": [
+            61,
+            61
+          ],
+          "resultHash": "c417020529025bcf828b41513b4df8825385baccca43a23b3bd65a73e4ec155b",
+          "metrics": {
+            "wallMs": 640.6038869999998,
+            "computeMs": 66.87204400000007,
+            "cpuMs": 46.576,
+            "peakRssBytes": 80310272
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "complete",
+          "geographicResult": "geometric_corridor_support",
+          "reason": null,
+          "workUnits": 3289,
+          "resampledPoints": [
+            61,
+            61
+          ],
+          "resultHash": "c417020529025bcf828b41513b4df8825385baccca43a23b3bd65a73e4ec155b",
+          "metrics": {
+            "wallMs": 805.3411509999996,
+            "computeMs": 36.906249,
+            "cpuMs": 41.239,
+            "peakRssBytes": 80162816
+          }
+        }
+      ],
+      "wallMs": {
+        "count": 5,
+        "min": 640.6038869999998,
+        "p50": 805.3411509999996,
+        "p95": null,
+        "max": 1251.284583
+      },
+      "computeMs": {
+        "count": 5,
+        "min": 26.502316999999948,
+        "p50": 66.87204400000007,
+        "p95": null,
+        "max": 89.67777999999998
+      },
+      "cpuMs": {
+        "count": 5,
+        "min": 30.604,
+        "p50": 46.576,
+        "p95": null,
+        "max": 86.566
+      },
+      "failures": 0,
+      "timeouts": 0,
+      "abnormalTerminations": 0,
+      "peakRssBytes": 80310272,
+      "passed": true
+    },
+    {
+      "name": "ordinary",
+      "originalPoints": [
+        200,
+        200
+      ],
+      "expectedHash": "91be9f6dc7230b9f0458a799cda4add5014e488cc3b108e19da647e56cc74499",
+      "samples": [
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "complete",
+          "geographicResult": "geometric_corridor_support",
+          "reason": null,
+          "workUnits": 175286,
+          "resampledPoints": [
+            3185,
+            3185
+          ],
+          "resultHash": "91be9f6dc7230b9f0458a799cda4add5014e488cc3b108e19da647e56cc74499",
+          "metrics": {
+            "wallMs": 1277.2350580000002,
+            "computeMs": 659.191973,
+            "cpuMs": 661.503,
+            "peakRssBytes": 90267648
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "complete",
+          "geographicResult": "geometric_corridor_support",
+          "reason": null,
+          "workUnits": 175286,
+          "resampledPoints": [
+            3185,
+            3185
+          ],
+          "resultHash": "91be9f6dc7230b9f0458a799cda4add5014e488cc3b108e19da647e56cc74499",
+          "metrics": {
+            "wallMs": 1662.1000109999995,
+            "computeMs": 799.717502,
+            "cpuMs": 770.731,
+            "peakRssBytes": 90304512
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "complete",
+          "geographicResult": "geometric_corridor_support",
+          "reason": null,
+          "workUnits": 175286,
+          "resampledPoints": [
+            3185,
+            3185
+          ],
+          "resultHash": "91be9f6dc7230b9f0458a799cda4add5014e488cc3b108e19da647e56cc74499",
+          "metrics": {
+            "wallMs": 1127.140265,
+            "computeMs": 653.1293879999998,
+            "cpuMs": 621.172,
+            "peakRssBytes": 91185152
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "complete",
+          "geographicResult": "geometric_corridor_support",
+          "reason": null,
+          "workUnits": 175286,
+          "resampledPoints": [
+            3185,
+            3185
+          ],
+          "resultHash": "91be9f6dc7230b9f0458a799cda4add5014e488cc3b108e19da647e56cc74499",
+          "metrics": {
+            "wallMs": 1195.3484150000004,
+            "computeMs": 668.9095500000001,
+            "cpuMs": 669.262,
+            "peakRssBytes": 90800128
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "complete",
+          "geographicResult": "geometric_corridor_support",
+          "reason": null,
+          "workUnits": 175286,
+          "resampledPoints": [
+            3185,
+            3185
+          ],
+          "resultHash": "91be9f6dc7230b9f0458a799cda4add5014e488cc3b108e19da647e56cc74499",
+          "metrics": {
+            "wallMs": 1000.584852,
+            "computeMs": 464.65952899999996,
+            "cpuMs": 459.821,
+            "peakRssBytes": 91353088
+          }
+        }
+      ],
+      "wallMs": {
+        "count": 5,
+        "min": 1000.584852,
+        "p50": 1195.3484150000004,
+        "p95": null,
+        "max": 1662.1000109999995
+      },
+      "computeMs": {
+        "count": 5,
+        "min": 464.65952899999996,
+        "p50": 659.191973,
+        "p95": null,
+        "max": 799.717502
+      },
+      "cpuMs": {
+        "count": 5,
+        "min": 459.821,
+        "p50": 661.503,
+        "p95": null,
+        "max": 770.731
+      },
+      "failures": 0,
+      "timeouts": 0,
+      "abnormalTerminations": 0,
+      "peakRssBytes": 91353088,
+      "passed": true
+    },
+    {
+      "name": "nearMaximum",
+      "originalPoints": [
+        2000,
+        2000
+      ],
+      "expectedHash": "329456608ccdbe37a5c2055b1bd359448c07bf692f40a3c7f09f0406fd936bbe",
+      "samples": [
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 1000000,
+          "resampledPoints": [
+            19716,
+            19716
+          ],
+          "resultHash": "329456608ccdbe37a5c2055b1bd359448c07bf692f40a3c7f09f0406fd936bbe",
+          "metrics": {
+            "wallMs": 3785.87284,
+            "computeMs": 3280.2212409999997,
+            "cpuMs": 3248.36,
+            "peakRssBytes": 114032640
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 1000000,
+          "resampledPoints": [
+            19716,
+            19716
+          ],
+          "resultHash": "329456608ccdbe37a5c2055b1bd359448c07bf692f40a3c7f09f0406fd936bbe",
+          "metrics": {
+            "wallMs": 3319.052104999999,
+            "computeMs": 2878.7549010000002,
+            "cpuMs": 2864.679,
+            "peakRssBytes": 114184192
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 1000000,
+          "resampledPoints": [
+            19716,
+            19716
+          ],
+          "resultHash": "329456608ccdbe37a5c2055b1bd359448c07bf692f40a3c7f09f0406fd936bbe",
+          "metrics": {
+            "wallMs": 3389.8122920000023,
+            "computeMs": 2989.127594,
+            "cpuMs": 2901.126,
+            "peakRssBytes": 114229248
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 1000000,
+          "resampledPoints": [
+            19716,
+            19716
+          ],
+          "resultHash": "329456608ccdbe37a5c2055b1bd359448c07bf692f40a3c7f09f0406fd936bbe",
+          "metrics": {
+            "wallMs": 2915.6328490000014,
+            "computeMs": 2397.981438,
+            "cpuMs": 2365.954,
+            "peakRssBytes": 113397760
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 1000000,
+          "resampledPoints": [
+            19716,
+            19716
+          ],
+          "resultHash": "329456608ccdbe37a5c2055b1bd359448c07bf692f40a3c7f09f0406fd936bbe",
+          "metrics": {
+            "wallMs": 3041.654752999999,
+            "computeMs": 2265.643374,
+            "cpuMs": 2237.073,
+            "peakRssBytes": 113225728
+          }
+        }
+      ],
+      "wallMs": {
+        "count": 5,
+        "min": 2915.6328490000014,
+        "p50": 3319.052104999999,
+        "p95": null,
+        "max": 3785.87284
+      },
+      "computeMs": {
+        "count": 5,
+        "min": 2265.643374,
+        "p50": 2878.7549010000002,
+        "p95": null,
+        "max": 3280.2212409999997
+      },
+      "cpuMs": {
+        "count": 5,
+        "min": 2237.073,
+        "p50": 2864.679,
+        "p95": null,
+        "max": 3248.36
+      },
+      "failures": 0,
+      "timeouts": 0,
+      "abnormalTerminations": 0,
+      "peakRssBytes": 114229248,
+      "passed": true
+    },
+    {
+      "name": "coordinateLimit",
+      "originalPoints": [
+        2001,
+        2
+      ],
+      "expectedHash": "d34aa1b518f8bb5024f3ef9abb57e2d9224f0c6f510a486dbd9ac237cd30e238",
+      "samples": [
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 0,
+          "resampledPoints": [
+            0,
+            0
+          ],
+          "resultHash": "d34aa1b518f8bb5024f3ef9abb57e2d9224f0c6f510a486dbd9ac237cd30e238",
+          "metrics": {
+            "wallMs": 570.9610729999986,
+            "computeMs": 5.845749000000069,
+            "cpuMs": 2.74,
+            "peakRssBytes": 78974976
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 0,
+          "resampledPoints": [
+            0,
+            0
+          ],
+          "resultHash": "d34aa1b518f8bb5024f3ef9abb57e2d9224f0c6f510a486dbd9ac237cd30e238",
+          "metrics": {
+            "wallMs": 430.63710399999763,
+            "computeMs": 8.83618899999999,
+            "cpuMs": 8.494,
+            "peakRssBytes": 79577088
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 0,
+          "resampledPoints": [
+            0,
+            0
+          ],
+          "resultHash": "d34aa1b518f8bb5024f3ef9abb57e2d9224f0c6f510a486dbd9ac237cd30e238",
+          "metrics": {
+            "wallMs": 430.17348899999706,
+            "computeMs": 3.465958999999998,
+            "cpuMs": 3.398,
+            "peakRssBytes": 80056320
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 0,
+          "resampledPoints": [
+            0,
+            0
+          ],
+          "resultHash": "d34aa1b518f8bb5024f3ef9abb57e2d9224f0c6f510a486dbd9ac237cd30e238",
+          "metrics": {
+            "wallMs": 452.4940190000016,
+            "computeMs": 4.453303000000005,
+            "cpuMs": 2.098,
+            "peakRssBytes": 78721024
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 0,
+          "resampledPoints": [
+            0,
+            0
+          ],
+          "resultHash": "d34aa1b518f8bb5024f3ef9abb57e2d9224f0c6f510a486dbd9ac237cd30e238",
+          "metrics": {
+            "wallMs": 623.9640059999983,
+            "computeMs": 9.975570999999945,
+            "cpuMs": 3.166,
+            "peakRssBytes": 79802368
+          }
+        }
+      ],
+      "wallMs": {
+        "count": 5,
+        "min": 430.17348899999706,
+        "p50": 452.4940190000016,
+        "p95": null,
+        "max": 623.9640059999983
+      },
+      "computeMs": {
+        "count": 5,
+        "min": 3.465958999999998,
+        "p50": 5.845749000000069,
+        "p95": null,
+        "max": 9.975570999999945
+      },
+      "cpuMs": {
+        "count": 5,
+        "min": 2.098,
+        "p50": 3.166,
+        "p95": null,
+        "max": 8.494
+      },
+      "failures": 0,
+      "timeouts": 0,
+      "abnormalTerminations": 0,
+      "peakRssBytes": 80056320,
+      "passed": true
+    },
+    {
+      "name": "resamplingLimit",
+      "originalPoints": [
+        2000,
+        2000
+      ],
+      "expectedHash": "d34aa1b518f8bb5024f3ef9abb57e2d9224f0c6f510a486dbd9ac237cd30e238",
+      "samples": [
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 0,
+          "resampledPoints": [
+            0,
+            0
+          ],
+          "resultHash": "d34aa1b518f8bb5024f3ef9abb57e2d9224f0c6f510a486dbd9ac237cd30e238",
+          "metrics": {
+            "wallMs": 463.0660390000012,
+            "computeMs": 65.62285999999995,
+            "cpuMs": 18.423,
+            "peakRssBytes": 80932864
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 0,
+          "resampledPoints": [
+            0,
+            0
+          ],
+          "resultHash": "d34aa1b518f8bb5024f3ef9abb57e2d9224f0c6f510a486dbd9ac237cd30e238",
+          "metrics": {
+            "wallMs": 460.48079799999687,
+            "computeMs": 11.259990000000016,
+            "cpuMs": 12.424,
+            "peakRssBytes": 77705216
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 0,
+          "resampledPoints": [
+            0,
+            0
+          ],
+          "resultHash": "d34aa1b518f8bb5024f3ef9abb57e2d9224f0c6f510a486dbd9ac237cd30e238",
+          "metrics": {
+            "wallMs": 669.0431760000029,
+            "computeMs": 40.34669699999995,
+            "cpuMs": 25.625,
+            "peakRssBytes": 77697024
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 0,
+          "resampledPoints": [
+            0,
+            0
+          ],
+          "resultHash": "d34aa1b518f8bb5024f3ef9abb57e2d9224f0c6f510a486dbd9ac237cd30e238",
+          "metrics": {
+            "wallMs": 633.8045439999987,
+            "computeMs": 12.25423699999999,
+            "cpuMs": 13.338,
+            "peakRssBytes": 78606336
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 0,
+          "resampledPoints": [
+            0,
+            0
+          ],
+          "resultHash": "d34aa1b518f8bb5024f3ef9abb57e2d9224f0c6f510a486dbd9ac237cd30e238",
+          "metrics": {
+            "wallMs": 399.4070649999994,
+            "computeMs": 12.451385000000016,
+            "cpuMs": 13.802,
+            "peakRssBytes": 80134144
+          }
+        }
+      ],
+      "wallMs": {
+        "count": 5,
+        "min": 399.4070649999994,
+        "p50": 463.0660390000012,
+        "p95": null,
+        "max": 669.0431760000029
+      },
+      "computeMs": {
+        "count": 5,
+        "min": 11.259990000000016,
+        "p50": 12.451385000000016,
+        "p95": null,
+        "max": 65.62285999999995
+      },
+      "cpuMs": {
+        "count": 5,
+        "min": 12.424,
+        "p50": 13.802,
+        "p95": null,
+        "max": 25.625
+      },
+      "failures": 0,
+      "timeouts": 0,
+      "abnormalTerminations": 0,
+      "peakRssBytes": 80932864,
+      "passed": true
+    },
+    {
+      "name": "denseCrossing",
+      "originalPoints": [
+        2000,
+        2000
+      ],
+      "expectedHash": "1883baa953644be27d3440a8ad70fa7d0c3c14720a17b476cdc3ea5a3216bd8c",
+      "samples": [
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 1000000,
+          "resampledPoints": [
+            3591,
+            3599
+          ],
+          "resultHash": "1883baa953644be27d3440a8ad70fa7d0c3c14720a17b476cdc3ea5a3216bd8c",
+          "metrics": {
+            "wallMs": 4320.780535999998,
+            "computeMs": 3854.1402399999997,
+            "cpuMs": 3852.86,
+            "peakRssBytes": 101494784
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 1000000,
+          "resampledPoints": [
+            3591,
+            3599
+          ],
+          "resultHash": "1883baa953644be27d3440a8ad70fa7d0c3c14720a17b476cdc3ea5a3216bd8c",
+          "metrics": {
+            "wallMs": 4305.630840999998,
+            "computeMs": 3909.676503,
+            "cpuMs": 3907.148,
+            "peakRssBytes": 101031936
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 1000000,
+          "resampledPoints": [
+            3591,
+            3599
+          ],
+          "resultHash": "1883baa953644be27d3440a8ad70fa7d0c3c14720a17b476cdc3ea5a3216bd8c",
+          "metrics": {
+            "wallMs": 3974.099728000001,
+            "computeMs": 3559.8593140000003,
+            "cpuMs": 3497.943,
+            "peakRssBytes": 101404672
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 1000000,
+          "resampledPoints": [
+            3591,
+            3599
+          ],
+          "resultHash": "1883baa953644be27d3440a8ad70fa7d0c3c14720a17b476cdc3ea5a3216bd8c",
+          "metrics": {
+            "wallMs": 4232.839043,
+            "computeMs": 3820.202153,
+            "cpuMs": 3809.76,
+            "peakRssBytes": 101281792
+          }
+        },
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 192,
+          "failure": null,
+          "state": "assessment_unavailable",
+          "geographicResult": null,
+          "reason": "processing_limit",
+          "workUnits": 1000000,
+          "resampledPoints": [
+            3591,
+            3599
+          ],
+          "resultHash": "1883baa953644be27d3440a8ad70fa7d0c3c14720a17b476cdc3ea5a3216bd8c",
+          "metrics": {
+            "wallMs": 4368.3224649999975,
+            "computeMs": 3965.267227,
+            "cpuMs": 3955.556,
+            "peakRssBytes": 99069952
+          }
+        }
+      ],
+      "wallMs": {
+        "count": 5,
+        "min": 3974.099728000001,
+        "p50": 4305.630840999998,
+        "p95": null,
+        "max": 4368.3224649999975
+      },
+      "computeMs": {
+        "count": 5,
+        "min": 3559.8593140000003,
+        "p50": 3854.1402399999997,
+        "p95": null,
+        "max": 3965.267227
+      },
+      "cpuMs": {
+        "count": 5,
+        "min": 3497.943,
+        "p50": 3852.86,
+        "p95": null,
+        "max": 3955.556
+      },
+      "failures": 0,
+      "timeouts": 0,
+      "abnormalTerminations": 0,
+      "peakRssBytes": 101494784,
+      "passed": true
+    },
+    {
+      "name": "stalledChild",
+      "originalPoints": [
+        2,
+        2
+      ],
+      "expectedHash": null,
+      "samples": [
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 1000,
+          "heapMb": 16,
+          "failure": "compute_timeout",
+          "state": null,
+          "geographicResult": null,
+          "reason": null,
+          "workUnits": null,
+          "resampledPoints": null,
+          "resultHash": null,
+          "metrics": null
+        }
+      ],
+      "wallMs": {
+        "count": 0,
+        "min": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "computeMs": {
+        "count": 0,
+        "min": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "cpuMs": {
+        "count": 0,
+        "min": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "failures": 1,
+      "timeouts": 1,
+      "abnormalTerminations": 0,
+      "peakRssBytes": 0,
+      "passed": true
+    },
+    {
+      "name": "malformedChild",
+      "originalPoints": [
+        2,
+        2
+      ],
+      "expectedHash": null,
+      "samples": [
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 5000,
+          "heapMb": 16,
+          "failure": "compute_terminated",
+          "state": null,
+          "geographicResult": null,
+          "reason": null,
+          "workUnits": null,
+          "resampledPoints": null,
+          "resultHash": null,
+          "metrics": null
+        }
+      ],
+      "wallMs": {
+        "count": 0,
+        "min": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "computeMs": {
+        "count": 0,
+        "min": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "cpuMs": {
+        "count": 0,
+        "min": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "failures": 1,
+      "timeouts": 0,
+      "abnormalTerminations": 1,
+      "peakRssBytes": 0,
+      "passed": true
+    },
+    {
+      "name": "abnormalChild",
+      "originalPoints": [
+        2,
+        2
+      ],
+      "expectedHash": null,
+      "samples": [
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 5000,
+          "heapMb": 16,
+          "failure": "compute_terminated",
+          "state": null,
+          "geographicResult": null,
+          "reason": null,
+          "workUnits": null,
+          "resampledPoints": null,
+          "resultHash": null,
+          "metrics": null
+        }
+      ],
+      "wallMs": {
+        "count": 0,
+        "min": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "computeMs": {
+        "count": 0,
+        "min": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "cpuMs": {
+        "count": 0,
+        "min": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "failures": 1,
+      "timeouts": 0,
+      "abnormalTerminations": 1,
+      "peakRssBytes": 0,
+      "passed": true
+    },
+    {
+      "name": "constrainedHeap",
+      "originalPoints": [
+        2,
+        2
+      ],
+      "expectedHash": null,
+      "samples": [
+        {
+          "observation": "subsequent-process-run",
+          "timeoutMs": 15000,
+          "heapMb": 16,
+          "failure": "compute_terminated",
+          "state": null,
+          "geographicResult": null,
+          "reason": null,
+          "workUnits": null,
+          "resampledPoints": null,
+          "resultHash": null,
+          "metrics": null
+        }
+      ],
+      "wallMs": {
+        "count": 0,
+        "min": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "computeMs": {
+        "count": 0,
+        "min": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "cpuMs": {
+        "count": 0,
+        "min": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "failures": 1,
+      "timeouts": 0,
+      "abnormalTerminations": 1,
+      "peakRssBytes": 0,
+      "passed": true
+    }
+  ],
+  "queue": [],
+  "dedup": null,
+  "restart": [],
+  "idle": {
+    "kind": "offline_simulated_poll",
+    "durationMs": 2000.2978199999998,
+    "sampleCount": 2,
+    "pollCount": 2,
+    "dbCalls": 0,
+    "rssBytes": {
+      "count": 2,
+      "min": 94724096,
+      "p50": 94724096,
+      "p95": null,
+      "max": 94724096
+    },
+    "heapUsedBytes": {
+      "count": 2,
+      "min": 14684608,
+      "p50": 14693560,
+      "p95": null,
+      "max": 14702512
+    },
+    "cpuDeltaMs": {
+      "count": 2,
+      "min": 0.653,
+      "p50": 1.03,
+      "p95": null,
+      "max": 1.407
+    },
+    "cpuMs": 2.093,
+    "maxEventLoopDelayMs": 1.2168170000004466
+  },
+  "security": {
+    "logAllowlist": true,
+    "childIsolation": true,
+    "processLeakCheck": null,
+    "installedSqlVerified": null
+  },
+  "usage": {
+    "wallMs": 57510.867893,
+    "totalChildCpuMs": 36214.94500000001,
+    "parentCpuMs": 1056.547,
+    "peakParentRssBytes": 94945280,
+    "peakChildRssBytes": 114229248,
+    "dbCalls": 0,
+    "jobsCompleted": 0,
+    "bytesTransferred": null
+  },
+  "lease": {
+    "maximumNormalWallMs": 4368.3224649999975,
+    "reserveMs": 10000,
+    "leaseMs": 60000,
+    "provisionalCeilingMs": 30000,
+    "remainingMs": 45631.677535
+  },
+  "gates": {
+    "correctness": true,
+    "reliability": true,
+    "lease": true,
+    "memory": true,
+    "process": null,
+    "integration": null,
+    "security": null
+  },
+  "result": "incomplete",
+  "classification": "QUALIFICATION_INCOMPLETE",
+  "reasons": [
+    "integration_not_measured",
+    "process_not_measured",
+    "security_not_measured"
+  ]
+}

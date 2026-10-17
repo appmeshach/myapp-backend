@@ -234,8 +234,14 @@ test('resolution wrapper requires attestation and exact pair then delegates ever
 for (const [name, expected] of [
   ['0025_trusted_route_producer_boundary.sql','8739ef54c193de0646c44f5311b902835ac949ed6efaf47755d3be8e1f33ad89'],
   ['0026_trusted_location_resolution_boundary.sql','32e1bcd9f29ea451512447e90b3149ca0c179ad98f8e60192ca5536d9d90e481'],
-]) test(`${name} remains byte-identical`, () => {
-  assert.equal(crypto.createHash('sha256').update(fs.readFileSync(`supabase/migrations/${name}`)).digest('hex'), expected);
+]) test(`${name} remains byte-identical modulo checkout line endings`, () => {
+  const cp=require('node:child_process');
+  const prefix=cp.execFileSync('git',['rev-parse','--show-prefix'],{encoding:'utf8'}).trim();
+  const relative=`supabase/migrations/${name}`;
+  const working=fs.readFileSync(relative,'utf8').replace(/\r\n/g,'\n');
+  const committed=cp.execFileSync('git',['show','HEAD:'+prefix+relative],{encoding:'utf8'}).replace(/\r\n/g,'\n');
+  assert.equal(working,committed,'Historical content differs beyond checkout line endings');
+  assert.equal(crypto.createHash('sha256').update(working).digest('hex'), expected);
 });
 test('no old function replaced or unrelated product/network path introduced', () => {
   assert.doesNotMatch(compact, /CREATE OR REPLACE|DROP |TRUNCATE |http[s]?:|fetch\(|net\.|dblink|payment|pricing|journey|alignment|requester|offering_movement_intents/i);

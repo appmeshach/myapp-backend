@@ -14,7 +14,7 @@ function load(file, stubs, globals = {}) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
   }).outputText);
   const exports = {};
-  vm.runInNewContext(cache.get(file), { exports, Error, Date, console, ...globals,
+  vm.runInNewContext(cache.get(file), { exports, Error, Date, console, AbortController, ...globals,
     require(name) {
       if (name in stubs) return stubs[name];
       if (name === 'react/jsx-runtime') return require(name);
@@ -188,6 +188,7 @@ function screen(kind) {
       createdAt: time,
     }),
     calculateRouteMatch: async () => match,
+    prepareRequesterGeographicSupport: async () => ({ geographicSupport: 'unavailable' }),
     createRequesterMovementInterest: async () => ({ interestId: interest, interestStatus: 'active', createdAt: time }),
     withdrawRequesterMovementInterest: async () => ({ interestId: interest, interestStatus: 'withdrawn', createdAt: time }),
     listRequesterMovementInterestsForOfferer: async () => [],
@@ -240,7 +241,8 @@ function screen(kind) {
         return handlers.listMyOpenOfferingMovementAvailabilities(...args);
       },
       calculateRouteMatch: wrap('calculateRouteMatch'),
-      discoverOfferingMovementAvailability: async () => [offered(availability), offered(otherAvailability)],
+      discoverOfferingMovementAvailability: async () => handlers.discoverOfferingMovementAvailability
+        ? handlers.discoverOfferingMovementAvailability() : [offered(availability), offered(otherAvailability)],
       createOfferingMovementIntent: async input => {
         declarationCalls.push(plain(input));
         return { offeringMovementIntentId: id(30) };
@@ -251,6 +253,10 @@ function screen(kind) {
     '../services/requesterMovementInterestService': Object.fromEntries([
       'createRequesterMovementInterest', 'withdrawRequesterMovementInterest', 'listRequesterMovementInterestsForOfferer',
     ].map(name => [name, wrap(name)])),
+    '../services/requesterGeographicSupportService': { prepareRequesterGeographicSupport: (...args) => {
+      calls.push(['prepareRequesterGeographicSupport', plain(args[0])]);
+      return handlers.prepareRequesterGeographicSupport(...args);
+    } },
     '../services/vehicleService': { listMyActiveVehicles: async () => [{ vehicleId: id(31), make: 'Test', model: 'Car', color: 'Blue', seatCapacity: 3 }] },
   }).default;
   function render() { cursor = 0; dirty = false; tree = component(); while (effects.length) effects.shift()(); }
@@ -280,6 +286,15 @@ function screen(kind) {
     unmount() { for (const v of values) v?.cleanup?.(); mounted = false; },
   };
 }
+
+test('0099 browsing fifty candidates performs no selected route or private job action', async () => {
+  const h = screen('request');
+  h.handlers.discoverOfferingMovementAvailability = async () => Array.from({ length: 50 }, (_, i) => offered(id(1000 + i)));
+  await h.settle();
+  for (let i = 0; i < 50; i++) assert(h.find(n => n.type === 'Pressable' && n.key === id(1000 + i)));
+  assert(!h.calls.some(c => /calculateRouteMatch|createRequesterMovementInterest|assessment|job|Geographic/i.test(c[0])));
+  h.unmount();
+});
 
 test('recovered current movement need alone cannot check route or express interest', async () => {
   const h = screen('request');
@@ -332,9 +347,74 @@ test('explicit create uses exact context updates CTA and performs no offer capac
   assert.equal(h.button('Interested').props.disabled, true);
   assert(h.button('Withdraw interest'));
   assert.deepEqual(h.calls.map(c => c[0]), ['recoverLatestActiveMovementNeed', 'discoverMaskedOffersForMyNeed',
-    'createMovementNeed', 'calculateRouteMatch', 'createRequesterMovementInterest']);
+    'createMovementNeed', 'calculateRouteMatch', 'prepareRequesterGeographicSupport', 'createRequesterMovementInterest']);
   assert.deepEqual(h.calls[1], ['discoverMaskedOffersForMyNeed', need]);
 });
+for (const state of ['geometric_corridor_support', 'overlap_observed', 'inconclusive', 'pending', 'unavailable']) {
+  test(`0100 ${state} leaves existing route-match interest usable`, async () => {
+    const h = screen('request'); h.handlers.prepareRequesterGeographicSupport = async () => ({ geographicSupport: state });
+    await h.settle(); await h.form(); await h.select();
+    assert.equal(h.button("I'm interested").props.disabled, false);
+    assert.match(h.text(), /Route relationship/); await h.press("I'm interested");
+    assert.equal(h.calls.filter(c => c[0] === 'createRequesterMovementInterest').length, 1); h.unmount();
+  });
+}
+test('0100 route-match result and interest appear before geographic completion', async () => {
+  const h = screen('request'), wait = deferred();
+  h.handlers.prepareRequesterGeographicSupport = () => wait.promise;
+  await h.settle(); await h.form(); await h.select();
+  assert.match(h.text(), /Route relationship/); assert.match(h.text(), /Checking the selected reference routes/);
+  assert.equal(h.button("I'm interested").props.disabled, false); await h.press("I'm interested");
+  wait.resolve({ geographicSupport: 'overlap_observed' }); await h.settle();
+  assert.match(h.text(), /Some geometric overlap/); h.unmount();
+});
+test('0100 same-render repeated selection starts one route check and geographic request', async () => {
+  const h = screen('request'), wait = deferred(); h.handlers.calculateRouteMatch = () => wait.promise;
+  await h.settle(); await h.form(); const card = h.find(n => n.type === 'Pressable' && n.key === availability);
+  card.props.onPress(); card.props.onPress(); await h.settle();
+  assert.equal(h.calls.filter(c => c[0] === 'calculateRouteMatch').length, 1);
+  assert.equal(h.calls.filter(c => c[0] === 'prepareRequesterGeographicSupport').length, 0);
+  wait.resolve(match); await h.settle(); assert.equal(h.calls.filter(c => c[0] === 'prepareRequesterGeographicSupport').length, 1); h.unmount();
+});
+test('0100 selection change aborts and discards prior geographic response', async () => {
+  const h = screen('request'), old = deferred(); let signal;
+  h.handlers.prepareRequesterGeographicSupport = (input, s) => input.availabilityId === availability
+    ? (signal = s, old.promise) : Promise.resolve({ geographicSupport: 'overlap_observed' });
+  await h.settle(); await h.form(); await h.select(); await h.select(otherAvailability);
+  assert(signal.aborted); old.resolve({ geographicSupport: 'geometric_corridor_support' }); await h.settle();
+  assert.match(h.text(), /Some geometric overlap/); assert.doesNotMatch(h.text(), /continuous geometric support/); h.unmount();
+});
+test('0100 declaration edit aborts and clears comparison and ignores late success', async () => {
+  const h = screen('request'), wait = deferred(); let signal;
+  h.handlers.prepareRequesterGeographicSupport = (_input, s) => (signal = s, wait.promise);
+  await h.settle(); await h.form(); await h.select();
+  h.find(n => n.type === 'TextInput' && n.props.accessibilityLabel === 'Movement request origin').props.onChangeText('Changed origin');
+  await h.settle(); assert(signal.aborted); wait.resolve({ geographicSupport: 'geometric_corridor_support' }); await h.settle();
+  assert.doesNotMatch(h.text(), /Checking the selected reference routes|continuous geometric support/); h.unmount();
+});
+for (const fail of [false, true]) test(`0100 unmount discards late geographic ${fail ? 'failure' : 'success'}`, async () => {
+  const h = screen('request'), wait = deferred(); let signal;
+  h.handlers.prepareRequesterGeographicSupport = (_input, s) => (signal = s, wait.promise);
+  await h.settle(); await h.form(); await h.select(); h.unmount(); assert(signal.aborted);
+  if (fail) wait.reject(Error('private detail')); else wait.resolve({ geographicSupport: 'overlap_observed' });
+  await new Promise(setImmediate);
+});
+test('0100 pending does not poll and duplicate manual refresh starts only one request', async () => {
+  const h = screen('request'); h.handlers.prepareRequesterGeographicSupport = async () => ({ geographicSupport: 'pending', retryAfterSeconds: 1 });
+  await h.settle(); await h.form(); await h.select(); await new Promise(resolve => setTimeout(resolve, 20)); await h.settle();
+  assert.equal(h.calls.filter(c => c[0] === 'prepareRequesterGeographicSupport').length, 1);
+  const wait = deferred(); h.handlers.prepareRequesterGeographicSupport = () => wait.promise;
+  const button = h.button('Refresh reference-route comparison'); button.props.onPress(); button.props.onPress(); await h.settle();
+  assert.equal(h.calls.filter(c => c[0] === 'prepareRequesterGeographicSupport').length, 2);
+  assert.equal(h.button("I'm interested").props.disabled, false);
+  wait.resolve({ geographicSupport: 'unavailable' }); await h.settle(); h.unmount();
+});
+test('0100 failed route match starts no geographic request', async () => {
+  const h = screen('request'); h.handlers.calculateRouteMatch = async () => { throw Error('route_match_unavailable'); };
+  await h.settle(); await h.form(); await h.select();
+  assert.equal(h.calls.filter(c => c[0] === 'prepareRequesterGeographicSupport').length, 0); h.unmount();
+});
+
 test('editing submitted movement details requires explicit resubmission before interest', async () => {
   const mutationCases = [
     {
@@ -787,6 +867,7 @@ test('offerer sends requester-specific movement offer from exact interest contex
       'Movement offer sent to the interested requester.',
     ),
   );
+  assert(!h.calls.some(c => /Geographic|generateRequester|assessment|job/i.test(c[0])), 'Offerer action performs no requester provider or geographic-job work');
 
   const sentButton = h.button('Offer sent');
 

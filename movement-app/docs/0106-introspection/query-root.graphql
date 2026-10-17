@@ -1,0 +1,1 @@
+query Movement0106QueryRoot { __schema { queryType { name } } }

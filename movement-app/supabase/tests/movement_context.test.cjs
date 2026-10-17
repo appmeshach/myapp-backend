@@ -201,6 +201,21 @@ test('no operational callers or older migrations consume these tables', () => {
     'supabase/migrations/0082_trusted_temporal_evidence_hardening.sql',
     // 0088 retains the audited activation validator's immutable context bindings.
     'supabase/migrations/0088_funded_activation_fee_finalization.sql',
+    // Requester evidence and claim context consume only trusted endpoint refs.
+    'supabase/migrations/0092_requester_route_evidence_foundation.sql',
+    'supabase/migrations/0093_requester_route_generation_claim_boundary.sql',
+    'supabase/migrations/0094_requester_route_generation_context.sql',
+    // Surgical forward replacement preserves the existing trusted consumers.
+    'supabase/migrations/0095_requester_deadline_matching_context_repair.sql',
+    // Service-only stored-route assessment reads exact trusted pair context;
+    // it neither writes these declarations nor changes operational admission.
+    'supabase/migrations/0096_trusted_shared_segment_geographic_assessment.sql',
+    // Service-only exact-current assessment reuse reads the same trusted pair.
+    'supabase/migrations/0097_shared_segment_assessment_reuse_boundary.sql',
+    // Service-only route-match recovery checks exact trusted dependency expiry.
+    'supabase/migrations/0098_current_route_match_reuse_boundary.sql',
+    // Private selected assessment jobs retain exact trusted context bindings.
+    'supabase/migrations/0099_shared_segment_assessment_job_foundation.sql',
 ]);
     if (file !== migration && !sanctionedConsumers.has(file) && /\.(sql|ts|tsx)$/.test(file)) {
       assert.doesNotMatch(fs.readFileSync(file,'utf8'), names, file);

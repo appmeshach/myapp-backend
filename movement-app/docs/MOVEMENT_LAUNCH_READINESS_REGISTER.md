@@ -1,20 +1,198 @@
 # Movement — Launch Readiness & Algorithm Dependency Register
 
-Status: **audit in progress; planning artifact, not approval of migration 0092**. Updated 2026-10-08. Source of product authority: `docs/MOVEMENT_SYSTEM_SPEC.md`. Implementation evidence must be refreshed at every milestone.
+Status: **0098 selected-availability route-match reuse locally verified; full user-flow audit remains in progress**. Updated 2026-10-11. Source of product authority: `docs/MOVEMENT_SYSTEM_SPEC.md`. Implementation evidence must be refreshed at every milestone.
 
 ## Purpose and evidence standard
 
 This register prevents milestone drift. A SQL migration's existence proves only that a change was authored; "production installed" requires remote migration evidence, "behavior verified" requires relevant tests, and "end-to-end verified" requires real user-flow testing. Do not infer completeness from filenames or UI appearance.
+
+0097 local verification: the service-only exact-current shared-segment assessment lookup and reuse-first one-pair orchestration pass focused SQL/runtime tests, genuine concurrency, both typechecks, full Node suites, 0096 concurrency regression, and a fresh disposable reset through 0097. Broad discovery, participant UI, provider generation, admission, and Priority v1 remain unchanged. Production remains verified only through migration 0091; 0097 is not deployed.
 
 Statuses: **verified component**, **partially verified**, **requires inspection**, **deferred by decision**, **blocked**. Do not mark a full subsystem complete because one of its components passed.
 
 ## Verified checkpoint
 
 - GitHub `main` merged PR #31 (0091), #32 (canonical specification), and #33 (approved media-access decision). PR #33 merge: `4aa3ec57865c618c1c5d844ffea1ca5a04737779`.
-- Supabase production project `xdfmoggrsucisfybqctb`: migrations 0001–0091 reported installed; roster-freeze private table and RLS verified. Before deployment the availability-backed already-started count was zero; this was not an end-to-end journey test.
+- Supabase production project `xdfmoggrsucisfybqctb`: migrations 0001–0091 reported installed; roster-freeze private table and RLS verified. Before deployment the availability-backed already-started count was zero; this was not an end-to-end journey test. **Production remains verified only through migration 0091.**
 - 0091 portable CI and local PostgreSQL regression/concurrency work passed in its implementation checkpoint. See `docs/0091-pre-departure-roster-freeze.md` (its historical "candidate only" and git status sections are pre-merge snapshots).
-- Current working branch `feature/0092-movement-lifecycle-continuation` was locally created from `origin/main`; **the number 0092 and its scope remain unassigned**.
+- Current working branch `feature/0092-shared-segment-suitability` is a protected development worktree at `C:\Users\gt\Desktop\movement-0092-review\movement-app` and is not production deployed. Draft PR #35 is the recorded review context. Local base HEAD before 0097 work: `b7bdc9d1521e0b1365a50cf8abf5df8f2a8b15f7`.
+- The requester-route-evidence foundation passed a fresh local reset through migration 0092 and a focused SQL regression of 24/24. This is NOT production deployed.
+- 0092 work currently belongs to trusted requester-route / shared-segment eligibility evidence, not behavioural ranking.
 - Current mobile inspection: `meetingJourneyService.ts`, `fundedCompletionService.ts`, `movementEndService.ts`, `movementDisputeService.ts` contain RPC calls. A name-specific search in `src/app` returned no direct usages; **indirect usage and full screen coverage have not been established**.
+
+## DEVELOPMENT-BRANCH CHECKPOINT
+
+- Protected worktree: `C:\Users\gt\Desktop\movement-0092-review\movement-app`
+- Branch: `feature/0092-shared-segment-suitability`
+- Draft PR #35
+- Local base HEAD: `8783bb4 feat(matching): add requester route generation claim boundary` (external push state not refreshed)
+- Requester-route-evidence foundation passed a fresh local reset through migration 0092 and focused SQL regression 24/24.
+- This is NOT production deployed.
+- 0092 work currently belongs to trusted requester-route / shared-segment eligibility evidence, not behavioural ranking.
+
+## 0094 LOCAL COMPONENT CHECKPOINT
+
+- Fresh local reset applied 0001-0094, including the final requester-generation context RPC. Installed 0094 and all seven 0093 function bodies/security settings match source. Historical 0001-0093 content matches HEAD modulo checkout line endings.
+- 0094 SQL 26/26; 0094 genuine concurrency 9/9. Regressions: 0093 SQL 49/49 and genuine concurrency 16/16, 0092 24/24, 0032 56/56, 0033 29/29. Disposable harness application data/catalog/ACL/RLS/history fingerprints remain unchanged.
+- Requester Node tests 86/86; offerer runtime/orchestration/provider plus two-route prototype 103/103. Full Node: 2,004 tests, 2,003 pass, one existing skip, zero failures. App and Edge typechecks pass.
+- Requester provider generation is lazy per current need, JWT authenticated, uses the existing shared quota and one claimed provider attempt with exact publication replay. Reference-path non-overlap alone is not definitive incompatibility. See [0094 implementation and cost ledger](0094-requester-route-provider-generation.md).
+- Mobile UI wiring, trusted shared-segment assessment and admission integration remain deferred. No production/provider/deployment action was performed; production verification remains through 0091.
+
+## 0095 REQUESTER DEADLINE REPAIR
+
+- Forward repair of the lost 0052 requester departure guards in the complete 0091 matching context; initial and final database wall-clock checks preserve the effective latest-or-earliest deadline.
+- Final fresh reset applied 0001?0095 (exit 0); 0095 SQL 13/13 and genuine deadline concurrency 7/7, original 0052 25/25. Full Node: 2,009 tests, 2,008 pass, one existing skip, zero failures; both typechecks pass. Historical 0001?0094 content remains unchanged.
+- Local validation results are recorded in [0095 repair evidence](0095-requester-deadline-matching-context-repair.md). Production verification remains through 0091; no deployment is implied.
+- Shared-segment assessment is not implemented by this repair. It remains the next milestone, expected as 0096; discovery/admission integration is separately reviewed.
+
+## 0098 CURRENT ROUTE-MATCH REUSE CHECKPOINT
+
+- Baseline `3a09bb914cf9e16c36e34311329fdc9feedca94f` on `feature/0092-shared-segment-suitability`; work remains unstaged and uncommitted. Production verification remains through 0091.
+- Service-only exact current lookup and selected-availability publication revalidation preserve 0046 authorization and the effective 0082 writer. Repeat hits perform zero geometry and zero publication. Uncertain writes recover only the complete frozen canonical payload, including calculatedAt; concurrent current-use convergence retains the winning row's timestamp.
+- Focused SQL security 5/5, SQL behavior 22/22, real SQL-backed HTTP 5/5, genuine 0098 concurrency 6/6 with zero deadlocks, route runtime/orchestration 74/74. Full Supabase Node 1,193/1,193; root 956 passed with one existing skip. App/Edge typechecks and a fresh disposable reset through all 98 migrations pass. Original local application fingerprints and historical migrations remain unchanged.
+- Evidence and regression details: [0098 implementation and validation](0098-current-route-match-reuse-boundary.md). This verifies the route-match component, not a deployed or device-tested complete requester flow.
+- Requester geographic-support UI, 0094 app wiring, 0097 app invocation and a geographic-support endpoint remain deferred. Discovery, Priority v1, explicit interest, acceptance/admission, roster/capacity and financial semantics are unchanged. New vendor/provider usage: NONE; classified REQUIRED before geographic-support integration.
+
+## 0099 PRIVATE JOB / WORKER DEVELOPMENT CHECKPOINT
+
+- Baseline `e5fda80`; private foundation only. Production remains verified through
+  0091. No production host is selected or deployed.
+- Service-only selected registration is reuse-first; private canonical jobs use
+  bounded attempts, lease tokens and current-context fencing. Isolated Node compute
+  imports the frozen 0096 engine. Selected validation and trusted publication are
+  atomic with completion; runtime failure never becomes immutable geometry evidence.
+- Local evidence is recorded in [0099 foundation](0099-shared-segment-assessment-job-foundation.md).
+  Target-host CPU/memory/lease validation remains blocked on future hosting selection.
+- Participant-facing requester integration belongs to 0100. No UI, provider,
+  discovery fanout, interest, priority, admission, roster/capacity or money change.
+
+## 0100 REQUESTER SELECTED GEOGRAPHIC SUPPORT — LOCAL CHECKPOINT
+
+- Baseline `1d141a6`; requester selected-card annotation and authenticated endpoint
+  are implemented locally. Production remains verified only through 0091.
+- Unchanged 0094 generation follows selected authorization; exact 0097 assessment
+  hits return coarse results, and misses register/reuse existing private 0099 jobs.
+  Edge never executes cold shared-segment geometry. No 0100 migration is needed.
+- Route-match results and interest remain immediately usable while geographic work
+  is pending or unavailable. Explicit manual refresh replaces automatic polling.
+  Discovery, offerer activity, priority, roster/capacity, admission and finance keep
+  their existing semantics.
+- Evidence and cost classifications: [0100 integration](0100-requester-geographic-support-integration.md).
+  Production activation requires worker host selection and target-host benchmarks;
+  neither is complete. Offerer annotation and admission work remain deferred.
+
+## 0101 WORKER HOST QUALIFICATION AND DEPLOYMENT BOUNDARY
+
+- Local worker foundation and provider-neutral qualification tooling are verified
+  by the [0101 report](0101-worker-host-qualification.md) and
+  [deployment runbook](0101-worker-deployment-boundary.md). No migration is added.
+- Node 24+, one sequential credential-free compute child, unchanged 0096 geometry,
+  60-second lease, 15-second compute cap and bounded attempts remain in force.
+  Offline correctness/resources, local lifecycle/queues, restart/fencing/recovery,
+  idle smoke and actual Linux signal handling have distinct evidence.
+- ACTUAL production worker host: **UNSELECTED / UNQUALIFIED**. Geographic support
+  production activation: **BLOCKED**. A local report never clears this gate.
+- REQUIRED: qualified Node-capable host; secure secret injection; restart
+  supervision; enforced CPU/memory sufficient for frozen geometry; Supabase
+  connectivity; successful qualification on the target allocation.
+- Service-role credentials remain broader than worker RPC needs. Secure handling,
+  restricted host access and rotation/revocation planning are launch-required.
+  A narrower execution role is feasible but deferred to a separate auth review;
+  modern secret format alone does not narrow authority.
+- STRONGLY RECOMMENDED: logs, CPU/RAM, restart count, queue depth/age, heartbeat
+  and cost alert/budget threshold. OPTIONAL: replicas, autoscaling, PGMQ, Redis,
+  managed queue, monitoring vendor, VPS and orchestration. No new paid service.
+- Future qualification order only: Railway, Fly.io, Render, conventional host.
+  No provider was selected, accessed for deployment, purchased or provisioned.
+
+## 0102 DISPOSABLE REMOTE STAGING QUALIFICATION
+
+- [0102 tooling and workflow](0102-disposable-remote-staging-worker-qualification.md)
+  preserve all immutability guards and the local 0101 harness. No migration.
+- Dedicated disposable environment, explicit acknowledgement, canonical URL/ref
+  validation and both forbidden-project checks precede network. Operator catalog
+  preflight and fixture preparation require no hosted Postgres admin credential.
+- Immutable synthetic records require whole-environment operator teardown.
+  Tooling does not create/destroy environments or certify teardown/acceptance.
+- Operator-reported disposable project `uzkhnslyrhgucijcuoes` is provisioned through
+  0099; dry-run is up to date and migration lists match. Its direct DB hostname is
+  IPv6-only and unusable from the current operator Windows/network environment.
+- Operator catalog/fixture tooling now requires explicit `direct` or
+  `session_pooler` mode. Supavisor session access uses an operator-supplied valid
+  `.pooler.supabase.com` hostname, port 5432 and exact `postgres.<disposable-ref>`
+  username binding; both forbidden refs fail before spawn/network. Hosted worker
+  HTTP transport, fixture SQL and migrations remain unchanged. Supplied follow-up
+  evidence reports successful remote-staging execution. No IPv4 add-on purchased or required; Railway
+  configuration unchanged and production remains **BLOCKED**.
+- User-reported Railway Hobby offline PASS: correctness, reliability, lease and
+  memory; worst normal wall 277.75 ms; parent/child peak RSS 110.34/136.84 MiB.
+  Candidate already paid; no staging environment or new provider created here.
+- Supplied Railway Hobby remote result reports startup, idle SIGTERM, execution,
+  reuse, fencing, crash, lease recovery and lost-acknowledgement recovery PASS.
+  Correctness/reliability/lease/memory/integration PASS; process/security NOT MEASURED;
+  classification remains `QUALIFICATION_INCOMPLETE`. Not fresh verification here.
+- Corrected operator evidence pins the reviewed Ed25519 public identity in source
+  and verifies SPKI DER SHA-256
+  `13228a92e18fb61153185a048c4edb496cdee1b83d1e894f8f216568211f0fa9`.
+  Environment/artifact verifier replacement and legacy private-PEM env inputs reject;
+  collection reads an absolute external signing-file path and checks its public pin.
+  Finalization never needs/reads the private file. Rotation requires source review.
+- Provider evidence v3 adds bounded authenticated Railway CLI QUERY-only collection
+  of Variable.isSealed metadata for all three required variables. It checks complete
+  pagination for project environments, project services and environment variables
+  (both pageInfo flags strictly false; missing/malformed/non-boolean rejects),
+  project/environment/service/instance/region identity and duplicate/value
+  rejection; token inputs and child credential inheritance reject. Sanitized signed
+  proofs bind identity hashes, exact report/source/migrations/project/host and one-hour
+  freshness. Storage proof and actual read-only catalog ACL proof are independent.
+  No live Railway proof has been collected. Import never calls Railway/DB and
+  preserves existing false gates and strict report validation.
+- Restart primitives validate configured policy, controlled self-termination, matching
+  execution lifecycle and actual read-only job/lease/publication snapshots. They do
+  not invoke provider mutations or expose a fault switch in normal workers. The
+  inspected execution schema lacks actor/cause, so correlation cannot disprove an
+  outside operator restart: platformRestart remains null, as explicitly authorized
+  under the strict adversarial contract. Qualification remains incomplete. Execution
+  query traversal and a fresh unused-fixture supervisor must be reviewed before any
+  live fault. Build/deployment stages or deploymentRestart are not runtime proof.
+  The controlled-failure primitive is library/preparatory only; supervisor integration
+  has not been operationally qualified. Policy plus execution lifecycle alone cannot
+  attribute an automatic restart; no platformRestart PASS is claimed and live
+  qualification remains incomplete. The claim RPC returns expiry, no authoritative
+  claim timestamp. Receipts use derivedLeaseStartAt = leaseExpiresAt - leaseDurationMs
+  with leaseDurationMs = 60000 and an explicit derivation label, never claimedAt.
+  Deadline-capped expiry makes this a conservative derived boundary, not observed
+  DB/provider claim evidence; local termination time and RPC expiry remain distinct.
+- [0103's local supervisor foundation](0103-qualification-supervisor.md) adds monotonic
+  phases, durable local supervisor reservation, private claim/fixture binding
+  and strict DB/provider correlation. No provider mutation or normal-worker fault
+  control exists. Execution traversal and a dedicated child adapter remain unreviewed
+  for live use; supervisor integration is not operationally qualified. Automatic
+  restart origin remains unattributable, platformRestart stays null and no process
+  gate or host qualification is promoted. Fresh disposable live use requires later
+  authorization.
+  The reservation excludes duplicates only within the same canonical local directory,
+  required outside the repository. It cannot prevent a different/lost directory,
+  another workstation or journal deletion. Consumed-job protections do not prove a
+  global fixture-pair/run lock; cross-process/cross-workstation one-shot authority
+  remains an operational qualification prerequisite.
+- [0104 child/reader foundation](0104-qualification-child-and-provider-adapters.md)
+  provides a fixed inherited-IPC child, parent-held WeakMap release after fsync,
+  strict receipt/Node exit checks and an injected execution validator. It introduces
+  no default live adapter, normal-worker switch or provider mutation. Exact execution
+  query input/return/pagination schema remains missing locally; no query was guessed.
+  Local observedAt is not provider evidence. platformRestart stays null; host/process
+  qualification, distributed one-shot authority and restart-origin evidence remain
+  blockers before separately authorized fresh disposable use.
+- Do not rerun the used disposable project or regenerate its fixtures: immutable
+  pairs have been consumed, preparation requires an empty environment and the first
+  registration requires a fresh job, not assessment reuse. Preserve old evidence
+  until separately authorized teardown. The old-source report cannot finalize; a
+  fresh disposable project/capsule and updated-source run are required later. No
+  project creation/deletion, provider credential introduction or remote run here.
+  Production activation remains **BLOCKED**. Broad service-role secret authority,
+  production credential narrowing, rotation and host access controls remain launch
+  decisions. Check exact staging cost before provisioning.
 
 ## Matching and cascading algorithm — highest-priority audit
 
@@ -25,7 +203,10 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
 | Trusted same-state and route evidence | Canonical §§6–16, location chain; earlier migrations described in canonical history | Requires inspection | Verify actual GIS/corridor geometry, state boundaries, evidence expiry and current tests |
 | Corridor overlap, useful partial route segments, correct direction/time | Canonical §§6,7,10,33–34 | Requires inspection | Inspect latest matching function bodies and real segment-selection tests; distinguish proximity from corridor overlap |
 | No universal maximum detour rule | Canonical §11 | Requires inspection | Test actual eligibility criteria do not silently impose universal detour threshold |
-| Candidate priority both directions | 0089 `movement_priority_v1` (completed, reputation, waiting weighted by context), 0090 requester-offer ranking | Verified components, not complete algorithm | Verify deterministic ranking, tie-breaks, eligibility after ranking, stale evidence, priority fairness and offerer-side behavior |
+| Candidate priority both directions | 0089 `movement_priority_v1` (completed, reputation, waiting weighted by context), 0090 requester-offer ranking; evidence includes authoritative completion/reputation/waiting inputs and offerer-first original-seat policies | VERIFIED COMPONENTS | Preserve eligibility-before-ranking as 0092 geographic suitability is added; ensure no route micro-fit becomes an unintended ranking boost; later verify outcome measurement/group recommendation separately |
+| Priority-engine constitutional specification | Canonical §23A; 0089/0090 implementation history | FROZEN V1 PRODUCT CONTRACT / VERIFIED IMPLEMENTED CORE | Keep deferred group recommendation, mutual reservation, controlled media and future REVIEW distinct from deployed ranking |
+| Shared-segment geographic eligibility | 0092 contract/prototype; requester-route-evidence foundation commit `45e1882` | IN DEVELOPMENT / NOT PRODUCTION DEPLOYED | 0093 claim and 0094 provider generation locally verified; mobile invocation, trusted two-route comparison and later admission integration remain deferred; full user-flow proof still needed |
+| Mutual-selection pre-activation reservation | Approved Priority Engine design only | DEFERRED / NOT DEPLOYED | Exact lifecycle integration; bilateral mutual choice; capacity concurrency/lock ordering; up-to-10-minute expiry/release; no pre-activation fee; conflict-pool exclusion |
 | Seat capacity, group all-or-none, concurrency | Canonical §§18–19; 0091 preserves unused places and accepted siblings | Partially verified | Verify acceptance and group-ready tests end-to-end, capacity under race |
 | Departure admission freeze | 0091 production installed, PostgreSQL concurrency tests | Verified component; no production E2E | Validate real user activation/start/discovery closure, accepted sibling continuation |
 | Chaining with ordinary transport and multiple matched legs | Canonical §§8–9, Decisions 014–017 | **Deferred by decision** (architecture must allow it) | Define minimal v1 manual handoff vs future automatic chaining; no premature automation |
@@ -37,7 +218,7 @@ Statuses: **verified component**, **partially verified**, **requires inspection*
 
 | Subsystem | Status now | Launch acceptance evidence still required |
 |---|---|---|
-| Core matching, cascading and priority | Partially verified | Bidirectional matching, segment/time/state/privacy/race tests, user flows |
+| Core matching, cascading and priority | Partially verified; priority core implemented, geographic shared-segment eligibility remains under active 0092 work, automatic chaining deferred | Bidirectional matching, segment/time/state/privacy/race tests, user flows; preserve eligibility-before-ranking while 0092 suitability evidence is added |
 | Offer/need creation and acceptance | Requires full current inspection | Authenticated end-to-end flow, trusted route and capacity enforcement |
 | Activation, coordination, start, completion, recovery | Implemented backend components (0079–0088,0091); UI unknown | Service-screen mapping, two-account device runs, safe interruption/recovery |
 | Pricing and financial custody | Backend component tests; provider launch status unknown | Pricing anchors and 70/30 economics, funded settlement, provider integration, reconciliation |
@@ -74,3 +255,1137 @@ At the end of each milestone:
 4. Publish a capability matrix with **verified / partial / missing / deferred** backed by exact code/tests; then assign 0092 with justified dependency order.
 
 **This is an initial roadmap scaffold and auditable work queue, not a claim of a completed system-wide implementation audit.**
+# 0105 local qualification foundation
+
+[0105 schema/topology discovery](0105-railway-execution-schema-and-topology.md) is
+locally implemented only. Exact Railway execution query/pagination and runtime
+identity remain blocked. Owned child spawn/IPC and completed local sequence
+correlation do not prove provider identity, causation or automatic restart origin.
+platformRestart remains null. Global one-shot and fresh disposable qualification
+remain unresolved; no deployment or live provider action is authorized.
+
+## 0106 controlled inspection preparation
+
+[0106 read-only introspection plan](0106-railway-readonly-introspection-plan.md)
+provides fixed query documents, staged exact-name validators and a future operator
+procedure. No live inspection occurred. Structural schema discovery cannot prove
+scope, cursor/exhaustion or ordering semantics; executionSchemaReady remains false.
+The provider-owned runtime candidate set is empty. Identity, causality and restart
+origin remain unproven; platformRestart remains null and restart origin unattributable.
+Read-only live inspection requires separate explicit authorization and reviewed
+non-production tooling/capture. Fresh disposable qualification still requires
+authenticated complete execution traversal, independent runtime/process provenance,
+qualified host behavior, global one-shot authority and unused fixtures/sequencing.
+No migration, normal-worker change or live qualification is authorized by 0106.
+
+## 0107 read-only schema operator preflight
+
+[0107 operator preflight](0107-railway-readonly-live-preflight.md) provides canonical
+fixed request construction, active disposable target constraints/denylist and
+one-use local per-request review permits. No live call occurred. Outcome B:
+TRANSPORT_NOT_READY. Endpoint/auth syntax, environment-name allowlist, independent
+provider-context/target binding, real approved target/forbidden inventory and
+reviewed capture/transport remain prerequisites for separately authorized inspection.
+Schema readiness remains false; identity/causality/restart proofs remain null and
+runtime provenance unresolved. Fresh disposable qualification remains unauthorized.
+
+## 0108 direct project-token transport/context contract
+
+[0108 contract foundation](0108-railway-transport-auth-contract.md) fixes the supplied
+official public endpoint, POST/JSON body and RAILWAY_TOKEN/Project-Access-Token auth
+path; broader tokens and CLI caches are unsupported. transportContractReady and
+providerContextAttestationReady are true locally. Provider observation/project-env
+proof/service proof remain false; execution readiness false and runtime/restart
+authority null. A strict fixed projectToken query validates project/environment
+equality against the private target without minting authenticated evidence.
+Service proof is unnecessary for schema-level inspection and remains a future
+qualification constraint. No live executor exists. Original-object permit handoff,
+context-request review ticket, private exact-invocation result binding, reviewed
+adapter/capture/target inventory and separate live authorization remain gates.
+Fresh qualification remains unauthorized; historical 0107 state is preserved.
+
+## 0109 private direct HTTPS adapter foundation
+
+[0109 private adapter](0109-railway-private-https-adapter-foundation.md) implements
+original-target/session one-use handoffs, a fixed context review ticket, captured
+credential lifetimes, context-first gating and private one-use HTTPS results.
+The production path exists but was never executed live; no real token read occurred.
+Tests use separate VM module instances only. Frozen provider observation/project-env
+proof remain false; service/execution readiness false and identity/restart authority
+null. All migrations and normal worker remain unchanged. Exact code/policy/target/
+forbidden-inventory review, operator auth setup and separate first-live authorization
+remain gates; schema additionally requires real same-context attestation and a fresh
+manual stage permit. Fresh qualification/global authority/runtime provenance remain
+unresolved and unauthorized.
+
+## 0110 local first-live context authorization package
+
+[0110 first-live preflight](0110-railway-first-live-context-preflight.md) and its
+[safe unresolved template](0110-live-review-template.json) bind the fixed context
+operation to the original private target, explicitly reviewed forbidden inventory,
+explicit operator-reviewed current HEAD/branch, pinned source identities and
+operator host assertions. baselineParentHead records only the historical
+implementation parent 7c2346ce73d12e571b5ff8506fd8d02be48f44b7; it is not future
+HEAD authority. 0110 has since been committed; the safe template keeps reviewedHead
+and reviewedBranch null until a future operator explicitly reviews and supplies
+the exact current committed HEAD/branch. A commit alone does not establish authority.
+A distinct final human
+authorization and private one-use ticket are designed; only isolated synthetic
+tests exercise ticket creation. Outcome remains PRELIVE_NOT_AUTHORIZED. No actual
+Railway target IDs were resolved and no first-live request is authorized.
+providerContextObserved=false, projectEnvironmentContextProven=false,
+serviceContextProven=false and executionSchemaReady=false. Identity, causality,
+restart-origin and platformRestart remain null; restart origin is unattributable.
+The next prerequisite is independently supplied/reviewed actual target IDs and
+forbidden inventory, reviewed code/host/wrapper, and separate explicit human
+authorization for one context request. Schema additionally requires real
+same-context attestation, fresh stage review/one-use permit and separate live
+permission. Fresh qualification, runtime provenance and global authority remain
+unresolved; no deployment or restart is authorized.
+
+## 0111 local target identity acquisition foundation
+
+[0111 target identity acquisition](0111-railway-target-identity-acquisition.md)
+and the [unresolved review template](0111-target-identity-review-template.json)
+provide fixed scoped service/instance queries, strict validators, private staged
+review/permit/result contracts and an explicit inventory-completeness wrapper
+for unchanged 0110. Service discovery requires exact pageInfo.hasNextPage=false;
+truncated observations fail the session without traversal or another request.
+targetIdentityAcquisitionReady=true locally; outcome is
+TARGET_IDENTITY_UNRESOLVED. Normal provider-result ingress is disconnected and
+has no issuer. Only separate synthetic VM tests advance observed stages.
+Actual Railway IDs remain unresolved; no provider request or live ticket exists.
+providerContextObserved=false, projectEnvironmentContextProven=false,
+serviceContextProven=false and executionSchemaReady=false. Identity, causality,
+restart-origin and platformRestart remain null; restart origin unattributable.
+0110 is now committed and still PRELIVE_NOT_AUTHORIZED; a future explicitly
+reviewed current HEAD/branch is required, with no permanent future HEAD pin.
+Next prerequisites are independently reviewed expected IDs and complete safety
+inventory, reviewed future integration with the existing 0109 private execution
+context/results, separate first-context live permission, then scoped discovery
+permissions, exact observations and final human target review. Transport/result
+integration remains unimplemented; no schema, qualification, deployment or restart
+is authorized. At the original 0111 milestone, existing 0106-0110 boundaries and
+all migrations were unchanged. 0112 later adds the reviewed context-only transfer
+to 0109/0111 and updates the 0110 source pins; service/instance transport remains
+unsupported and all migrations remain unchanged.
+
+## 0112 local context-only trusted result transfer
+
+[0112 context-result transfer](0112-railway-context-result-transfer.md) implements
+original session/target/context/handoff permits, adapter-owned bindings and
+one-use receipts from the same genuine result pool as ordinary consumption.
+Final attestation waits for exact 0111 acceptance and its private completion
+acknowledgement. targetIdentityResultBridgeReady=true locally;
+providerResultIngressConnected=false. Outcome remains TARGET_IDENTITY_UNRESOLVED;
+0110 remains PRELIVE_NOT_AUTHORIZED. All provider/project-env/service/schema/target
+observation flags remain false and identity/causality/restart/platformRestart null.
+No live request, actual identity observation or real credential read occurred.
+The reviewed adapter/identity/ingress are now included in ten 0110 source pins.
+Actual expected IDs, complete forbidden inventory, reviewed current code/host/
+wrapper and separate first-context live permission remain prerequisites.
+Service/instance transport integration remains unsupported and needs separate
+review. No schema behavior, migration, worker or qualification authority changed.
+
+## 0113 one-shot first-context wrapper foundation
+
+[0113 wrapper](0113-railway-first-context-wrapper.md) is implemented locally and
+accepts only a genuine one-use 0110 execution authority. The additive 0110 consumer
+uses its internally retained target and existing extractor; no target getter or
+second authority store exists. The wrapper owns C/session/P/B/R/T, independently
+verifies project_services with no service/instance/candidate, and closes on every
+exit, including success. It returns only descriptive completion and no continuation
+capability. It is the eleventh 0110 source pin; the original ten remain unchanged.
+No live Railway request, actual identity observation or real credential read occurred.
+0110 remains PRELIVE_NOT_AUTHORIZED; the safe template retains null IDs/HEAD/branch
+and manualLiveAuthorization=false. providerResultIngressConnected=false; all global
+provider/project-env/service/schema/target observations remain false and all
+identity/causality/restart/platformRestart authority null. Actual expected IDs,
+complete inventory, exact reviewed committed code/host/credential handling/wrapper
+and separate explicit first-live permission remain prerequisites. Service/instance
+transport remains unsupported; a later authorized flow needs a fresh context and
+session, repeated context attestation, then same-context acquisition. No migration,
+deployment, restart or qualification authority changed.
+
+## 0114A service review and acquisition authorization foundation
+
+[0114A foundation](0114a-railway-service-review-authorization-foundation.md) requires
+service_review between accepted objective service evidence and service_instance.
+Exact original one-use human service approval is required in the same session;
+copied reviews/facts/JSON, matching labels/IDs and boolean flags cannot enable
+instance review. Final target review still requires instance evidence and reviewed
+forbidden inventory. No new unexpected-service inventory policy was introduced.
+
+movement_railway_identity_acquisition_auth_v1 separately represents context,
+services, HUMAN_SERVICE_REVIEW, instance and HUMAN_TARGET_REVIEW in that order,
+with three fixed provider requests maximum, one each. It has no executable
+acquisition authority or transport consumer and remains PRELIVE_NOT_AUTHORIZED.
+Context-only 0110 authorization and the one-shot disposable 0113 wrapper retain
+their existing semantics. Pin count stays eleven; only identity owner's pin and
+authorization self hash change, and both safe templates are regenerated.
+Actual IDs and reviewed code identity remain unresolved in safe templates; all
+live authorization remains false. No live provider request or real credential read
+occurred. Service/instance transport and the eventual acquisition wrapper remain
+the 0114B gap. All 99 migrations and frozen transport sources remain unchanged.
+
+## 0114B fixed project-services transport and provider provenance
+
+[0114B](0114b-railway-project-services-transport.md) implements only the fixed
+Movement0111ProjectServices request after context acceptance in the same original
+fresh S/C. Original handoff, target, fixed request and invocation ownership are
+retained. Separate one-use adapter result/receipt pools prevent forged JSON,
+namespace confusion, replay and second/concurrent dispatch. Close/cancellation
+invalidates services state; successful acceptance keeps C open and stops at
+service_review. Exact original human service approval remains mandatory.
+
+Transport implementation exists, but no authorized acquisition owner/authority
+exists. 0110 remains context-only; the acquisition namespace remains planning-only,
+transportSupported=false and live authorization false. Actual IDs remain unresolved.
+Service-instance transport (0114C), acquisition wrapper/lifetime ownership and
+bounded human waits (0114D) remain absent. The identity owner, 0112 P/B/R/T behavior,
+0113 disposable wrapper and all 99 migrations are unchanged. Eleven pins remain;
+only adapter/provider-boundary pins and the authorization self hash are refreshed.
+No live provider request, real token/provider-environment read, CLI/API action,
+deployment, restart, staging, commit or push occurred.
+
+## 0114C fixed service-instance transport and provenance
+
+[0114C](0114c-railway-service-instance-transport.md) implements only the fixed
+Movement0111ServiceInstance query after context/services evidence and exact human
+service approval in the same original S/C. Instance pools are separate from context
+and services. Genuine result/receipt ownership binds original invocation/request/
+session/context/target; copied, stale, replayed and wrong-namespace inputs fail.
+Success stops at candidate, leaves C open and requires existing final human target
+review. No automatic target review or new global authority is introduced.
+0114B services functions, identity owner, 0112 behavior, 0113 wrapper and all
+99 migrations are unchanged. Eleven pins remain; only adapter/provider-boundary
+pins and authorization self hash change. Both safe templates remain unresolved
+and unauthorized. No live provider request, real credential/provider-environment
+read, Railway CLI, Supabase/GitHub API, deploy, restart, stage, commit or push occurred.
+0114D wrapper/lifetime ownership, bounded human waits, separately reviewed live
+authorization and final disposal remain unimplemented.
+
+## 0114D controlled acquisition lifetime and manual authorization
+
+[0114D acquisition wrapper](0114d-railway-acquisition-wrapper.md) now owns one fresh
+original S/C and exactly context, services and instance provider requests, with
+separate five-minute human service and final target waits. It requires exact
+original review submissions, performs no automatic human decision and closes C
+on every terminal path before returning descriptive reviewed target facts.
+No crash resume, provider retry/fallback/pagination, schema, qualification or
+deployment/restart execution is added.
+
+The original v1 acquisition namespace remains planning-only, transportSupported=false
+and unauthorized. Separate movement_railway_identity_acquisition_auth_v2 provides
+an executable path only after exact reviewed package/host/inventory/code and final
+manualLiveAuthorization=true acknowledgement, followed by original one-use ticket
+redemption exclusively by the pinned wrapper. V2 transportSupported=true describes
+implementation
+availability only. Safe templates retain PRELIVE_NOT_AUTHORIZED, false live/manual
+authorization, null actual IDs/HEAD/branch and unreviewed inventory.
+The acquisition safe template includes a separate executableAuthorization v2 view;
+it does not promote the v1 planning manifest or old context-only authority.
+
+The new acquisition wrapper is pin 12. All eleven previous source pins are unchanged;
+the authorization self hash and both safe templates regenerate. Identity/review,
+0112, 0114B/C transport and disposable 0113 semantics remain unchanged. No real
+provider/network request or credential/provider-environment read occurred.
+
+## 0114E offline acquisition input review
+
+[0114E input review](0114e-railway-acquisition-input-review.md) adds an offline
+worksheet and independent operator review procedure, exercised by synthetic tests
+using existing APIs. Actual Railway IDs remain null; historical labels are not IDs.
+Forbidden inventory requires explicit provenance and completeness acknowledgements.
+Host/checklist presence grants no execution authority. No sealed executable package,
+ticket, identity session, execution context, credential read or provider request is
+created by this workflow. All 12 pins and runtime modules remain unchanged.
+0114D acquisition still requires a later separately reviewed and manually authorized
+execution; the safe outcome remains PRELIVE_NOT_AUTHORIZED.
+
+## 0114F human target metadata evidence intake
+
+[0114F metadata intake](0114f-railway-target-metadata-resolution.md) records the
+tracked-source search: no independently authoritative actual Railway target IDs
+were found. The safe template's actual IDs remain null; synthetic fixtures and historical labels
+cannot populate live inputs. A human must acquire minimal non-secret typed provider
+metadata and a different person must independently compare its value and context.
+The safe evidence template grants no execution authority. The 0114E safe template,
+all runtime modules and 12 pins remain unchanged. Actual acquisition remains a
+separately reviewed 0114D package and final manual authorization step.
+
+## 0114F follow-up: named environment parameter evidence
+
+The evidence procedure now permits identifier_query_parameter only for an
+environmentId record whose sourceParameterName is exactly environmentId, with
+the intended project and selected production environment independently compared.
+The three original surfaces remain allowed. Raw URLs, query strings, fragments
+and arbitrary parameter inference remain prohibited.
+
+A separate [operator-acquired record](0114f-operator-acquired-target-metadata.json)
+holds the three supplied project/environment/service IDs. AT has now independently
+checked Railway itself and compared the exact values and intended context, with
+no mismatch, at 2026-10-15T14:01:00.000Z (15:01 WAT). AT is a different human from
+the acquisition operator; Railway AI is not the reviewer. All three records have
+independentlyReviewed, contextCompared and authoritativeForInputReview true, with
+sourceClassification=operator_supplied_provider_metadata. reviewed and
+evidenceReviewComplete are true.
+
+Acquisition date is 2026-10-14; the exact acquisition time is unknown, explicitly
+represented by acquisitionTimeKnown=false and acquiredAt=null, with
+historicalAcquisitionCommit=13120f715ea70913eb791f0fb8bc224f2c67a15c.
+The narrowly bound historical exception preserves the unrecorded operator identity
+as null and requires a distinct human reviewer; ordinary future acquisitions still
+require exact timestamps. No acquisition time was invented. Instance remains the
+untouched null record. The 0114E safe template and all runtime modules and 12 pins
+remain unchanged; PRELIVE_NOT_AUTHORIZED and all live/provider/identity flags
+remain false. Separate 0114E input review and later explicit manual authorization
+remain necessary. No live execution is authorized.
+
+## 0114E historical offline input assessment
+
+The separate [actual assessment](0114e-actual-acquisition-input-review.json) consumes
+the exact three reviewed 0114F IDs with AT provenance, source-evidence digest and
+review commit linkage. serviceInstanceId stays null. Local Git verifies HEAD
+72ba10ec5a058d234749d177cc4d70ad07761faa and branch
+feature/0092-shared-segment-suitability. All twelve pinned sources and the
+authorization self hash are exact and unchanged. Protected documentation/evidence/
+test input hashes additionally invalidate a stale assessment without adding pins.
+
+The result remains INCOMPLETE: no complete forbidden Railway inventory and
+independent completeness assertion, intended execution-host checklist attestation,
+independent whole-package review or disposable/active target eligibility is
+established locally. production is the reviewed environment label, not proof of
+disposable eligibility. Null/false inventory, host and eligibility fields remain
+unresolved. reviewed/inputReviewComplete and readyFor0114DPreparation remain false.
+The package boundary was inspected using permitted non-secret inputs only; no
+global secret absence or inventory completeness claim is inferred.
+
+The safe 0114E template and reviewed 0114F evidence remain unchanged. Outcome stays
+PRELIVE_NOT_AUTHORIZED; liveAuthorized, manualLiveAuthorization,
+providerObservationOccurred, targetIdentityProven and executableAcquisitionPrepared
+are false. No executable draft, ticket, session/context, provider/service-instance/
+schema request or 0114D authorization was created. Exactly one Expo v57 public
+documentation read was permitted and performed; the remaining work is offline.
+Complete the unresolved human evidence and refresh code/input freshness checks
+before considering a separately prepared and manually authorized 0114D package.
+
+## 0114E historical qualification acquisition and provenance correction
+
+[Qualification evidence](0114e-qualification-target-evidence.json) records the
+operator's new intended target: thorough-blessing project
+0fa3268a-396f-4042-a4c0-a92c23fdf486, qualification environment
+9410a813-0429-4bc7-bfbb-d54b85e17c8a, movement-qualification service
+ef516a68-9bb7-429e-a395-48ef2676593a. The unchanged project identity references
+prior AT-reviewed evidence only; the new environment/service have no independent
+review, context comparison, reviewer/time or input-review authority. Instance is null.
+
+The operator reports Empty Environment creation without duplicating production
+or copying its variables, a new empty service renamed from athletic-serenity,
+service offline and no variables or authorized deployment. Disposable intent is
+descriptive; independently reviewed eligibility and active lifecycle remain
+unresolved. Production auto-deploy was reportedly manually disabled first;
+production and the prior crashed deployment were not restarted. No production
+health or prior remote-write outcome is inferred from the conditional teardown log.
+
+Repo appmeshach/myapp-backend, branch feature/0092-shared-segment-suitability and
+root /movement-app remain pending intended source settings only. Applying them
+would reportedly redeploy the service; sourceConfigurationApplied=false and no
+active source configuration is claimed. Pending changes must remain unapplied.
+
+Historical reviewed production evidence and the prior incomplete 0114E assessment
+remain byte-identical. Production is no longer the intended qualification target.
+The prior assessment is stale for current qualification use. After independent
+human review, regenerate/review a later assessment against the new target and
+current code; preserve inventory, host, package, eligibility and lifecycle gates.
+Unchanged runtime/safe-template service expectations also require a separate
+compatibility review. No runtime change or new pin is made here.
+
+0114E remains incomplete. reviewed, inputReviewComplete,
+readyFor0114DPreparation and all live/manual/provider/identity/preparation flags
+are false; deployment is unauthorized. No pending-change application, deployment,
+restart, ticket/draft, context/session, provider request or 0114D authorization
+occurred. Starting HEAD is 4f8d8b043f1876e1f4ff3bfa66ef85aa7ffed4e0.
+Only the single permitted Expo v57 documentation read used network access.
+
+The qualification provenance correction records the operator-supplied typed
+service path segment and explicitly named environmentId query parameter as
+identifier_url_path_segment/null and identifier_query_parameter/environmentId,
+respectively. The query surface is restricted to environmentId only. A separate
+unreviewed project-path source is linked alongside unchanged prior project
+evidence. Only extracted IDs and inert descriptions are retained; no raw dashboard
+URL, query string or fragment is stored. This correction does not supply a human
+reviewer or timestamp, transfer review authority, apply pending source settings
+or complete/authorize 0114E, deployment or 0114D preparation. No second Expo read
+or other network lookup was performed for the correction.
+
+## 0114E qualification independent human review
+
+Starting HEAD e5e2481781b0861853ab4e5b7eb19a2fe62d1d0b. AT independently inspected
+Railway, compared the exact qualification environment and movement-qualification
+service IDs and intended project/context, and reported NO MISMATCH at
+2026-10-15T18:11:49.000Z (19:11:49 WAT). Both records now have
+independentlyReviewed/contextCompared/authoritativeForInputReview true and
+operator_supplied_provider_metadata classification. Their source surfaces remain
+unchanged. AT is a different human from the operator; Railway AI is not the reviewer.
+
+AT also confirmed separation from production, service membership, intended
+disposable qualification use, offline service status and unapplied pending source
+settings. qualificationReview records that scoped review and context explicitly.
+eligibility.environmentKind is disposable and independentlyReviewed is true,
+linked to AT/time/reference. Lifecycle remains null, eligibilityComplete false.
+Repo/branch/root remain pending only; sourceConfigurationApplied remains false.
+Instance remains null. No active configuration or provider/runtime proof is inferred.
+
+Top-level reviewed/evidenceReviewComplete remain false because the whole artifact
+still includes operator-only facts and an unreviewed project operatorSource.
+The completed target/context review does not complete the 0114E package:
+inputReviewComplete and readyFor0114DPreparation remain false, as do deployment,
+live/manual/provider/identity/preparation authority flags. Historical production
+evidence, project review, prior assessment, safe template and all twelve pins remain
+unchanged. Remaining gates include lifecycle, inventory completeness, host and
+whole-package attestations, current-code review and runtime service-name compatibility.
+No pending changes, deployment, restart or 0114D authorization occurred. Only the
+single permitted Expo v57 documentation read used network access in this task.
+
+## 0114H local service-name compatibility implementation
+
+Starting HEAD 53ba9a2fbea1c727ab062893608d7c005c4300ef. The reviewed 0114H design
+is implemented locally within its four approved runtime files. Executable v3 binds
+one reviewed name/ID/input/evidence context, privately transfers a one-use target
+permit before context open, preserves exact machine equality and both human gates,
+and blocks context-only 0113 continuation. No name is a built-in trusted default
+or fallback. Twelve source pins remain; current safe templates are regenerated.
+
+See [the implementation record](0114h-railway-service-name-compatibility-implementation.md)
+for ownership, input contract, validation and remaining gates. The reviewed design,
+historical evidence, qualification evidence and all 99 migrations are unchanged.
+No completed current 0114E package is supplied. Lifecycle and serviceInstanceId
+remain null; inputReviewComplete, readyFor0114DPreparation and all deployment/live/
+manual/provider/identity authority flags remain false. Exact implementation review,
+eligibility, inventory, host and whole-package attestations remain required.
+No Railway changes, provider observations, deployment, restart, staging, commit,
+push or 0114D use occurred. External network access was limited to the explicitly
+permitted Expo documentation read; the user separately authorized loopback-only
+HTTP regression coverage. The capsule remains unread, untouched and untracked.
+
+Focused validation passed 1,503 tests, including 65 new 0114H tests; app, Edge and
+worker typechecks passed. After explicit loopback-only authorization, the complete
+19-file regression passed with concurrency 1: 1,117 tests, 1,114 passed, zero
+failures, three existing OS-specific skips. The initial partial run had an unchanged
+0099 child-timeout assertion failure; that test passed on the complete rerun without
+runtime/test changes. Local validation is complete; independent implementation review
+and the unresolved acquisition-input/eligibility/host/inventory gates remain.
+
+## Current 0114E package preparation at c1fee2b
+
+Prepared [the current v2 input package](0114e-current-acquisition-input-review.json)
+offline against required implementation HEAD c1fee2b08051df328f4653404acedf6a55cd40ed
+and branch feature/0092-shared-segment-suitability. Status: INCOMPLETE,
+PRELIVE_NOT_AUTHORIZED. Required code review is a target, not a claim that this
+exact package was independently reviewed: reviewedHead/reviewedBranch remain null
+both at the top level and in codeIdentity. All twelve pins and the authorization
+self hash were recomputed from current source under UTF-8/CRLF-to-LF canonicalization.
+
+Known expected values are projectId 0fa3268a-396f-4042-a4c0-a92c23fdf486,
+environmentId 9410a813-0429-4bc7-bfbb-d54b85e17c8a, serviceId
+ef516a68-9bb7-429e-a395-48ef2676593a, serviceName movement-qualification,
+environmentKind disposable, intended branch feature/0092-shared-segment-suitability
+and root /movement-app. Branch/root are reviewed implementation constraints and
+pending intended settings, not verified applied provider configuration.
+
+Environment/service ID provenance and service-name context reference AT's scoped
+qualification review. Project identity has a different provenance: its per-ID record
+is the unchanged historical AT review in production context, and
+projectEvidenceReference explicitly limits that reuse to unchanged project identity.
+qualificationReview includes the project ID in its context, but does not replace the
+historical per-ID acquisition/review record or independently review the qualification
+operatorSource. Conservatively, current targetInputSources.projectId remains
+independentlyReviewed=false with source/reviewer null pending explicit current
+qualification project-source review. This does not erase the historical review.
+
+Remaining gaps are current project-source provenance, lifecycle, complete reviewed
+forbidden Railway inventory, execution-host attestation and independent review of
+this exact current package including its required code target. Inventory stays
+unreviewed with null basis/provenance/category lists; host checklist and package
+review remain false/null. AT's implementation review is not reused as package
+review. serviceInstanceId remains null with unreviewed/null source and reviewer;
+the existing contract permits this unresolved expectation until a separately
+authorized controlled observation, so it is not fabricated as a preparation input.
+
+Source configuration remains pending/unapplied; branch/root application and active
+configuration are not proven. Deployment is unauthorized. reviewed,
+inputReviewComplete and every live/manual/executable/provider/identity authority
+flag remain false; 0114D preparation is not ready. Missing readiness/completion
+fields are not added to the exact v2 package schema to simulate authority.
+Historical assessment, historical 0114F evidence, qualification evidence and reviewed
+0114H design are unchanged. No runtime, template, fixture or migration changes,
+capsule/credential access, provider access or network activity occurred.
+
+Preparation validation: 0114E 492/492 (33 new current-package checks), 0114F
+240/240 and 0114H 65/65 passed: 797 total, zero failures/skips. The real incomplete
+package bytes were rejected through the isolated v3 reviewedInput path without
+creating an executable draft, ticket, session, context or request. Exact protected
+artifact bytes, all 99 migrations, twelve canonical source pins and authorization
+self hash remain unchanged. git diff --check passed. No full regression or typecheck
+rerun was required: only package data, this register and the existing 0114E test
+file changed; runtime, fixtures, templates and app/Edge/worker typing are unaffected.
+
+## Qualification-specific project-ID review worksheet
+
+At HEAD 02f39592a6868d2a48520006e21b59fed95958a7 on
+feature/0092-shared-segment-suitability, prepared
+[the human-review worksheet](0114e-qualification-project-id-review.md).
+Result is PENDING; reviewer, timestamp and review-reference fields remain null.
+Existing records identify the intended qualification context and preserve the
+historical project-identity review, but the qualification project-source record
+remains unreviewed and explicitly limited in scope. Contextual presence of the
+project ID is not promoted into independently reviewed project provenance.
+
+The current package and targetInputSources.projectId are unchanged. The project
+blocker remains unresolved until an independent human explicitly reviews supporting
+qualification-specific relation/source evidence. This preparation grants no provider
+access and resolves no other 0114E blocker. No Railway/provider/network action,
+runtime change, migration, deployment, restart or authority promotion occurred.
+
+## Completed qualification project-ID provenance review
+
+At recording HEAD edd95f053de4696e381ff88a5474221e1631f85e, recorded AT's completed
+independent qualification-specific project relationship/source review in
+[the project-ID review record](0114e-qualification-project-id-review.md#completed-independent-human-review).
+AT confirmed the exact qualification environment belongs to project
+0fa3268a-396f-4042-a4c0-a92c23fdf486 and the exact movement-qualification service
+belongs to that same context, independently of the historical production identity
+record. Result: NO_MISMATCH. No precise review time was supplied; both timestamp
+fields stay null. The reference is descriptive/local, not an invented external ID.
+
+The existing v2 source schema requires independentlyReviewed/source/reviewer, not a
+timestamp. Only targetInputSources.projectId changes in the current package: true,
+the completed local record reference, and AT. IDs, environment/service/name
+provenance, code/evidence bindings and all other package fields remain unchanged.
+This resolves only project provenance. Lifecycle and serviceInstanceId remain null;
+inventory, execution-host attestation and whole-package review remain incomplete.
+Source settings remain unapplied; package completion, provider/runtime identity,
+0114D readiness, deployment and all live/manual/executable authority remain false.
+No provider/network/credential/capsule access, runtime or migration change, staging,
+commit or push occurred.
+
+## Qualification lifecycle evidence review
+
+At HEAD d0676136b088b3ca17ad0fff8222ba6f151af7d2 on
+feature/0092-shared-segment-suitability, prepared
+[the pending lifecycle review](0114e-qualification-lifecycle-review.md).
+The contract accepts only exact lifecycle=active as an operator plan constraint on
+the qualification target; it is not a Railway service/deployment status. Null is
+valid only for inert incomplete preparation. There is no separate lifecycle
+provenance tuple, and no reviewed mapping from offline/created/pending status to
+active. Existing qualification evidence explicitly retains lifecycle=null.
+
+Lifecycle promotion is stopped for missing independently reviewed current active
+eligibility meaning/basis and evidence for this exact target. Current package,
+resolved project provenance and every other field remain unchanged. No other
+blocker is resolved, no provider/network access occurred and no runtime, migration,
+source-setting, deployment or authority change was made.
+
+## Qualification lifecycle policy-basis analysis
+
+At HEAD 5fecd25210a9276b020108e329e36345b5568494 on
+feature/0092-shared-segment-suitability, completed the offline
+[lifecycle policy-basis analysis](0114e-qualification-lifecycle-policy-analysis.md).
+Result: POLICY_DEFINITION_INCOMPLETE. The exact active requirement originated in
+0107. Existing policy excludes production and inactive/decommissioned scopes and
+requires reviewed operator constraints, exact identity binding and reviewed
+forbidden inventory. It does not supply a sufficient positive factual predicate
+for active or define target-state transition/expiry/consumption events.
+
+The blocker includes a policy-definition gap, separately from absent current
+target-specific active evidence. Target compliance cannot be evaluated against a
+complete predicate yet; human attestation alone cannot fill that policy gap. A
+separate explicit policy definition and independent review must precede assessment
+of target evidence. No lifecycle interpretation is selected or implemented here.
+
+The current package is unchanged with lifecycle null; active is not yet authorized.
+Resolved project provenance is preserved and no other blocker is resolved. No
+provider/network action occurred. Runtime, tests, fixtures, templates, reviewed
+design, historical/qualification evidence and all 99 migrations remain unchanged;
+the capsule remains unread. This analysis grants no package-completion, 0114D,
+deployment, live acquisition, staging, commit or push authority.
+
+## Qualification lifecycle policy design
+
+At HEAD 41dc697db847d7698019f85da4725eb5e8f40658 on
+feature/0092-shared-segment-suitability, completed the offline
+[0114I lifecycle policy design](0114i-qualification-lifecycle-policy-design.md).
+Status: DESIGN_COMPLETE_IMPLEMENTATION_NOT_AUTHORIZED. The proposed meaning is a
+short-lived independently reviewed operator eligibility assertion bound to one
+exact package and acquisition attempt, expiring thirty minutes after activation
+review or earlier revocation/terminal exit. It is not provider service status.
+The target may be reused only through a fresh assertion/review and separately
+authorized attempt; it is not permanently consumed by identity acquisition.
+
+This is a new proposed policy, pending independent design review. It does not
+retroactively close the earlier policy/evidence gaps or authorize implementation.
+Future runtime/schema work is required to enforce record binding and expiry; the
+existing v3 contract is not claimed to provide those new checks. Current package
+remains unchanged with lifecycle=null. Inventory, host and whole-package review
+blockers remain, and no active assertion or 0114D authority is granted. No provider
+action/network access occurred. Runtime, tests, templates, evidence and all 99
+migrations remain unchanged; capsule remains unread. No staging, commit or push.
+
+## Qualification lifecycle policy design review
+
+At HEAD 09c2f7e8cb6592f2595d75228577a570d3dd7c12, recorded the
+[0114I critical design review](0114i-qualification-lifecycle-policy-independent-review.md).
+Outcome: CHANGES_REQUIRED_BEFORE_IMPLEMENTATION_PLANNING. The review identifies
+missing explicit in-process assertion-level admission/closure ownership across
+multiple drafts: one-use tickets alone do not enforce one activation record/one
+attempt. The thirty-minute bound and stated trusted-operator cross-process limit
+are accepted; durable coordination is not required for the present scope.
+
+The reviewer is Codex in a separate critical pass, the same assistant that drafted
+the design; no independent human approval is claimed. Design remains unchanged.
+Required next step is a separately authorized narrow design correction and renewed
+review before implementation planning. No implementation, active assertion, target
+evidence resolution, package completion or 0114D authority is granted. Current
+package remains lifecycle=null. No provider/network action, runtime/test/migration
+change, capsule access, staging, commit or push occurred.
+
+## Qualification lifecycle policy B1 design correction
+
+At HEAD 42a12b2c46008b310f0035be39a84766fb088443, completed the narrow B1 correction in
+[the 0114I lifecycle design](0114i-qualification-lifecycle-policy-design.md).
+The design now specifies one private authorization owner, canonical assertion
+identity, atomic claim at validated draft admission, non-rearmable closure and
+expiry cleanup, with future duplicate/copy/terminal acceptance cases. B1 is addressed
+by design only. The prior review outcome remains unchanged historical evidence;
+renewed independent review is required and implementation planning remains
+unauthorized until it passes. Current package lifecycle remains null. No provider,
+network, runtime, test or migration action occurred; capsule remains unread.
+No staging, commit, push or further authority is granted.
+
+## Qualification lifecycle policy renewed B1 review
+
+At HEAD 30bf97347fa0e88272bdf02c973949349ca61f74, recorded the
+[renewed B1 review](0114i-qualification-lifecycle-policy-b1-renewed-review.md).
+Outcome: B1_CLOSED_WITH_NONBLOCKING_NOTES. B1 is closed by design for the stated
+trusted same-process scope; implementation planning and review may proceed.
+Planning must specify owner-loading coverage, the private pre-run cleanup carrier,
+clock high-water ordering and finite capacity limits. Implementation itself remains
+unauthorized. This is a renewed Codex critical pass by the same assistant as author,
+not an independent human approval. The design and historical review are unchanged.
+Current package remains lifecycle=null; no target-evidence resolution or provider,
+network, runtime, test or migration action occurred. Capsule remains unread.
+No staging, commit, push, live acquisition or other execution authority is granted.
+
+## Qualification lifecycle implementation plan
+
+At HEAD 493d53d1f90cd35bf6ee33bf6c7c41db1a4f5a12, prepared
+[the 0114J implementation plan](0114j-qualification-lifecycle-implementation-plan.md).
+Status: PLAN_COMPLETE_IMPLEMENTATION_NOT_AUTHORIZED. B1 remains closed by reviewed
+design. The plan specifies the future patch, private owner/domain and cleanup
+carrier, clock ordering, fixed capacity/record limits, schemas, cutover, pins and
+validation. Implementation itself remains unauthorized; next step is plan review.
+Current package remains lifecycle=null. No provider/network, runtime, test or
+migration action occurred; qualification evidence and historical reviews are
+unchanged. Capsule remains unread. No staging, commit, push or execution authority.
+
+## Qualification lifecycle implementation-plan review
+
+At HEAD ce75e131b240d209f7b5519c7b8f64b12e062cb5, recorded the
+[0114J critical plan review](0114j-qualification-lifecycle-implementation-plan-review.md).
+Outcome: PLAN_CHANGES_REQUIRED_BEFORE_IMPLEMENTATION_AUTHORIZATION. Blocking findings
+are the unestablished acquisition launch/require.main contract and missing final
+time checks after potentially blocking identity validation. Separate implementation
+authorization may not yet be requested; implementation remains unauthorized.
+Next step is narrow plan correction and renewed review. This is a Codex critical
+pass by the same assistant as author, not an independent human approval. Plan and
+reviewed design remain unchanged. Current package lifecycle remains null. No
+provider/network, runtime, test or migration action occurred; capsule remains unread.
+No staging, commit, push, package promotion or live authority is granted.
+
+## Qualification lifecycle executable-owner scope review
+
+At HEAD d1cbc7cf4c2308b3286d3816e7d4106941ea3d82, completed the
+[R1 owner scope review](0114j-executable-owner-scope-review.md).
+Outcome: SCOPE_APPROVED_ADD_SINGLE_OWNER_HOST. Selected a dedicated main-only
+acquisition owner host with private one-time linkage and immutable canonical
+cache/exports bindings; authorization remains admission-state owner. Future scope
+adds qualification-railway-acquisition-owner-host.cjs to the original three runtime
+files. The host requires an explicit thirteenth source pin; that pin-architecture
+change needs renewed plan review. package.json and run.cjs remain unchanged.
+The existing plan/reviews are unchanged; 0114J plan correction and renewed review
+remain required. R2 final pure fences are still pending. Implementation remains
+unauthorized and current package lifecycle stays null. No provider/network, runtime,
+test or migration action occurred; capsule remains unread. No staging/commit/push
+or execution authority is granted.
+
+## Qualification lifecycle corrected owner-host implementation plan
+
+At HEAD a70b1824c3fd61ba4e86f06dfd4da5dc1725fdd5, corrected
+[the 0114J plan](0114j-qualification-lifecycle-implementation-plan.md) using the
+approved dedicated owner-host scope. Future runtime scope is exactly four files;
+proposed source-pin count is thirteen, with authorization separately self-hashed.
+The plan incorporates the documented main-only bootstrap/private linkage and four
+immutable cache/exports bindings, plus R2 blocking-validation/final-pure-fence
+ordering at all twenty-one sensitive transitions and validity-only post-cleanup
+result release. Focused inventory is thirteen suites; regression remains nineteen.
+Prior failed plan review and scope review remain unchanged historical records.
+Renewed plan review is required; implementation remains unauthorized. Current
+package lifecycle stays null. No provider/network, runtime, test or migration action
+occurred; capsule remains unread. No staging, commit, push or execution authority.
+
+## Qualification lifecycle corrected-plan renewed review
+
+At HEAD e0da80028b857b5dbb8f59f448dccc5981df2753, recorded the
+[renewed corrected-plan review](0114j-qualification-lifecycle-corrected-plan-renewed-review.md).
+Outcome: PLAN_CHANGES_REQUIRED_BEFORE_IMPLEMENTATION_AUTHORIZATION. Local isolated
+Node inspection did not establish the assumed post-script operator console under
+the documented --interactive startup; unchanged adapter hashing also remains after
+the proposed wrapper dispatch fence. Host-lifetime correction and explicit native
+dispatch-fence scope/pin review are required. Separate implementation authorization
+may not yet be requested; implementation remains unauthorized. The plan and prior
+reviews are unchanged. Current package lifecycle remains null. No provider/network,
+runtime, test-file or migration change occurred; capsule remains unread. No staging,
+commit, push, package promotion or execution authority is granted.
+
+## Qualification lifecycle C1/C2 narrow scope decision
+
+At HEAD 2905ec01b54ecd300891c82615e6bbf8a26d8f25, recorded
+[C1/C2 scope review](0114j-c1-c2-scope-review.md).
+Outcome: C1_C2_SCOPE_APPROVED, for future plan correction only. Select a host-owned
+Node-native REPL after successful private bootstrap/sealing, launched by plain
+`node scripts/assessment-worker/qualification-railway-acquisition-owner-host.cjs`
+without --interactive. Support TTY and redirected stdin with explicit EOF/.exit/
+SIGINT terminal revocation/cleanup; arbitrary operator JavaScript stays inside the
+existing trusted-process boundary, with no raw seal/carrier/maps exposed.
+
+Select the HTTPS adapter as the fifth changed runtime file and fifth immutable
+canonical Module/cache/exports binding. Authorization privately installs the fixed
+original-graph pure fence; all three requests must finish adapter validation/hash/
+preparation before that fence and immediately construct the native request afterward.
+No public hook or sixth runtime file. The conceptual twenty-one transitions remain;
+dispatch rows 10/12/16 acquire their final realization inside the adapter.
+
+Source-pin roles stay thirteen: one new host, three changed existing pin values
+(wrapper, identity, adapter), nine unchanged old values, authorization self-hash
+separate. Historical twelve-pin evidence stays unchanged. Future focused count is
+fourteen with a dedicated native-dispatch suite; regression remains nineteen.
+Plan correction and renewed critical review are still required before separate
+implementation authorization may be requested. Implementation/provider access remain
+unauthorized; current package lifecycle remains null. No provider/network, runtime,
+test-file or migration action occurred. No package promotion, capsule access,
+staging, commit, push or execution authority is granted.
+
+## Qualification lifecycle C1/C2 implementation-plan correction
+
+At starting HEAD 89674362ac952ad991199a774c6084f194479e89, corrected
+[the implementation plan](0114j-qualification-lifecycle-implementation-plan.md)
+to the approved C1/C2 scope. Future startup is plain-node genuine main with a
+host-owned native REPL after bootstrap/sealing/enablement, with explicit TTY/redirected
+stdin and terminal cleanup semantics. Future runtime scope is five files and five
+immutable canonical owner bindings, including the HTTPS adapter. All three requests
+finish adapter phase-1 work before an adapter-local final pure fence and immediate
+native request construction. The conceptual twenty-one transitions remain unchanged.
+
+Source-pin roles remain thirteen: host new; wrapper/identity/adapter old values
+changed; nine old values unchanged; authorization self-hash separate. Focused suites
+are fourteen, including dedicated native-dispatch proof; regression remains the same
+nineteen paths. No hashes were calculated. Renewed critical review is required before
+separate implementation authorization may be requested. Implementation remains
+unauthorized; current package lifecycle remains null. No runtime/test/typecheck,
+migration, provider/Railway or external/loopback network action occurred; capsule
+unread. Protected reviews, package/evidence and templates are unchanged. No staging,
+commit, push, package promotion, lifecycle activation or execution authority is granted.
+
+The future acceptance plan also requires a dedicated adversarial security review of
+the exact implementation commit/diff and repository context after deterministic
+validation and protected diff/pin checks, before independent implementation review.
+Use Codex Security against the exact commit/PR when available; otherwise dedicated
+strongest-available adversarial review remains mandatory. Static/dependency scans
+are supplemental only. Unresolved critical/high or invariant-breaking findings block
+acceptance; architectural findings return to plan/scope review. Security approval
+grants no provider/live/package-promotion/activation/deployment authority. No security
+scan was run and no security tooling was installed/configured by this amendment.
+Implementation remains unauthorized; current package lifecycle remains null.
+
+## Qualification lifecycle C1/C2 and security-gate renewed critical review
+
+At starting HEAD 53bf49ca424fef6c5bb03461c55b66b1b8f78a3a, recorded
+[renewed critical review](0114j-c1-c2-security-gate-renewed-critical-review.md).
+Outcome: PLAN_CHANGES_REQUIRED_BEFORE_IMPLEMENTATION_AUTHORIZATION; three blockers
+and two nonblocking notes. Local Node v24.13.1 source/isolated offline probes expose
+deferred REPL exit on EOF during await (RC1), buffered TTY Ctrl+C with the selected
+breakEvalOnSigint:false (RC2), and native TTY preview bypassing the constant writer
+through automatic inspection (RC3). C2 five-file/native-fence design, pin/inventory
+accounting and the future security gate remain coherent; C1 requires scope/plan
+reconciliation and correction, then renewed review. Separate implementation
+authorization may not yet be requested. Implementation remains unauthorized;
+provider/live/package authority is unchanged and current package lifecycle remains
+null. Plan and prior reviews unchanged. No runtime/test/typecheck/migration,
+provider/network or security-scan action occurred; only permitted offline Node
+behavior/source inspection. Capsule unread; no installation, staging, commit, push
+or execution authority granted. This is the same author's fresh adversarial pass,
+not independent human approval.
+
+## Qualification lifecycle narrow C1 RC1/RC2/RC3 reconciliation
+
+At starting HEAD a67e7db9417ed06f265772431e7826651044406a, appended narrow
+[C1 scope reconciliation](0114j-c1-c2-scope-review.md) and corrected the operative
+[implementation plan](0114j-qualification-lifecycle-implementation-plan.md).
+Direct stdin end/close observation now invokes the single first-latch terminal
+handler independently of deferred REPL exit during unresolved await. Select
+breakEvalOnSigint:true with default REPL SIGINT handling replaced by the fixed host
+terminal handler for single Ctrl+C; process SIGINT remains a separate source.
+Select preview:false to disable automatic pre-Enter inspection; retain constant
+writer and trusted explicit inspection boundary. Request-1 actual function label
+is corrected to acquireServices. Pending evaluators gain no post-revocation authority.
+
+C2, five runtime files/five bindings, B1, 21 transitions, 13 pin roles (three changed
+old/nine unchanged), fourteen focused suites, nineteen regression paths, three
+TypeScript checks and future security gate remain unchanged. Isolated offline
+Node probes support the corrected local branches; real PTY proof remains a future
+acceptance requirement. Renewed critical review is still required before separate
+implementation authorization may be requested. Implementation remains unauthorized;
+current package lifecycle null. Failed/prior reviews remain immutable. No runtime/
+test/typecheck/migration/provider/network/security-scan action, installation or
+capsule access occurred; only permitted built-in-only Node feasibility inspection/
+probes. No staging, commit, push, package promotion, activation or execution authority.
+
+## Qualification lifecycle reconciled C1 renewed critical review
+
+At starting HEAD 5ae6caaf9ab121aa2799b97565eba900ba67ffbd, recorded
+[reconciled C1 renewed review](0114j-reconciled-c1-renewed-critical-review.md).
+Outcome: PLAN_CHANGES_REQUIRED_BEFORE_IMPLEMENTATION_AUTHORIZATION; one blocker
+(RS1 synchronous VM SIGINT interruption lacks a guaranteed bridge to host terminal
+revocation) and one nonblocking note (future real PTY proof gap). RC1 direct EOF
+and RC3 disabled preview pass design review; RC2 idle/multiline/pending-await native
+key branches pass local probes but complete signal design remains blocked. Native
+VM temporarily removes process SIGINT listeners during synchronous evaluation;
+the specified signal handlers do not cover every VM interruption/error-rendering path.
+Narrow scope/plan correction and renewed review are required. Separate implementation
+authorization may not yet be requested; implementation remains unauthorized.
+
+C2/B1/pins/inventories/security gate unchanged; plan, scope and prior reviews
+untouched. Provider/live/package authority unchanged; current package lifecycle
+null. Real PTY proof was not supplied and remains mandatory for future acceptance.
+No runtime/test/typecheck/migration/provider/network/security-scan action, install
+or capsule access occurred; only permitted offline native-source/Node probes and
+Git/text validation. No staging, commit, push or execution authority. This is the
+same author's fresh adversarial pass, not independent human approval.
+
+## Qualification lifecycle narrow RS1 writer-boundary correction
+
+At starting HEAD c089d1222d2cd5d009b2233e7024e4f325516926, appended narrow
+[RS1 scope correction](0114j-c1-c2-scope-review.md) and corrected the
+[implementation plan](0114j-qualification-lifecycle-implementation-plan.md).
+Select one fixed private interrupt-aware constant writer: native-error brand plus
+own DATA code ERR_SCRIPT_EXECUTION_INTERRUPTED enters the same host terminal latch
+before native output/prompt, revokes/closes/cleans once and exits 130. No message
+matching or eval wrapper; default native eval and breakEvalOnSigint:true stay.
+Ordinary nonmatching errors retain constant output/native semantics; intentionally
+created thrown/returned native Errors with the reserved code also fail closed.
+
+RC1/RC3 passed design remains frozen, as do C2/B1/five files/five bindings, pins,
+inventories and security-gate structure. RS1 proof/attack cases join existing suites/
+semantic review. Offline native-source and metadata/error-route probes support the
+design, but actual VM-consumed SIGINT and real PTY remain future acceptance proof.
+Renewed critical review is required before separate implementation authorization
+may be requested. Implementation remains unauthorized; current package lifecycle
+null. No runtime/test/typecheck/migration/provider/network/security-scan action,
+installation or capsule access occurred. Failed/prior reviews unchanged. No staging,
+commit, push, activation, package promotion or execution authority granted.
+
+## Qualification lifecycle RS1 writer-bridge renewed critical review
+
+At starting HEAD 3b5a9a3526e1e0ac595f001df90b3b46e5655ba4, recorded the
+[renewed RS1 writer-bridge review](0114j-rs1-writer-bridge-renewed-critical-review.md).
+Outcome: PLAN_APPROVED_FOR_SEPARATE_IMPLEMENTATION_AUTHORIZATION_REQUEST; zero
+blockers and three nonblocking notes. The RS1 bridge, native writer ordering,
+native-brand/own-data-code classifier and forged reserved-code fail-closed policy
+pass design review. Actual VM-consumed SIGINT and real PTY proof remain mandatory
+future implementation acceptance; native pre-writer stack preparation remains an
+accepted trusted-operator-boundary note. A separate implementation-authorization
+request may now be made, but implementation remains unauthorized.
+
+Provider/live/package authority is unchanged. The current v2 package remains
+incomplete with executable flags false, source configuration unpromoted and
+lifecycle null. No runtime/test/typecheck/migration/provider/network/loopback or
+security-scan action occurred; only built-in-only offline Node source/behavior
+inspection. Capsule unread; no staging, commit or push authority. This is the same
+author's fresh adversarial review, not independent human approval.
+
+## Qualification lifecycle separate implementation authorization
+
+At starting HEAD 58e4ebc031e9e138232e1ab970e13f122ec1b667, recorded the
+[implementation-authorization review](0114j-implementation-authorization-review.md).
+Outcome: IMPLEMENTATION_AUTHORIZED_FOR_FROZEN_0114J_SCOPE; zero blockers. The frozen
+scope is five production runtime files, five immutable bindings, 21 transitions,
+12 current/13 future source-pin roles, 14 focused suites, 19 unchanged regression
+paths and three TypeScript checks. B1 and C2 remain approved; RC1, RC2, RC3 and RS1
+are resolved in design. Actual VM-consumed SIGINT, real PTY validation, the semantic
+security gate and independent implementation review remain mandatory future gates.
+
+Authorization permits a separate offline implementation task to create the owner-host,
+modify the four approved runtime files, create/modify approved tests, update stabilized
+pins and expressly required inert templates/evidence references, run the exact local
+validation, and prepare security/review evidence. Current v2 package remains incomplete,
+unpromoted and lifecycle null. No Railway/provider/external-network, production,
+deployment, migration push, activation, package promotion, credential/capsule access,
+runtime/request-count expansion, staging, commit or push authority is granted. No
+runtime/test/typecheck/provider/network/loopback/security-scan action occurred in this
+review; capsule unread. This is same-author Codex authorization, not independent
+human approval.
+
+## Qualification lifecycle ENV1 documentation-network reconciliation
+
+At starting HEAD d9f103fc83144e7a1ce03d25ea94fbacff2e603d, recorded the
+[ENV1 documentation-network review](0114j-env1-documentation-network-authority-review.md).
+Outcome: DOCUMENTATION_NETWORK_EXCEPTION_APPROVED_FOR_FROZEN_0114J_IMPLEMENTATION;
+zero blockers. After this artifact is checkpointed, the frozen implementation may
+use unauthenticated read-only HTTPS GET/HEAD solely for the exact Expo SDK 57 tree at
+`docs.expo.dev/versions/v57.0.0/`, Supabase `changelog.md`, relevant linked public
+`supabase.com/changelog/` pages and relevant public `supabase.com/docs/` pages.
+
+No authenticated request, provider/project API, Railway, Dashboard/MCP endpoint,
+credential, arbitrary browsing, package/executable download or mutation is authorized.
+Redirects outside the approved documentation paths fail closed. B1/RC1/RC2/RC3/RS1/
+C2, five files/bindings, 21 transitions, three requests, 12/13 pins, 14 focused,
+19 regression and three TypeScript checks remain unchanged. Current lifecycle is
+null; provider/live/package/deployment authority remains absent. This review itself
+performed no network, runtime/test change, test/typecheck, PTY/signal proof or security
+review. Capsule unread; no staging, commit or push. Implementation may resume only
+after this documentation-authority artifact is checkpointed.
+
+## Qualification lifecycle frozen implementation acceptance attempt
+
+At HEAD `6b074843e6e3bd2ea853489f2a6e01a3a8b2327e`, constructed the frozen
+five-runtime-file 0114J implementation and recorded the
+[implementation report](0114j-frozen-implementation-report.md). The exact 14 focused
+suites, unchanged 19-path serialized regression and three installed TypeScript checks
+passed with zero failures. Pin accounting passed: three changed old runtime roles,
+nine unchanged old roles, one new owner-host role and a separate authorization self
+hash. Protected current 0114E package/evidence, package/run files and migrations have
+no tracked diff; the index remained empty.
+
+Outcome: `IMPLEMENTATION_CONSTRUCTED_ACCEPTANCE_BLOCKED`. Blocking result:
+`REAL_PTY_ACCEPTANCE_UNAVAILABLE`. The available hidden Windows PTY and console-event
+bridge did not deliver a supported Ctrl+C to genuine synchronous native evaluation;
+an idle PTY injection also failed to produce the required host-owned exit 130 proof.
+No contrary VM Error shape was observed because the signal was not delivered.
+
+Per the frozen order, the semantic security gate and independent implementation
+review were not run. Implementation acceptance, provider/live/package/deployment
+authority and activation remain false. The current package remains v2, incomplete,
+unpromoted and lifecycle-null. No Railway/provider/Supabase project API, production,
+deployment, migration, credential/capsule access, staging, commit or push occurred.
+
+## Qualification lifecycle Git-for-Windows WinPTY acceptance retry
+
+At unchanged HEAD `6b074843e6e3bd2ea853489f2a6e01a3a8b2327e`, retried the
+mandatory native signal acceptance with installed Git Bash
+`C:\Program Files\Git\bin\bash.exe`, WinPTY
+`C:\Program Files\Git\usr\bin\winpty.exe` and Node v24.13.1. Stdin, stdout and
+stderr were TTYs. One Ctrl+C terminated each fresh exact owner host at idle, during
+multiline input and during unresolved top-level await, with exit 130 and without a
+second press or resumed Node prompt. The scheduled process-SIGINT path separately
+terminated with exit 130.
+
+The actual RS1 case used an active original-graph synthetic lifecycle ticket and
+genuine synchronous native `for(;;){}` evaluation. One WinPTY Ctrl+C reached the
+fixed writer terminal branch and exit 130. The branch's captured predicates establish
+native Error branding, own data `code` and exact primitive
+`ERR_SCRIPT_EXECUTION_INTERRUPTED`. No result or usable prompt followed. The post-
+shutdown exit audit reported `CLOSED=true DRAFT_BURNED=true`, proving no ticket/draft
+continuation, transport reopen or authority rearm. The first failed hidden-PTY result
+remains historical evidence; the supported Git-for-Windows retry result is
+`PASS_GIT_FOR_WINDOWS_WINPTY`.
+
+Outcome: `IMPLEMENTATION_CONSTRUCTED_SECURITY_REVIEW_PENDING`. Deterministic gates
+and source identities remain unchanged because this retry changed no runtime or test
+bytes. The semantic security gate is now eligible. Independent implementation review
+had not occurred at that checkpoint. Provider/live/package/deployment authority and
+activation remain false; the current v2 package remains incomplete, unpromoted and
+lifecycle-null.
+
+## Qualification lifecycle semantic implementation-security gate
+
+Against unchanged HEAD `6b074843e6e3bd2ea853489f2a6e01a3a8b2327e` and the exact
+five-runtime-file diff, completed the frozen offline adversarial-review fallback.
+Codex Security was not installed/available and installation was outside authority.
+Outcome: `SEMANTIC_SECURITY_GATE_PASS_NO_BLOCKING_FINDINGS`; zero critical, high,
+medium or low findings remain open.
+
+The review covered owner/copy/preload/reload/cache bypass, facade/private leakage,
+reset, output/custom inspection, stale capability reuse, clock/expiry/rollback,
+transition TOCTOU, all three adapter-local final fences, public-hook introduction,
+context downgrade, terminal cleanup/races, pin/self identity, credentials, request
+expansion, package activation and authority outside the original graph. RS1 native
+interruption classification, prompt suppression, terminal-latch/exit-code behavior
+and rearm denial passed with the WinPTY evidence. Approved process-local admission,
+trusted-operator and native pre-writer limitations remain unchanged design bounds.
+
+Outcome advances to
+`IMPLEMENTATION_CONSTRUCTED_SECURITY_GATE_PASS_INDEPENDENT_REVIEW_PENDING`.
+At that checkpoint, independent implementation review had not occurred and remained
+the exact next gate. No provider/live/package/deployment authority or activation is
+granted.
+
+## Qualification lifecycle post-remediation documentation checkpoint
+
+At unchanged HEAD `6b074843e6e3bd2ea853489f2a6e01a3a8b2327e`, the first genuinely
+independent implementation review blocked acceptance on
+`B1_FUTURE_REVIEWED_AT_ACCEPTED` (HIGH),
+`B2_ATTEMPT_REFERENCE_BOUND_NOT_ENFORCED` (MEDIUM), and
+`B3_MISSING_CLOSED_MARKER_OWNER_SWEEP_TIMER` (MEDIUM). Remediation was separately
+reviewed and authorized. The three fixes are now implemented without widening the
+five-file production boundary: B1 enforces trusted review time and the final
+synchronous admission fence, B2 enforces the attempt-reference 1..128 bound while
+general references remain 1..256, and B3 adds the one private nearest-expiry
+closed-marker owner sweep with generation-guarded stale-callback denial, UTC-only
+deletion, fault latching, retained high-water, matching reverse-index cleanup and
+idempotent closure.
+
+The authorization self hash moved from
+`5a3d3c0d0ab393e5e34c3c39dc9c02ef35a3a8f54578f4cd356614119cabdec8` to
+`a1da1eec17b431009e8b580fe0480884b73d4c05334ec860c19c66c46b53d178`.
+Exactly 13 runtime source roles remain; independent verification returned
+`roleCount = 13`, `bad = []`, with all 13 role hashes unchanged and no digest cycle.
+The protected current historical v2/12-pin package and evidence remain unchanged.
+
+All post-remediation deterministic gates passed: the exact 14 focused suites reported
+1,528 total, 1,528 passed, 0 failed and 0 skipped; the exact 19 regression paths
+reported 1,117 total, 1,114 passed, 0 failed and three documented OS skips; and the
+three TypeScript scopes (root, Supabase functions and assessment worker) passed 3/3.
+`git diff --check` passed. The protected package/evidence, `package.json`, `run.cjs`
+and migrations remain unchanged.
+
+The full post-remediation PTY replay passed with Git Bash
+`C:\Program Files\Git\bin\bash.exe`, WinPTY
+`C:\Program Files\Git\usr\bin\winpty.exe`, and Node v24.13.1. It used the exact
+sealed main host, original module graph, synthetic reviewed lifecycle bytes and
+process-local read-only file shims, with no provider credentials or network. Idle,
+multiline, unresolved top-level await, scheduled process `SIGINT`, and synchronous
+native `for(;;){}` cases each exited 130. Runtime instrumentation established a
+native-branded Error with an own DATA `code` descriptor equal to
+`ERR_SCRIPT_EXECUTION_INTERRUPTED`. The audit recorded a closed graph with
+`host_shutdown`, one shutdown, one exit, no result, no transport request, no resumed
+`movement>` prompt, no authority rearm and no transport reopen.
+
+The post-remediation WinPTY replay closed these previously open evidence gaps:
+
+- `EVID_PTY_ACTIVE_GRAPH_TRANSCRIPT_MISSING`: `CLOSED`
+- `EVID_PTY_ACTIVE_LIFECYCLE_REPLAY_NOT_RECONSTRUCTED`: `CLOSED`
+- `EVID_VM_NATIVE_DESCRIPTOR_NOT_RUNTIME_INSTRUMENTED`: `CLOSED`
+
+Their earlier open state remains preserved in the historical entries above. After
+every preceding gate passed, the semantic security rerun returned
+`SEMANTIC_SECURITY_GATE_PASS_NO_BLOCKING_FINDINGS`, with zero CRITICAL, HIGH or MEDIUM
+findings.
+
+Current outcome:
+`REMEDIATION_IMPLEMENTATION_ACCEPTED_INDEPENDENT_REVIEW_PENDING`. B1/B2/B3 remediation,
+deterministic validation, PTY/VM acceptance and semantic security have passed. Final
+independent implementation acceptance is not claimed. A fresh genuinely independent
+implementation review against the post-remediation bytes is the exact next milestone.
+No provider, Railway, live, package, deployment, production, migration, credential,
+staging, commit or push authority is granted, and the overall 0114J milestone remains
+open.
+
+## Qualification lifecycle final post-remediation independent review
+
+At unchanged HEAD `6b074843e6e3bd2ea853489f2a6e01a3a8b2327e`, a genuinely
+independent reviewer inspected the post-remediation implementation, source identity,
+deterministic evidence, PTY/VM evidence, security boundaries and documentation. The
+reviewer did not author the original implementation, B1/B2/B3 remediation or prior
+documentation checkpoint, and modified no files. The index remained empty and the
+protected capsule remained unread, unhashed, unmodified and unstaged.
+
+Outcome: `INDEPENDENT_IMPLEMENTATION_REVIEW_PASS`.
+
+The first review's blockers are independently verified closed:
+
+- `B1_FUTURE_REVIEWED_AT_ACCEPTED`: `CLOSED`
+- `B2_ATTEMPT_REFERENCE_BOUND_NOT_ENFORCED`: `CLOSED`
+- `B3_MISSING_CLOSED_MARKER_OWNER_SWEEP_TIMER`: `CLOSED`
+
+B1 passed its equality, future-time rejection, final-resample, single monotonic
+deadline and high-water/rollback checks. B2 passed the 128/129 boundaries while
+preserving general 1..256 references and reverse-index semantics. B3 passed the
+single private nearest-expiry timer, rescheduling, callback, clock-fault, retention,
+capacity, reverse-index, idempotence, coexistence and no-rearm checks.
+
+The five immutable bindings, owner host, RC1, RC2, RC3, RS1 and C2 passed. The frozen
+21-transition model remains intact: rows 10/12/16 are adapter-local final native
+dispatch fences, row 21 is validity-only release after cleanup, and transition 9's
+credential read remains valid by frozen design.
+
+The authorization self hash is
+`a1da1eec17b431009e8b580fe0480884b73d4c05334ec860c19c66c46b53d178`.
+All 13 role hashes are valid, the digest topology is acyclic, the five inert templates
+are correct and the protected historical v2/12-pin state is preserved. The exact
+focused result is 1,528/1,528 across 14 suites with no failure or skip. The exact
+19-path regression result is 1,114/1,117 with no failure and three documented OS
+skips. All three TypeScript scopes passed, and `git diff --check` passed.
+
+The reviewer found the Git-for-Windows WinPTY, Git Bash, Node v24.13.1 and exact
+sealed-host evidence sufficient. Active-lifecycle replay passed. Native Error branding,
+the own DATA `code` descriptor, exact `ERR_SCRIPT_EXECUTION_INTERRUPTED`, active graph,
+CLOSED graph before process cleanup, single cleanup, suppressed result/prompt, absent
+transport reopen and authority rearm, and exit 130 are supported. The three prior PTY
+evidence gaps remain `CLOSED`.
+
+Independent security review covered the original frozen categories and remediation-
+specific B1/B2/B3 threats. Findings: CRITICAL 0, HIGH 0, MEDIUM 0, LOW 0. Authority
+and invariant blockers: none.
+
+The progression is preserved: original construction; initial PTY blocker and its
+Git-for-Windows resolution; first independent review blocked on B1/B2/B3; separate
+remediation review and authorization; remediation implementation and validation;
+PTY/VM evidence-gap closure; semantic-security PASS; and final post-remediation
+independent PASS.
+
+Current 0114J status: `INDEPENDENT_IMPLEMENTATION_REVIEW_PASS`, equivalently
+`0114J IMPLEMENTATION ACCEPTED BY INDEPENDENT REVIEW`. This grants no provider,
+Railway, live, package-promotion, deployment, production, migration or credential
+authority. The implementation remains uncommitted WIP; staging, commit and push have
+not occurred. The exact next milestone is a separately authorized repository-
+integration decision.
+
+## PR #35 pre-merge identity remediation
+
+The PR #35 merge-readiness review was blocked by the mismatch between GitHub
+Actions' detached generated PR merge ref and the intentionally strict executable
+identity requirement for the exact reviewed symbolic feature branch. The same review
+also identified a separate future requirement for executable identity after an
+eventual normal merge to `main`. The identity-remediation plan was reviewed, and a
+narrow pre-merge test/documentation-only implementation was authorized. At that
+authorization checkpoint, the current milestone was pre-merge remediation validation
+pending.
+
+The authorized remediation is now implemented at unchanged HEAD
+`db3c8c1e5f97369e5814876ea32f7c64eea7e7a4`. Existing private VM/Git substitutions
+now test exact named-branch success and fail-closed detached branch, wrong branch,
+wrong HEAD, branch-drift, and historical/current mismatch behavior without asking the
+real CI checkout to acquire executable authority. Production runtime and
+`.github/workflows/movement-ci.yml` remain unchanged; GitHub's generated merge-ref
+integration coverage remains intact. Fixtures, templates, migrations, dependencies,
+package/evidence, `package.json`, and `run.cjs` also remain unchanged.
+
+Validation passed: the exact 14 focused suites reported 1,528 total, 1,528 passed,
+0 failed and 0 skipped; the exact 19 regression paths reported 1,117 total, 1,114
+passed, 0 failed and three established Windows skips; all three TypeScript scopes
+passed; full portable root TypeScript passed; and full `node --test` reported 4,593
+total, 4,589 passed, 0 failed and four established skips. The authorization self-hash
+remains `a1da1eec17b431009e8b580fe0480884b73d4c05334ec860c19c66c46b53d178`.
+The source-role count remains 13 and all 13 hashes remain unchanged.
+
+Current outcome:
+`PRE_MERGE_IDENTITY_REMEDIATION_IMPLEMENTED_VALIDATED_REVIEW_PENDING`. A narrow
+identity/security review is the exact next milestone. PR #35 remains draft and merge
+remains unauthorized. No provider, live, deployment, production, package-promotion,
+migration, credential, staging, commit or push authority is granted.
+
+The post-merge distinction between private compile-time `REVIEWED_CODE_BRANCH = main`
+and `RAILWAY_TARGET_BRANCH = feature/0092-shared-segment-suitability` remains future
+design only. It was not implemented or authorized in this pre-merge task and requires
+a separate post-merge implementation and review before executable use on `main`.
