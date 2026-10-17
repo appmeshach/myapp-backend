@@ -58,14 +58,10 @@ test.beforeEach(t => {
  t.mock.method(global, 'fetch', () => { attempts++; throw Error('REAL NETWORK FORBIDDEN'); });
  t.after(() => assert.equal(attempts, 0));
 });
-test('normal module verifies explicit local review metadata; template keeps live HEAD unresolved', () => {
- // Local test metadata only: do not manufacture a reviewed actual-target draft
- // or ticket. This check must also work after the correction is committed.
- const repository = path.resolve(path.dirname(file), '../../..');
- const current = require('node:child_process').execFileSync('git', ['-c', 'safe.directory=' + repository, 'rev-parse', 'HEAD'],
-  { cwd: path.resolve(path.dirname(file), '../..'), encoding: 'utf8', env: {}, windowsHide: true, shell: false, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
- assert.match(current, /^[a-f0-9]{40}$/);
- assert.equal(normal.verifyCodeIdentity({ reviewedHead: current, reviewedBranch: reviewedCode().reviewedBranch }).reviewedHead, current);
+test('isolated named-branch identity verifies exact review metadata; template keeps live HEAD unresolved', () => {
+ const { api } = isolated(), code = api.verifyCodeIdentity(reviewedCode());
+ assert.equal(code.reviewedHead, SYNTHETIC_HEAD);
+ assert.equal(code.reviewedBranch, reviewedCode().reviewedBranch);
  const t = normal.reviewTemplate(); assert.equal(t.notice, 'LIVE REQUEST NOT AUTHORIZED');
  assert.equal(t.outcome, 'PRELIVE_NOT_AUTHORIZED'); assert.equal(t.manualLiveAuthorization, false);
  assert.equal(t.actualRailwayIdsUnresolved, true);
@@ -122,6 +118,7 @@ test('observed HEAD and branch must equal explicit review metadata at draft crea
  reject(() => api.createDraft(target, empty(), { ...reviewedCode(), reviewedHead: normal.baselineParentHead }));
  drift.head = 'b'.repeat(40); reject(() => api.createDraft(target, empty(), reviewedCode()));
  drift.head = SYNTHETIC_HEAD; drift.branch = 'other'; reject(() => api.createDraft(target, empty(), reviewedCode()));
+ drift.branch = ''; reject(() => api.createDraft(target, empty(), reviewedCode()));
 });
 test('supplied review metadata is copied immutably and cannot be changed after draft creation', () => {
  const { api } = isolated(), target = binding(), input = reviewedCode(), draft = api.createDraft(target, empty(), input);

@@ -1350,3 +1350,42 @@ Railway, live, package-promotion, deployment, production, migration or credentia
 authority. The implementation remains uncommitted WIP; staging, commit and push have
 not occurred. The exact next milestone is a separately authorized repository-
 integration decision.
+
+## PR #35 pre-merge identity remediation
+
+The PR #35 merge-readiness review was blocked by the mismatch between GitHub
+Actions' detached generated PR merge ref and the intentionally strict executable
+identity requirement for the exact reviewed symbolic feature branch. The same review
+also identified a separate future requirement for executable identity after an
+eventual normal merge to `main`. The identity-remediation plan was reviewed, and a
+narrow pre-merge test/documentation-only implementation was authorized. At that
+authorization checkpoint, the current milestone was pre-merge remediation validation
+pending.
+
+The authorized remediation is now implemented at unchanged HEAD
+`db3c8c1e5f97369e5814876ea32f7c64eea7e7a4`. Existing private VM/Git substitutions
+now test exact named-branch success and fail-closed detached branch, wrong branch,
+wrong HEAD, branch-drift, and historical/current mismatch behavior without asking the
+real CI checkout to acquire executable authority. Production runtime and
+`.github/workflows/movement-ci.yml` remain unchanged; GitHub's generated merge-ref
+integration coverage remains intact. Fixtures, templates, migrations, dependencies,
+package/evidence, `package.json`, and `run.cjs` also remain unchanged.
+
+Validation passed: the exact 14 focused suites reported 1,528 total, 1,528 passed,
+0 failed and 0 skipped; the exact 19 regression paths reported 1,117 total, 1,114
+passed, 0 failed and three established Windows skips; all three TypeScript scopes
+passed; full portable root TypeScript passed; and full `node --test` reported 4,593
+total, 4,589 passed, 0 failed and four established skips. The authorization self-hash
+remains `a1da1eec17b431009e8b580fe0480884b73d4c05334ec860c19c66c46b53d178`.
+The source-role count remains 13 and all 13 hashes remain unchanged.
+
+Current outcome:
+`PRE_MERGE_IDENTITY_REMEDIATION_IMPLEMENTED_VALIDATED_REVIEW_PENDING`. A narrow
+identity/security review is the exact next milestone. PR #35 remains draft and merge
+remains unauthorized. No provider, live, deployment, production, package-promotion,
+migration, credential, staging, commit or push authority is granted.
+
+The post-merge distinction between private compile-time `REVIEWED_CODE_BRANCH = main`
+and `RAILWAY_TARGET_BRANCH = feature/0092-shared-segment-suitability` remains future
+design only. It was not implemented or authorized in this pre-merge task and requires
+a separate post-merge implementation and review before executable use on `main`.

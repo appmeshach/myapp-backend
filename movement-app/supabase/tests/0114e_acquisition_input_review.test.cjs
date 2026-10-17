@@ -180,12 +180,17 @@ test('pins, canonical byte rule, self hash and forbidden namespace are exact',()
  assert.equal(crypto.createHash('sha256').update(self).digest('hex'),template.codeIdentity.authorizationBoundarySha256);
  assert.deepEqual(template.crossSystemForbidden,normal.reviewTemplate().crossSystemForbidden);
 });
-test('normal local Git identity is current; historical milestone metadata becomes stale',()=>{
- const cp=require('node:child_process');
- const current=cp.execFileSync('git',['-c','safe.directory='+path.resolve(__dirname,'../../..'),'rev-parse','HEAD'],{encoding:'utf8',env:{},windowsHide:true}).trim();
- const c=normal.verifyCodeIdentity({reviewedHead:current,reviewedBranch:branch});
- assert.equal(c.reviewedHead,current);assert.equal(c.reviewedBranch,branch);
- if(current!==head)reject(()=>normal.verifyCodeIdentity({reviewedHead:head,reviewedBranch:branch}));
+test('isolated current Git identity passes while detached, wrong branch and wrong HEAD fail',()=>{
+ const f=loadAcquisition(),reviewed={reviewedHead:f.drift.head,reviewedBranch:f.drift.branch};
+ const c=f.auth.verifyCodeIdentity(reviewed);
+ assert.equal(c.reviewedHead,reviewed.reviewedHead);assert.equal(c.reviewedBranch,reviewed.reviewedBranch);
+ for(const mode of ['detached','wrongBranch','wrongHead']){
+  const isolated=loadAcquisition();
+  if(mode==='detached')isolated.drift.branch='';
+  if(mode==='wrongBranch')isolated.drift.branch='other';
+  if(mode==='wrongHead')isolated.drift.head='b'.repeat(40);
+  reject(()=>isolated.auth.verifyCodeIdentity(reviewed));
+ }
  assert.equal(template.reviewedHead,null);assert.equal(template.reviewedBranch,null);
 });
 test('templates contain only safe data and no credential patterns',()=>{
@@ -375,12 +380,10 @@ for(const key of ['liveAuthorized','manualLiveAuthorization','providerObservatio
  test('actual candidate rejects authority or secret-bearing field '+key,t=>{
   const f=actualOffline(t),c=actualJSON(actualPath);c[key]=true;reject(()=>inspectActualReview(f,c));
  });
-test('historical assessment fails current Git identity instead of silently refreshing',()=>{
- const c=actualJSON(actualPath);
- reject(()=>normal.verifyCodeIdentity({reviewedHead:c.reviewedHead,reviewedBranch:c.reviewedBranch}));
- const currentHead=require('node:child_process').execFileSync('git',
-  ['-c','safe.directory='+path.resolve(root,'..'),'rev-parse','HEAD'],{encoding:'utf8',env:{},windowsHide:true}).trim();
- const current=normal.verifyCodeIdentity({reviewedHead:currentHead,reviewedBranch:branch});
+test('historical assessment fails distinct synthetic current Git identity instead of silently refreshing',()=>{
+ const c=actualJSON(actualPath),f=loadAcquisition();
+ reject(()=>f.auth.verifyCodeIdentity({reviewedHead:c.reviewedHead,reviewedBranch:c.reviewedBranch}));
+ const current=f.auth.verifyCodeIdentity({reviewedHead:f.drift.head,reviewedBranch:f.drift.branch});
  for(const [file,sha]of Object.entries(current.sourceHashes)){
   if(['qualification-railway-target-identity.cjs','qualification-railway-https-adapter.cjs','qualification-railway-acquisition-wrapper.cjs'].includes(file))assert.notEqual(sha,c.codeIdentity.sourceHashes[file]);
   else if(file==='qualification-railway-acquisition-owner-host.cjs')assert.equal(c.codeIdentity.sourceHashes[file],undefined);
